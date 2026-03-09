@@ -13,9 +13,9 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    public function dices(): HasMany
+    public function collections(): HasMany
     {
-        return $this->hasMany(Dice::class);
+        return $this->hasMany(Collection::class);
     }
 
     /**
