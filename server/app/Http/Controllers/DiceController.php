@@ -4,37 +4,37 @@ namespace App\Http\Controllers;
 
 use App\Models\Dice;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
+use App\Http\Resources\DiceResource;
 
 class DiceController extends Controller
 {
     /**
      * Liste tous les dés avec leurs relations.
      */
-    public function index(): JsonResponse
+    public function index()
     {
-        $dices = Dice::with(['user', 'primaryCategory', 'secondaryCategory', 'criterias'])->get();
+        $dices = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias'])->get();
 
-        return response()->json($dices);
+        return DiceResource::collection($dices);
     }
 
     /**
      * Affiche un dé spécifique.
      */
-    public function show(int $id): JsonResponse
+    public function show(int $id)
     {
-        $dice = Dice::with(['user', 'primaryCategory', 'secondaryCategory', 'criterias'])->findOrFail($id);
+        $dice = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias'])->findOrFail($id);
 
-        return response()->json($dice);
+        return new DiceResource($dice);
     }
 
     /**
      * Crée un nouveau dé.
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id'        => 'required|exists:users,id',
+            'collection_id'  => 'required|exists:collections,id',
             'category_1_id'  => 'nullable|exists:categories,id',
             'category_2_id'  => 'nullable|exists:categories,id',
             'name'           => 'nullable|string|max:100',
@@ -56,20 +56,20 @@ class DiceController extends Controller
             $dice->criterias()->attach($criteriaData);
         }
 
-        $dice->load(['user', 'primaryCategory', 'secondaryCategory', 'criterias']);
+        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias']);
 
-        return response()->json($dice, 201);
+        return new DiceResource($dice);
     }
 
     /**
      * Met à jour un dé existant.
      */
-    public function update(Request $request, int $id): JsonResponse
+    public function update(Request $request, int $id)
     {
         $dice = Dice::findOrFail($id);
 
         $validated = $request->validate([
-            'user_id'        => 'sometimes|exists:users,id',
+            'collection_id'  => 'sometimes|exists:collections,id',
             'category_1_id'  => 'nullable|exists:categories,id',
             'category_2_id'  => 'nullable|exists:categories,id',
             'name'           => 'nullable|string|max:100',
@@ -91,15 +91,15 @@ class DiceController extends Controller
             $dice->criterias()->sync($criteriaData);
         }
 
-        $dice->load(['user', 'primaryCategory', 'secondaryCategory', 'criterias']);
+        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias']);
 
-        return response()->json($dice);
+        return new DiceResource($dice);
     }
 
     /**
      * Supprime un dé.
      */
-    public function destroy(int $id): JsonResponse
+    public function destroy(int $id)
     {
         $dice = Dice::findOrFail($id);
         $dice->delete();

@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('dices', function (Blueprint $table) {
+        Schema::create('collections', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('collection_id')->constrained()->onDelete('cascade');
-            $table->foreignId('category_1_id')->nullable()->constrained('categories')->onDelete('set null');
-            $table->foreignId('category_2_id')->nullable()->constrained('categories')->onDelete('set null');
-            $table->string('name', 100)->nullable();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('title');
             $table->text('description')->nullable();
             $table->string('image_url', 255)->nullable();
         });
@@ -27,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('dices');
+        Schema::dropIfExists('collections');
     }
 };

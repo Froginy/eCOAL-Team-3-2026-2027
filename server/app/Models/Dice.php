@@ -13,7 +13,7 @@ class Dice extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'user_id',
+        'collection_id',
         'category_1_id',
         'category_2_id',
         'name',
@@ -21,9 +21,9 @@ class Dice extends Model
         'image_url',
     ];
 
-    public function user(): BelongsTo
+    public function collection(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Collection::class);
     }
 
     public function primaryCategory(): BelongsTo
