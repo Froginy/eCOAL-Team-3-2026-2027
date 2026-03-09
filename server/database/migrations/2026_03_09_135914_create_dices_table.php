@@ -13,7 +13,12 @@ return new class extends Migration
     {
         Schema::create('dices', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('category_1_id')->nullable()->constrained('categories')->onDelete('set null');
+            $table->foreignId('category_2_id')->nullable()->constrained('categories')->onDelete('set null');
+            $table->string('name', 100)->nullable();
+            $table->text('description')->nullable();
+            $table->string('image_url', 255)->nullable();
         });
     }
 
