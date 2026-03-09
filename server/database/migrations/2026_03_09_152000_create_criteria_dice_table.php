@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('criterias', function (Blueprint $table) {
+        Schema::create('criteria_dice', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->string('description')->nullable();
+            $table->foreignId('dice_id')->constrained('dices')->onDelete('cascade');
+            $table->foreignId('criteria_id')->constrained('criterias')->onDelete('cascade');
+            $table->integer('value')->nullable();
         });
     }
 
@@ -23,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('criterias');
+        Schema::dropIfExists('criteria_dice');
     }
 };
