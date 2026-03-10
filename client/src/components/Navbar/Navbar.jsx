@@ -9,7 +9,7 @@ function Navbar() {
   if (location.pathname === "/") {
     navContent = (
       <section className="w-[50%] flex justify-start items-center">
-        <article className="h-2/3 bg-black py-2 px-4 rounded-full flex justify-center items-center gap-4">
+        <article className="h-2/3 bg-black text-white py-2 px-4 rounded-full flex justify-center items-center gap-4">
           <svg
             width="26"
             height="26"

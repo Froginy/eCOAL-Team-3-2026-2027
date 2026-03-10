@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./components/Home/Home";
-import Dices from "./components/Dices/Dices";
+import Feed from "./components/Feed/Feed";
 import Settings from "./components/Settings/Settings";
 import Profil from "./components/Profil/Profil";
 import Login from "./components/Login/Login";
@@ -13,7 +13,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/dices" element={<Dices />} />
+        <Route path="/dices" element={<Feed />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/profil" element={<Profil />} />
         <Route path="/login" element={<Login />} />
