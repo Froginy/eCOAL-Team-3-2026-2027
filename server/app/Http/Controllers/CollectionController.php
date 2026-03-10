@@ -13,7 +13,7 @@ class CollectionController extends Controller
      */
     public function index()
     {
-        $collections = Collection::with(['user', 'dices'])->get();
+        $collections = Collection::with(['user', 'dices', 'likedByUsers'])->withCount('likedByUsers')->get();
         return CollectionResource::collection($collections);
     }
 
@@ -46,8 +46,9 @@ class CollectionController extends Controller
             'dices', 
             'dices.primaryCategory', 
             'dices.secondaryCategory', 
-            'dices.criterias'
-        ])->findOrFail($id);
+            'dices.criterias',
+            'likedByUsers'
+        ])->withCount('likedByUsers')->findOrFail($id);
 
         return new CollectionResource($collection);
     }

@@ -28,8 +28,9 @@ class DiceSeeder extends Seeder
         $catMetal = Category::where('title', 'Metal')->first();
         $catSet = Category::where('title', 'Full Set')->first();
 
-        $critFaces = Criteria::where('title', 'Number of faces')->first();
-        $critPoids = Criteria::where('title', 'Weight')->first();
+        $critFaces = Criteria::where('title', 'Nombre de face')->first();
+        $critTaille = Criteria::where('title', 'Taille')->first();
+        $critCouleur = Criteria::where('title', 'Couleur')->first();
 
         // Dé 1
         $dice1 = Dice::create([
@@ -41,7 +42,8 @@ class DiceSeeder extends Seeder
             'image_url' => asset('storage/dices/dice_1.jpg'),
         ]);
         if ($critFaces) $dice1->criterias()->attach($critFaces->id, ['value' => 20]);
-        if ($critPoids) $dice1->criterias()->attach($critPoids->id, ['value' => 15]);
+        if ($critTaille) $dice1->criterias()->attach($critTaille->id, ['value' => 15]);
+        if ($critCouleur) $dice1->criterias()->attach($critCouleur->id, ['value' => '0.95 0.05 240']);
 
         // Dé 2
         $dice2 = Dice::create([
@@ -53,7 +55,8 @@ class DiceSeeder extends Seeder
             'image_url' => asset('storage/dices/dice-2.jpg'),
         ]);
         if ($critFaces) $dice2->criterias()->attach($critFaces->id, ['value' => 6]);
-        if ($critPoids) $dice2->criterias()->attach($critPoids->id, ['value' => 35]);
+        if ($critTaille) $dice2->criterias()->attach($critTaille->id, ['value' => 12]);
+        if ($critCouleur) $dice2->criterias()->attach($critCouleur->id, ['value' => '0.6 0 0']);
 
         // Dé 3
         $dice3 = Dice::create([
@@ -65,6 +68,7 @@ class DiceSeeder extends Seeder
             'image_url' => asset('storage/dices/dice-3.jpg'),
         ]);
         if ($critFaces) $dice3->criterias()->attach($critFaces->id, ['value' => 12]);
-        if ($critPoids) $dice3->criterias()->attach($critPoids->id, ['value' => 20]);
+        if ($critTaille) $dice3->criterias()->attach($critTaille->id, ['value' => 20]);
+        if ($critCouleur) $dice3->criterias()->attach($critCouleur->id, ['value' => '0.4 0.2 300']);
     }
 }
