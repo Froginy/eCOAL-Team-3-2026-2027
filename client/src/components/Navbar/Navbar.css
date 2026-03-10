@@ -1,11 +1,10 @@
-.grd-btn {
-  background:
-    linear-gradient(#fff, #fff) padding-box,
-    linear-gradient(60deg, #00f, #00e8ff) border-box;
-  color: #313149;
-  padding: 20px 70px;
-  border: 5px solid transparent;
-  border-radius: 40px;
-  display: inline-block;
-  font-size: 28px;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
