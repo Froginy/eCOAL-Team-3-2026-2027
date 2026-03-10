@@ -1,14 +1,14 @@
 import logo from '../../assets/logo.svg'
-import './feed.css'
 import PostCard from '../postCards/postCards.jsx'
 import sort from '../../assets/sort.svg'
+
 function Feed()   {
 
     return(
-        <div className="feed">
-            <div className="feed-header">
-            <img src={logo} alt="Logo" />
-            <a href=""><img src={sort} alt="Sort" /></a>
+        <div className="flex flex-col items-center m-auto p-0">
+            <div className="w-11/12 m-6 flex flex-row justify-between">
+                <img src={logo} alt="Logo" className="h-5" />
+                <a href=""><img src={sort} alt="Sort" className="h-5" /></a>
             </div>
             <PostCard />
             <PostCard />

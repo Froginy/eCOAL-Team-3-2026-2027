@@ -1,50 +1,6 @@
 
-.PostBar{
-    display : flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    background-color: white;
-    color : black;
-    width : 225px;
-    height : 40px;
-    margin: 0 auto;
-    border-radius: 1.5rem;
-}
 
-.PostBar .left a{
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    position: relative;
-  color: #000;
-    margin: 10px;
-}
-
-.PostBar .right{
-    display: flex;
-    gap: 0.5rem;
-    margin: 10px;
-}
-
-.PostBar img{
-    border-radius: 2rem;
-    width : 30px;
-    aspect-ratio: 1/1;
-    object-fit: contain;
-}
-
-.PostBar p{
-    text-decoration: none;
-    width: 80px;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    white-space: normal;
-    font-size: 0.8rem;
-    line-height: 0.7rem;
-}
-
-.left p::after {
+.special_underline::after {
   content: "";
   position: absolute;
   left: 0; bottom: 5px;
