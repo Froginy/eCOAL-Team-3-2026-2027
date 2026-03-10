@@ -7,11 +7,11 @@ function PostBar() {
 
     const username = "Username"; // This should be dynamically set based on the post's author
     return (
-        <div className='flex flex-row justify-between items-center bg-white text-black w-[225px] h-10 mx-auto rounded-3xl absolute left-1/2 -translate-x-1/2 top-2.5'>
+        <div className='flex flex-row justify-between items-center bg-white text-black w-56.25 h-10 mx-auto rounded-3xl absolute left-1/2 -translate-x-1/2 top-2.5'>
             <div className='flex items-center relative text-black m-2.5'>
                 <a href="" className="flex items-center relative text-black ">
                     <img src={placeholder} alt="profile_picture" className='rounded-full w-7 aspect-square object-contain' />
-                    <p className='text-black  w-20 break-words overflow-wrap-anywhere whitespace-normal text-xs leading-tight
+                    <p className='text-black  w-20 -words overflow-wrap-anywhere whitespace-normal text-xs leading-tight
                     special_underline no-repeat center/contain;'>{username}</p>
                 </a>
             </div>
