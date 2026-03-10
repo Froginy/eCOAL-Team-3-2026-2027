@@ -27,6 +27,8 @@ class DiceResource extends JsonResource
             'secondary_category' => new CategoryResource($this->whenLoaded('secondaryCategory')),
             'criterias' => CriteriaResource::collection($this->whenLoaded('criterias')),
             'images' => DiceImageResource::collection($this->whenLoaded('images')),
+            'likes_count' => $this->whenCounted('likedByUsers'),
+            'is_liked_by_current_user' => $request->user() && $this->relationLoaded('likedByUsers') ? $this->likedByUsers->contains($request->user()->id) : false,
         ];
     }
 }
