@@ -2,39 +2,45 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Collection;
+use App\Models\Dice;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class LikeController extends Controller
 {
     /**
-     * Like a collection.
+     * Like a dice.
      */
     public function like(Request $request, int $id): JsonResponse
     {
-        $collection = Collection::findOrFail($id);
+        $dice = Dice::with('collection')->findOrFail($id);
         $user = $request->user();
 
-        $user->likedCollections()->syncWithoutDetaching([$collection->id]);
+        if ($dice->collection->user_id === $user->id) {
+            return response()->json([
+                'message' => 'You cannot like your own dice.'
+            ], 403);
+        }
+
+        $user->likedDices()->syncWithoutDetaching([$dice->id]);
 
         return response()->json([
-            'message' => 'Successfully liked collection ' . $collection->title
+            'message' => 'Successfully liked dice ' . $dice->name
         ]);
     }
 
     /**
-     * Unlike a collection.
+     * Unlike a dice.
      */
     public function unlike(Request $request, int $id): JsonResponse
     {
-        $collection = Collection::findOrFail($id);
+        $dice = Dice::findOrFail($id);
         $user = $request->user();
 
-        $user->likedCollections()->detach($collection->id);
+        $user->likedDices()->detach($dice->id);
 
         return response()->json([
-            'message' => 'Successfully unliked collection ' . $collection->title
+            'message' => 'Successfully unliked dice ' . $dice->name
         ]);
     }
 }

@@ -9,10 +9,24 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CriteriaController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\LikeController;
+use App\Http\Controllers\AuthController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+    
+    Route::post('/logout', [AuthController::class, 'logout']);
+});
+
+// --- SUBSCRIPTIONS ---
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/users/{id}/subscribe', [SubscriptionController::class, 'subscribe']);
+    Route::delete('/users/{id}/subscribe', [SubscriptionController::class, 'unsubscribe']);
+});
 
 // --- SUBSCRIPTIONS ---
 Route::middleware('auth:sanctum')->group(function () {
@@ -42,6 +56,12 @@ Route::prefix('dices')->group(function () {
     Route::get('/{id}', [DiceController::class, 'show']);
     Route::put('/{id}', [DiceController::class, 'update']);
     Route::delete('/{id}', [DiceController::class, 'destroy']);
+
+    // Auth routes for dices
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/{id}/like', [LikeController::class, 'like']);
+        Route::delete('/{id}/like', [LikeController::class, 'unlike']);
+    });
 });
 
 // --- CATEGORIES ---
