@@ -1,5 +1,5 @@
 import './postCard.css'
-
+import placeholder_dice from '../../assets/placeholder_dice.png'
 import PostBar from '../PostBar/PostBar.jsx'
 
 function PostCard()   {
@@ -13,7 +13,7 @@ function PostCard()   {
         <div className='PostCard'>
         
         <PostBar />
-        <img src="tkt" alt="dice_picture" className='DicePic'/>
+        <img src={placeholder_dice} alt="dice_picture" className='DicePic'/>
         
         <p>Description</p>
         
