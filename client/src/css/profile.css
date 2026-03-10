@@ -63,11 +63,11 @@
 
 .stat-number {
   font-weight: 700;
-  font-size: 2px;
+  font-size: 20px;
 }
 
 .stat-label {
-  font-size: 2px;
+  font-size: 12px;
   color: #5c5c5c;
 }
 
@@ -150,4 +150,3 @@
     width: 100%;
   }
 }
-
