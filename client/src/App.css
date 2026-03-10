@@ -1,16 +1,1 @@
-
 @import "tailwindcss";
-
-#root {
-  margin: 0 auto;
-  padding: 0 auto;
-  text-align: center;
-}
-
-
-/* Use the line below to make your stuff responseive and work on phone (ONLY CODE IN IT)*/
-@media (max-width: 1024px) {
-  #root {
-    width: 100%;
-  }
-}
