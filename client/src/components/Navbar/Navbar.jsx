@@ -41,7 +41,7 @@ function Navbar() {
         </article>
       </section>
     );
-  } else if (location.pathname.includes("/dices")) {
+  } else if (location.pathname.includes("/feed")) {
     navContent = (
       <article className="h-2/3 aspect-square bg-transparent p-2"></article>
     );
