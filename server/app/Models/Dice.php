@@ -18,8 +18,12 @@ class Dice extends Model
         'category_2_id',
         'name',
         'description',
-        'image_url',
     ];
+
+    public function images(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(DiceImage::class);
+    }
 
     public function collection(): BelongsTo
     {

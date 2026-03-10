@@ -7,10 +7,18 @@ use App\Http\Controllers\DiceController;
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CriteriaController;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\LikeController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+// --- SUBSCRIPTIONS ---
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/users/{id}/subscribe', [SubscriptionController::class, 'subscribe']);
+    Route::delete('/users/{id}/subscribe', [SubscriptionController::class, 'unsubscribe']);
+});
 
 // --- COLLECTIONS ---
 Route::prefix('collections')->group(function () {
@@ -19,6 +27,12 @@ Route::prefix('collections')->group(function () {
     Route::get('/{id}', [CollectionController::class, 'show']);
     Route::put('/{id}', [CollectionController::class, 'update']);
     Route::delete('/{id}', [CollectionController::class, 'destroy']);
+    
+    // Auth routes for collections
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/{id}/like', [LikeController::class, 'like']);
+        Route::delete('/{id}/like', [LikeController::class, 'unlike']);
+    });
 });
 
 // --- DICES ---

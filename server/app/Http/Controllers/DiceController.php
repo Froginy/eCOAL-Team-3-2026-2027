@@ -13,7 +13,7 @@ class DiceController extends Controller
      */
     public function index()
     {
-        $dices = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias'])->get();
+        $dices = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images'])->get();
 
         return DiceResource::collection($dices);
     }
@@ -23,7 +23,7 @@ class DiceController extends Controller
      */
     public function show(int $id)
     {
-        $dice = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias'])->findOrFail($id);
+        $dice = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images'])->findOrFail($id);
 
         return new DiceResource($dice);
     }
@@ -39,13 +39,22 @@ class DiceController extends Controller
             'category_2_id'  => 'nullable|exists:categories,id',
             'name'           => 'nullable|string|max:100',
             'description'    => 'nullable|string',
-            'image_url'      => 'nullable|string|max:255',
+            'images'         => 'nullable|array',
+            'images.*'       => 'string|max:255',
             'criterias'      => 'nullable|array',
             'criterias.*.criteria_id' => 'required|exists:criterias,id',
             'criterias.*.value'       => 'nullable|integer',
         ]);
 
         $dice = Dice::create($validated);
+
+        // Attacher les images si fournies
+        if ($request->has('images') && is_array($request->images)) {
+            $imagesData = array_map(function ($url) {
+                return ['image_url' => $url];
+            }, $request->images);
+            $dice->images()->createMany($imagesData);
+        }
 
         // Attacher les critères si fournis
         if ($request->has('criterias')) {
@@ -56,7 +65,7 @@ class DiceController extends Controller
             $dice->criterias()->attach($criteriaData);
         }
 
-        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias']);
+        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images']);
 
         return new DiceResource($dice);
     }
@@ -74,13 +83,23 @@ class DiceController extends Controller
             'category_2_id'  => 'nullable|exists:categories,id',
             'name'           => 'nullable|string|max:100',
             'description'    => 'nullable|string',
-            'image_url'      => 'nullable|string|max:255',
+            'images'         => 'nullable|array',
+            'images.*'       => 'string|max:255',
             'criterias'      => 'nullable|array',
             'criterias.*.criteria_id' => 'required|exists:criterias,id',
             'criterias.*.value'       => 'nullable|integer',
         ]);
 
         $dice->update($validated);
+
+        // Sync les images si fournies
+        if ($request->has('images') && is_array($request->images)) {
+            $dice->images()->delete(); // Remove old images
+            $imagesData = array_map(function ($url) {
+                return ['image_url' => $url];
+            }, $request->images);
+            $dice->images()->createMany($imagesData);
+        }
 
         // Sync les critères si fournis
         if ($request->has('criterias')) {
@@ -91,7 +110,7 @@ class DiceController extends Controller
             $dice->criterias()->sync($criteriaData);
         }
 
-        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias']);
+        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images']);
 
         return new DiceResource($dice);
     }
