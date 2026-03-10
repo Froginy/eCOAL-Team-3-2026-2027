@@ -45,4 +45,9 @@ class Dice extends Model
         return $this->belongsToMany(Criteria::class, 'criteria_dice', 'dice_id', 'criteria_id')
             ->withPivot('value');
     }
+
+    public function likedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'likes');
+    }
 }

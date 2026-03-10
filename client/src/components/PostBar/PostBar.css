@@ -1,0 +1,11 @@
+
+
+.special_underline::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: 5px;
+  width: 100%; height: 4px;
+  background: url('../../assets/underline.svg') no-repeat center/contain;
+  pointer-events: none;
+}
+

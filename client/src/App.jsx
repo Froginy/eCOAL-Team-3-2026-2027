@@ -1,22 +1,26 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import './App.css'
-import Settings from './components/settings/settings'
-import Login from './components/auth/login'
-import Register from './components/auth/register'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./components/Home/Home";
+import Feed from "./components/Feed/Feed";
+import Settings from "./components/Settings/Settings";
+import Profil from "./components/Profil/Profil";
+import Login from "./components/auth/Login";
+import Register from "./components/auth/Register";
+
+import "./App.css";
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/dices" element={<Feed />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/profil" element={<Profil />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/settings" element={<Settings />} />
-
-        {/* Default route -> redirects to login for now */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
-    </Router>
-  )
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
