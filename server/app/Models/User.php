@@ -5,13 +5,14 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     public function collections(): HasMany
     {
@@ -64,8 +65,8 @@ class User extends Authenticatable
         return $this->belongsToMany(User::class, 'subscriptions', 'subscribed_to_id', 'subscriber_id');
     }
 
-    public function likedCollections(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function likedDices(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Collection::class, 'likes');
+        return $this->belongsToMany(Dice::class, 'likes');
     }
 }

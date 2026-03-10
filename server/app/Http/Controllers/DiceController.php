@@ -13,7 +13,7 @@ class DiceController extends Controller
      */
     public function index()
     {
-        $dices = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images'])->get();
+        $dices = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers'])->withCount('likedByUsers')->get();
 
         return DiceResource::collection($dices);
     }
@@ -23,7 +23,7 @@ class DiceController extends Controller
      */
     public function show(int $id)
     {
-        $dice = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images'])->findOrFail($id);
+        $dice = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers'])->withCount('likedByUsers')->findOrFail($id);
 
         return new DiceResource($dice);
     }
@@ -39,7 +39,7 @@ class DiceController extends Controller
             'category_2_id'  => 'nullable|exists:categories,id',
             'name'           => 'nullable|string|max:100',
             'description'    => 'nullable|string',
-            'images'         => 'nullable|array',
+            'images'         => 'nullable|array|max:3',
             'images.*'       => 'string|max:255',
             'criterias'      => 'nullable|array',
             'criterias.*.criteria_id' => 'required|exists:criterias,id',
@@ -65,7 +65,8 @@ class DiceController extends Controller
             $dice->criterias()->attach($criteriaData);
         }
 
-        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images']);
+        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers']);
+        $dice->loadCount('likedByUsers');
 
         return new DiceResource($dice);
     }
@@ -83,7 +84,7 @@ class DiceController extends Controller
             'category_2_id'  => 'nullable|exists:categories,id',
             'name'           => 'nullable|string|max:100',
             'description'    => 'nullable|string',
-            'images'         => 'nullable|array',
+            'images'         => 'nullable|array|max:3',
             'images.*'       => 'string|max:255',
             'criterias'      => 'nullable|array',
             'criterias.*.criteria_id' => 'required|exists:criterias,id',
@@ -110,7 +111,8 @@ class DiceController extends Controller
             $dice->criterias()->sync($criteriaData);
         }
 
-        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images']);
+        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers']);
+        $dice->loadCount('likedByUsers');
 
         return new DiceResource($dice);
     }

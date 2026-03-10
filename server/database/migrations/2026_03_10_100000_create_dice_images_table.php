@@ -17,6 +17,16 @@ return new class extends Migration
             $table->string('image_url', 255);
             $table->timestamps();
         });
+
+        \Illuminate\Support\Facades\DB::unprepared('
+            CREATE TRIGGER enforce_max_dice_images
+            BEFORE INSERT ON dice_images
+            FOR EACH ROW
+            WHEN (SELECT COUNT(*) FROM dice_images WHERE dice_id = NEW.dice_id) >= 3
+            BEGIN
+                SELECT RAISE(ABORT, "Un dé ne peut avoir que 3 photos maximum.");
+            END;
+        ');
     }
 
     /**
@@ -24,6 +34,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        \Illuminate\Support\Facades\DB::unprepared('DROP TRIGGER IF EXISTS enforce_max_dice_images');
         Schema::dropIfExists('dice_images');
     }
 };
