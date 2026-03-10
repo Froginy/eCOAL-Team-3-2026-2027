@@ -21,12 +21,12 @@ class DiceResource extends JsonResource
             'category_2_id' => $this->category_2_id,
             'name' => $this->name,
             'description' => $this->description,
-            'image_url' => $this->image_url,
             // Inclusions conditionnelles si les relations sont chargées
             'collection' => new CollectionResource($this->whenLoaded('collection')),
             'primary_category' => new CategoryResource($this->whenLoaded('primaryCategory')),
             'secondary_category' => new CategoryResource($this->whenLoaded('secondaryCategory')),
             'criterias' => CriteriaResource::collection($this->whenLoaded('criterias')),
+            'images' => DiceImageResource::collection($this->whenLoaded('images')),
         ];
     }
 }

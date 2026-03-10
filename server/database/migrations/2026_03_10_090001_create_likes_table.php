@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('dices', function (Blueprint $table) {
+        Schema::create('likes', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('collection_id')->constrained()->onDelete('cascade');
-            $table->foreignId('category_1_id')->nullable()->constrained('categories')->onDelete('set null');
-            $table->foreignId('category_2_id')->nullable()->constrained('categories')->onDelete('set null');
-            $table->string('name', 100)->nullable();
-            $table->text('description')->nullable();
+            $table->timestamps();
+
+            $table->unique(['user_id', 'collection_id']);
         });
     }
 
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('dices');
+        Schema::dropIfExists('likes');
     }
 };
