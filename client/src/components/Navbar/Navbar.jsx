@@ -3,7 +3,13 @@ import { useLocation, Link } from "react-router-dom";
 import login from "../../assets/login.svg";
 
 const HomeIcon = ({ active }) => (
-  <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg
+    width="26"
+    height="26"
+    viewBox="0 0 26 26"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
     <path
       d="M4.19751 19.9382V10.4938C4.19751 10.1615 4.27202 9.84665 4.42103 9.54933C4.57004 9.25201 4.77537 9.00715 5.03701 8.81476L11.3333 4.09257C11.7006 3.81274 12.1203 3.67282 12.5925 3.67282C13.0647 3.67282 13.4845 3.81274 13.8518 4.09257L20.148 8.81476C20.4104 9.00715 20.6161 9.25201 20.7651 9.54933C20.9141 9.84665 20.9882 10.1615 20.9875 10.4938V19.9382C20.9875 20.5153 20.7819 21.0096 20.3705 21.4209C19.9591 21.8323 19.4652 22.0376 18.8888 22.0369H15.7406C15.4433 22.0369 15.1943 21.9362 14.9935 21.7347C14.7927 21.5332 14.692 21.2842 14.6913 20.9875V15.7406C14.6913 15.4433 14.5905 15.1943 14.3891 14.9935C14.1876 14.7927 13.9385 14.692 13.6419 14.6913H11.5431C11.2458 14.6913 10.9968 14.792 10.796 14.9935C10.5952 15.195 10.4945 15.444 10.4938 15.7406V20.9875C10.4938 21.2849 10.393 21.5343 10.1915 21.7357C9.99007 21.9372 9.74101 22.0376 9.44439 22.0369H6.29626C5.71911 22.0369 5.2252 21.8316 4.81454 21.4209C4.40389 21.0103 4.19821 20.516 4.19751 19.9382Z"
       fill={active ? "white" : "black"}
@@ -12,7 +18,13 @@ const HomeIcon = ({ active }) => (
 );
 
 const DiceIcon = ({ active }) => (
-  <svg width="35" height="35" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg
+    width="35"
+    height="35"
+    viewBox="0 0 40 40"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
     <path
       fillRule="evenodd"
       clipRule="evenodd"
@@ -36,7 +48,7 @@ function Navbar() {
   const currentIndex = NAV_ITEMS.findIndex((item) =>
     item.path === "/"
       ? location.pathname === "/"
-      : location.pathname.includes(item.path)
+      : location.pathname.includes(item.path),
   );
 
   if (currentIndex === -1) return null;
@@ -56,58 +68,70 @@ function Navbar() {
   }, [currentIndex, location.pathname]);
 
   return (
-    <nav
-      ref={navRef}
-      className="fixed z-999 bottom-10 left-1/2 -translate-x-1/2 bg-white/80 backdrop-blur-3xl border-1 border-white rounded-full w-[80vw] md:w-[50vw] lg:w-[40vw] h-15 shadow-xl overflow-hidden"
-      style={{ position: "fixed" }}
-    >
+    <>
       <div
-        className="absolute top-1/2 -translate-y-1/2 h-10 bg-black rounded-full"
+        className="fixed -bottom-2.5 left-0 right-0 h-17.5 backdrop-blur-lg pointer-events-none z-998"
         style={{
-          left: indicatorStyle.left,
-          width: indicatorStyle.width,
-          transition: "left 0.35s cubic-bezier(0.4, 0, 0.2, 1), width 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+          maskImage: "linear-gradient(to top, black 40%, transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to top, black 40%, transparent 100%)",
         }}
       />
 
-      <div className="relative w-full h-full flex items-center justify-between px-2">
-        <div className="flex items-center h-full gap-1">
-          {NAV_ITEMS.map((item, index) => {
-            const isActive = index === currentIndex;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                ref={(el) => (itemRefs.current[index] = el)}
-                className="relative z-10 flex items-center gap-2 py-2 px-4 rounded-full h-10"
-                style={{
-                  transition: "color 0.2s ease",
-                  textDecoration: "none",
-                  color: isActive ? "white" : "black",
-                }}
-              >
-                <item.icon active={isActive} />
-                {isActive && (
-                  <span
-                    className="text-sm font-medium"
-                    style={{
-                      animation: "fadeIn 0.2s ease forwards",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
-        </div>
+      <nav
+        ref={navRef}
+        className="fixed z-999 bottom-5 left-1/2 -translate-x-1/2 bg-white/80 backdrop-blur-3xl border border-white rounded-full w-[80vw] md:w-[50vw] lg:w-[40vw] h-15 shadow-xl overflow-hidden"
+        style={{ position: "fixed" }}
+      >
+        <div
+          className="absolute top-1/2 -translate-y-1/2 h-10 bg-black rounded-full"
+          style={{
+            left: indicatorStyle.left,
+            width: indicatorStyle.width,
+            transition:
+              "left 0.35s cubic-bezier(0.4, 0, 0.2, 1), width 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        />
 
-        <div className="relative z-10 mr-3 flex items-center justify-center w-9 h-9 -scale-x-100">
-          <img src={login} alt="Login" className="h-6.5" />
+        <div className="relative w-full h-full flex items-center justify-between px-2">
+          <div className="flex items-center h-full gap-1">
+            {NAV_ITEMS.map((item, index) => {
+              const isActive = index === currentIndex;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  ref={(el) => (itemRefs.current[index] = el)}
+                  className="relative z-10 flex items-center gap-2 py-2 px-4 rounded-full h-10"
+                  style={{
+                    transition: "color 0.2s ease",
+                    textDecoration: "none",
+                    color: isActive ? "white" : "black",
+                  }}
+                >
+                  <item.icon active={isActive} />
+                  {isActive && (
+                    <span
+                      className="text-sm font-medium"
+                      style={{
+                        animation: "fadeIn 0.2s ease forwards",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {item.label}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="relative z-10 mr-3 flex items-center justify-center w-9 h-9 -scale-x-100">
+            <img src={login} alt="Login" className="h-6.5" />
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 }
 
