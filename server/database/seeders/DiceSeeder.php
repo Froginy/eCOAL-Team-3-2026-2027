@@ -39,7 +39,10 @@ class DiceSeeder extends Seeder
             'category_2_id' => $catResine->id ?? null,
             'name' => 'White Dragon Die',
             'description' => 'A gorgeous resin die with icy reflections.',
-            'image_url' => asset('storage/dices/dice_1.jpg'),
+        ]);
+        $dice1->images()->createMany([
+            ['image_url' => asset('storage/dices/dice_1.jpg')],
+            ['image_url' => asset('storage/dices/dice-2.jpg')],
         ]);
         if ($critFaces) $dice1->criterias()->attach($critFaces->id, ['value' => 20]);
         if ($critTaille) $dice1->criterias()->attach($critTaille->id, ['value' => 15]);
@@ -52,7 +55,10 @@ class DiceSeeder extends Seeder
             'category_2_id' => $catMetal->id ?? null,
             'name' => 'Heavy Metal Die',
             'description' => 'Perfect for crushing enemies on the table.',
-            'image_url' => asset('storage/dices/dice-2.jpg'),
+        ]);
+        $dice2->images()->createMany([
+            ['image_url' => asset('storage/dices/dice-2.jpg')],
+            ['image_url' => asset('storage/dices/dice-3.jpg')],
         ]);
         if ($critFaces) $dice2->criterias()->attach($critFaces->id, ['value' => 6]);
         if ($critTaille) $dice2->criterias()->attach($critTaille->id, ['value' => 12]);
@@ -65,7 +71,11 @@ class DiceSeeder extends Seeder
             'category_2_id' => null,
             'name' => 'Galactic Set',
             'description' => 'A set reminiscent of nebulas.',
-            'image_url' => asset('storage/dices/dice-3.jpg'),
+        ]);
+        $dice3->images()->createMany([
+            ['image_url' => asset('storage/dices/dice-3.jpg')],
+            ['image_url' => asset('storage/dices/dice_1.jpg')],
+            ['image_url' => asset('storage/dices/dice-2.jpg')],
         ]);
         if ($critFaces) $dice3->criterias()->attach($critFaces->id, ['value' => 12]);
         if ($critTaille) $dice3->criterias()->attach($critTaille->id, ['value' => 20]);

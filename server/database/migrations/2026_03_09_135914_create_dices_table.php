@@ -18,7 +18,6 @@ return new class extends Migration
             $table->foreignId('category_2_id')->nullable()->constrained('categories')->onDelete('set null');
             $table->string('name', 100)->nullable();
             $table->text('description')->nullable();
-            $table->string('image_url', 255)->nullable();
         });
     }
 
