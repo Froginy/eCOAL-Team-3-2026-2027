@@ -12,7 +12,7 @@ const postContent = "Cupidatat aute laborum aliqua consectetur voluptate laborum
 
     return(
     
-        <div className='relative w-75 mb-7.5 bg-white shadow-lg rounded-2xl flex flex-col '>
+        <div className='relative w-75 md:w-100 mb-7.5 bg-white shadow-lg rounded-2xl flex flex-col '>
         
         <PostBar />
         <img src={placeholder_dice} alt="dice_picture" className='aspect-square object-cover w-[110%] self-center rounded-3xl shadow-lg' />
