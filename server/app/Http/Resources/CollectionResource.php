@@ -23,6 +23,8 @@ class CollectionResource extends JsonResource
             // Inclusions conditionnelles si les relations sont chargées
             'user' => new UserResource($this->whenLoaded('user')),
             'dices' => DiceResource::collection($this->whenLoaded('dices')),
+            'likes_count' => $this->whenCounted('likedByUsers'),
+            'is_liked_by_current_user' => $request->user() ? $this->likedByUsers->contains($request->user()->id) : false,
         ];
     }
 }

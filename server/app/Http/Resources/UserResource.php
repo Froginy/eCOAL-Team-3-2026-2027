@@ -20,6 +20,8 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'description' => $this->description,
             'profile_picture_url' => $this->profile_picture_url,
+            'followers_count' => $this->whenCounted('followers'),
+            'following_count' => $this->whenCounted('following'),
         ];
     }
 }

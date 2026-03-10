@@ -13,10 +13,9 @@ class CriteriaSeeder extends Seeder
     public function run(): void
     {
         $criterias = [
-            ['title' => 'Number of faces', 'description' => 'How many faces does this die have? (e.g., 20)'],
-            ['title' => 'Weight', 'description' => 'Weight of the die in grams'],
-            ['title' => 'Size', 'description' => 'Size or diameter in mm'],
-            ['title' => 'Release Year', 'description' => 'Release year of this model'],
+            ['title' => 'Nombre de face', 'description' => 'Combien de faces possède ce dé ? (ex: 20)'],
+            ['title' => 'Taille', 'description' => 'Taille ou diamètre en mm'],
+            ['title' => 'Couleur', 'description' => 'Couleur dominante du dé'],
         ];
 
         foreach ($criterias as $criteria) {
