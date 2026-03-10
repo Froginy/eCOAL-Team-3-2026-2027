@@ -1,10 +1,9 @@
 import { useState } from "react";
 import "./Navbar.css";
 import { useLocation } from "react-router-dom";
-
+import login from "../../assets/login.svg";
 function Navbar() {
   const location = useLocation();
-  console.log;
   let navContent;
   if (location.pathname === "/") {
     navContent = (
@@ -53,11 +52,12 @@ function Navbar() {
   }
 
   return (
-    <nav className="fixed bottom-10 left-1/2 right-1/2 -translate-x-1/2 bg-white rounded-full w-[70vw] md:w-[50vw]lg:w-[30vw] h-15">
+    <nav className="fixed bottom-10 left-1/2 right-1/2 -translate-x-1/2 bg-white border border-black/10 rounded-full w-[80vw] md:w-[50vw] lg:w-[40vw] h-15 shadow-xl">
       <div className="relative w-full mx-3 h-full flex items-center justify-between">
         {navContent}
-        <section className="h-2/3 aspect-square">
 
+        <section className="h-2/3 mr-7 -scale-x-100 aspect-square flex justify-center items-center">
+          <img src={login} alt="" />
         </section>
       </div>
     </nav>

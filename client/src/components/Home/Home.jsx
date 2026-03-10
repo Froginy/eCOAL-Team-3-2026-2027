@@ -4,9 +4,9 @@ import './Home.css'
 
 function Home() {
   return (
-    <>
+    <main className='grid-dots'>
       <Navbar />
-    </>
+    </main>
   )
 }
 
