@@ -10,8 +10,7 @@ import dice3 from '../../assets/dice3.svg'
 function PostCard()   {
 
 
-
-
+const postContent = "Cupidatat aute laborum aliqua consectetur voluptate laborum ipsum pariatur est deserunt enim eiusmod adipisicing duis. "
 
     return(
     
@@ -29,7 +28,7 @@ function PostCard()   {
             <a href="" className="more"> 
                 <img src={dots} alt="dots" />
             </a>
-        <p>Cupidatat aute laborum aliqua consectetur voluptate laborum ipsum pariatur est deserunt enim eiusmod adipisicing duis. </p>
+        <p>{postContent}</p>
         
         </div>)
 }

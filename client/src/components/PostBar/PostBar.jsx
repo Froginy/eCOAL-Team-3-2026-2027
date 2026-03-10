@@ -6,12 +6,14 @@ import placeholder from '../../assets/placeholder_pp.png'
 
 function PostBar() {
 
+
+    const username = "Username"; // This should be dynamically set based on the post's author
     return (
         <div className='PostBar'>
             <div className='left'>
                 <a href="" className="fancy-link">
                     <img src={placeholder} alt="profile_picture" />
-                    <p>Username</p>
+                    <p>{username}</p>
                 </a>
             </div>
             <div className='right'>
