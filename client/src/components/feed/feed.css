@@ -1,0 +1,22 @@
+.feed{
+    display : flex;
+    flex-direction: column;
+    align-items: center;
+    margin : 0 auto;
+    
+    padding : 0;
+}
+
+.feed-header{
+    width: 90%;
+    margin : 25px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between; 
+
+    img{
+        height : 20px;
+    }
+
+    
+}

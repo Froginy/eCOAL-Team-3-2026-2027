@@ -2,9 +2,10 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import ProfilePage from './Profile Page/profilePage.jsx'
 import './css/index.css'
+import App from './App.jsx'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <ProfilePage />
+    <App />
   </React.StrictMode>
 )
