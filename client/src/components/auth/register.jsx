@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import './login.css'; // Reusing the same beautiful auth CSS
+import axios from 'axios';
+
+import './login.css';
 
 function Register() {
     const [name, setName] = useState('');
@@ -30,35 +32,54 @@ function Register() {
         }
 
         try {
-            // Simulated backend call
-            // const response = await fetch('/api/register', { ... })
-            console.log('Registering user:', name, email);
+            const response = await axios.post('/api/register', { name, email, password });
 
-            // Mock success -> Navigate back to login
             alert('Account created successfully! Please sign in.');
             navigate('/login');
         } catch (err) {
-            setError('An error occurred during registration.');
+            console.log(err)
+            setError('An error occurred during registration.', err);
         }
     }
 
     return (
         <div className="auth-container">
+            <button
+            className="fixed top-0 left-0 fill-black m-10 transition-all duration-300 hover:scale-110 hover:cursor-pointer"
+            aria-label="Go back"
+            onClick={() => window.history.back()}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="30"
+              height="30"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M20 12H4m0 0l6-6m-6 6l6 6"
+              />
+            </svg>
+          </button>
             <div className="auth-card">
                 <div className="auth-header">
                     <h1 className="auth-title">Create Account</h1>
-                    <p className="auth-subtitle">Join eCOAL today</p>
+                    <p className="auth-subtitle">Join Roll It today</p>
                 </div>
 
                 <form className="auth-form" onSubmit={handleRegister}>
                     <div className="input-group">
-                        <label className="input-label">Full Name</label>
+                        <label className="input-label">Username</label>
                         <input
                             type="text"
                             className="auth-input"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder="Enter your name"
+                            placeholder="Enter your username"
                         />
                     </div>
 
