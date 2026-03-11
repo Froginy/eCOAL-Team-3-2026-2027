@@ -247,7 +247,8 @@ function Settings() {
     }
 
     return (
-        <div className="settings-mobile-container">
+      <div className='bg-white w-screen h-screen flex justify-center items-center'>
+                <div className="settings-mobile-container">
             <header className="settings-header">
                 <button className="icon-btn back-btn" aria-label="Go back" onClick={() => window.history.back()}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -413,6 +414,7 @@ function Settings() {
                 </div>
             )}
         </div>
+      </div>
     )
 }
 
