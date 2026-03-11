@@ -1,15 +1,10 @@
-import { useState, useRef, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
-import login from "../../assets/login.svg";
+import gsap from "gsap";
+import { useEntranceAnimation } from "../../hooks/useEntranceAnimation";
 
 const HomeIcon = ({ active }) => (
-  <svg
-    width="26"
-    height="26"
-    viewBox="0 0 26 26"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
+  <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
     <path
       d="M4.19751 19.9382V10.4938C4.19751 10.1615 4.27202 9.84665 4.42103 9.54933C4.57004 9.25201 4.77537 9.00715 5.03701 8.81476L11.3333 4.09257C11.7006 3.81274 12.1203 3.67282 12.5925 3.67282C13.0647 3.67282 13.4845 3.81274 13.8518 4.09257L20.148 8.81476C20.4104 9.00715 20.6161 9.25201 20.7651 9.54933C20.9141 9.84665 20.9882 10.1615 20.9875 10.4938V19.9382C20.9875 20.5153 20.7819 21.0096 20.3705 21.4209C19.9591 21.8323 19.4652 22.0376 18.8888 22.0369H15.7406C15.4433 22.0369 15.1943 21.9362 14.9935 21.7347C14.7927 21.5332 14.692 21.2842 14.6913 20.9875V15.7406C14.6913 15.4433 14.5905 15.1943 14.3891 14.9935C14.1876 14.7927 13.9385 14.692 13.6419 14.6913H11.5431C11.2458 14.6913 10.9968 14.792 10.796 14.9935C10.5952 15.195 10.4945 15.444 10.4938 15.7406V20.9875C10.4938 21.2849 10.393 21.5343 10.1915 21.7357C9.99007 21.9372 9.74101 22.0376 9.44439 22.0369H6.29626C5.71911 22.0369 5.2252 21.8316 4.81454 21.4209C4.40389 21.0103 4.19821 20.516 4.19751 19.9382Z"
       fill={active ? "white" : "black"}
@@ -18,13 +13,7 @@ const HomeIcon = ({ active }) => (
 );
 
 const DiceIcon = ({ active }) => (
-  <svg
-    width="35"
-    height="35"
-    viewBox="0 0 40 40"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
+  <svg width="35" height="35" viewBox="0 0 40 40" fill="none">
     <path
       fillRule="evenodd"
       clipRule="evenodd"
@@ -41,9 +30,17 @@ const NAV_ITEMS = [
 
 function Navbar() {
   const location = useLocation();
-  const [indicatorStyle, setIndicatorStyle] = useState({});
+  const indicatorRef = useRef(null);
   const itemRefs = useRef([]);
-  const navRef = useRef(null);
+  const prevIndexRef = useRef(-1);
+  const isFirstRender = useRef(true);
+
+  const navRef = useEntranceAnimation({
+    y: 60,
+    scale: 0.85,
+    duration: 0.7,
+    ease: "elastic.out(1, 0.6)",
+  });
 
   const currentIndex = NAV_ITEMS.findIndex((item) =>
     item.path === "/"
@@ -51,21 +48,101 @@ function Navbar() {
       : location.pathname.includes(item.path),
   );
 
-  if (currentIndex === -1) return null;
-
-  useEffect(() => {
+  const measure = () => {
     const activeEl = itemRefs.current[currentIndex];
     const navEl = navRef.current;
-    if (!activeEl || !navEl) return;
-
+    const indicator = indicatorRef.current;
+    if (!activeEl || !navEl || !indicator || currentIndex === -1) return null;
     const navRect = navEl.getBoundingClientRect();
     const itemRect = activeEl.getBoundingClientRect();
-
-    setIndicatorStyle({
+    return {
       left: itemRect.left - navRect.left,
       width: itemRect.width,
+    };
+  };
+
+useEffect(() => {
+    const indicator = indicatorRef.current;
+    if (!indicator) return;
+
+    gsap.set(indicator, { opacity: 0 });
+
+    const raf1 = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const pos = measure();
+          if (!pos) return;
+
+          gsap.set(indicator, { left: pos.left, width: pos.width, x: 0 });
+          gsap.to(indicator, { opacity: 1, duration: 0.2, delay: 0.15 });
+
+          prevIndexRef.current = currentIndex;
+          isFirstRender.current = false;
+        });
+      });
     });
-  }, [currentIndex, location.pathname]);
+
+    return () => cancelAnimationFrame(raf1);
+  }, []);
+
+  useEffect(() => {
+    if (isFirstRender.current || currentIndex === -1) return;
+
+    const pos = measure();
+    if (!pos) return;
+
+    const indicator = indicatorRef.current;
+    const navEl = navRef.current;
+    const prevIndex = prevIndexRef.current;
+    const goingRight = currentIndex > prevIndex;
+
+    gsap.killTweensOf(indicator);
+
+    gsap.to(indicator, {
+      left: pos.left,
+      width: pos.width,
+      duration: 0.42,
+      ease: "power3.out",
+    });
+
+    gsap.fromTo(navEl,
+      { scale: 1 },
+      { scale: 0.97, duration: 0.12, ease: "power2.out", yoyo: true, repeat: 1 }
+    );
+
+    const activeEl = itemRefs.current[currentIndex];
+    if (activeEl) {
+      const icon = activeEl.querySelector("svg");
+      if (icon) {
+        gsap.fromTo(icon,
+          { scale: 0.5, rotate: goingRight ? -20 : 20, opacity: 0 },
+          { scale: 1, rotate: 0, opacity: 1, duration: 0.4, ease: "back.out(2.5)", delay: 0.05 }
+        );
+      }
+      const label = activeEl.querySelector("span");
+      if (label) {
+        gsap.fromTo(label,
+          { opacity: 0, x: goingRight ? -10 : 10 },
+          { opacity: 1, x: 0, duration: 0.3, ease: "power2.out", delay: 0.1 }
+        );
+      }
+    }
+
+    const prevEl = itemRefs.current[prevIndex];
+    if (prevEl) {
+      const prevIcon = prevEl.querySelector("svg");
+      if (prevIcon) {
+        gsap.fromTo(prevIcon,
+          { scale: 1 },
+          { scale: 0.75, duration: 0.15, ease: "power2.in", yoyo: true, repeat: 1 }
+        );
+      }
+    }
+
+    prevIndexRef.current = currentIndex;
+  }, [currentIndex]);
+
+  if (currentIndex === -1) return null;
 
   return (
     <>
@@ -73,24 +150,19 @@ function Navbar() {
         className="fixed -bottom-2.5 left-0 right-0 h-17.5 backdrop-blur-lg pointer-events-none z-998"
         style={{
           maskImage: "linear-gradient(to top, black 40%, transparent 100%)",
-          WebkitMaskImage:
-            "linear-gradient(to top, black 40%, transparent 100%)",
+          WebkitMaskImage: "linear-gradient(to top, black 40%, transparent 100%)",
         }}
       />
 
       <nav
         ref={navRef}
         className="fixed z-999 bottom-5 left-1/2 -translate-x-1/2 bg-white/80 backdrop-blur-3xl border border-white rounded-full w-[80vw] md:w-[50vw] lg:w-[40vw] h-15 shadow-xl overflow-hidden"
-        style={{ position: "fixed" }}
+        style={{ position: "fixed", opacity: 0 }}
       >
         <div
+          ref={indicatorRef}
           className="absolute top-1/2 -translate-y-1/2 h-10 bg-black rounded-full"
-          style={{
-            left: indicatorStyle.left,
-            width: indicatorStyle.width,
-            transition:
-              "left 0.35s cubic-bezier(0.4, 0, 0.2, 1), width 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
-          }}
+          style={{ left: 0, width: 0, opacity: 0, willChange: "left, width" }}
         />
 
         <div className="relative w-full h-full flex items-center justify-between px-2">
@@ -102,21 +174,20 @@ function Navbar() {
                   key={item.path}
                   to={item.path}
                   ref={(el) => (itemRefs.current[index] = el)}
-                  className="relative z-10 flex items-center gap-2 py-2 px-4 rounded-full h-10"
+                  className="relative z-10 flex items-center gap-2 rounded-full h-10"
                   style={{
-                    transition: "color 0.2s ease",
                     textDecoration: "none",
                     color: isActive ? "white" : "black",
+                    transition: "color 0.2s ease",
+                    padding: isActive ? "0 20px" : "0 20px",
+                    flexShrink: 0,
                   }}
                 >
                   <item.icon active={isActive} />
                   {isActive && (
                     <span
                       className="text-sm font-medium"
-                      style={{
-                        animation: "fadeIn 0.2s ease forwards",
-                        whiteSpace: "nowrap",
-                      }}
+                      style={{ whiteSpace: "nowrap" }}
                     >
                       {item.label}
                     </span>
@@ -126,9 +197,26 @@ function Navbar() {
             })}
           </div>
 
-          <div className="relative z-10 mr-3 flex items-center justify-center w-9 h-9 -scale-x-100">
-            <img src={login} alt="Login" className="h-6.5" />
-          </div>
+          <Link
+            to="/login"
+            className="relative z-10 mr-2 flex items-center justify-center h-8 px-4 rounded-full text-sm font-medium text-black"
+            style={{
+              border: "1.5px solid black",
+              textDecoration: "none",
+              transition: "background 0.2s ease, color 0.2s ease",
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "black";
+              e.currentTarget.style.color = "white";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "black";
+            }}
+          >
+            Login
+          </Link>
         </div>
       </nav>
     </>

@@ -10,11 +10,13 @@
 
 #root {
   min-height: 100vh;
+  width: 100vw;
   margin:0 auto;
-  max-width: 1020px;
+  /* max-width: 1020px; */
+  overflow-x: visible;
 }
 
-body {
+html, body {
   --dot-bg: #fff;
   --dot-color: #1E1E1E;
   --dot-size: 1px;
@@ -25,3 +27,13 @@ body {
     var(--dot-color);
 }
 
+.grid-dots-black {
+    --dot-bg: #1E1E1E;
+  --dot-color: #fff;
+  --dot-size: 1px;
+  --dot-space: 22px;
+  background:
+    linear-gradient(90deg, var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center / var(--dot-space) var(--dot-space),
+    linear-gradient(var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center / var(--dot-space) var(--dot-space),
+    var(--dot-color);
+}
