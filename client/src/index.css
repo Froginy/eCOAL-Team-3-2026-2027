@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -16,16 +18,7 @@
   overflow-x: visible;
 }
 
-html, body {
-  --dot-bg: #fff;
-  --dot-color: #1E1E1E;
-  --dot-size: 1px;
-  --dot-space: 22px;
-  background:
-    linear-gradient(90deg, var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center / var(--dot-space) var(--dot-space),
-    linear-gradient(var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center / var(--dot-space) var(--dot-space),
-    var(--dot-color);
-}
+
 
 .grid-dots-black {
     --dot-bg: #1E1E1E;
