@@ -8,6 +8,7 @@ import { useState } from "react";
 
 function PostCard({ name, description, images, collection }) {
   const serverURL = import.meta.env.VITE_API_URL;
+  const server_base = serverURL ? serverURL.replace('/api', '').replace(/\/$/, '') : '';
   const [CurrentImage, setCurrentImage] = useState(0);
   const diceIcons = [dice1, dice2, dice3];
   let imageCount = images;
@@ -27,7 +28,7 @@ function PostCard({ name, description, images, collection }) {
       <PostBar user_id={collection?.user_id} title={collection?.title} />
 
       <img
-        src={`${serverURL.replace('api','')}${currentImageUrl}`}
+        src={`${server_base}/${currentImageUrl}`}
         alt={`${name} - ${CurrentImage}`}
         className="aspect-square object-cover w-[110%] self-center rounded-3xl shadow-lg"
       />

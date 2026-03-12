@@ -1,24 +1,27 @@
 import { useState } from "react";
 
-function DiceCard({ card }) {
+function DiceCard({ name, images,color, collection,id }) {
+
+
+
   return (
     <div className="relative shrink-0" style={{ width: 300 }}>
       
       <div
         className="inverted bg-black/80 w-full h-full p-3.5"
         style={{
-          filter: `drop-shadow(0 0 0.5rem ${card.glow})`,
+          filter: `drop-shadow(0 0 0.5rem ${color})`,
         }}
       >
         <div className="mb-3.5 flex items-center justify-center bg-[#f0f0f0] h-[50%] rounded-4xl">
           <img
-            src={card.image}
-            alt={card.title}
-            className="w-full h-full object-contain"
+            src={`http://127.0.0.1:8000/${images?.[0]?.image_url}`}
+alt={name}
+            className="w-full h-full object-cover rounded-4xl"
           />
         </div>
         <div className="mb-2.5 text-[20px] font-semibold tracking-tight text-white">
-          {card.title}
+          {name}
         </div>
       </div>
 
@@ -39,7 +42,7 @@ function DiceCard({ card }) {
           </svg>
         </div>
         <span className="text-[14px] font-medium text-[#222]">
-          {card.user}
+          {id}
         </span>
       </div>
 

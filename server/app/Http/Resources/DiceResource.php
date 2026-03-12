@@ -25,6 +25,7 @@ class DiceResource extends JsonResource
             'collection' => new CollectionResource($this->whenLoaded('collection')),
             'primary_category' => new CategoryResource($this->whenLoaded('primaryCategory')),
             'secondary_category' => new CategoryResource($this->whenLoaded('secondaryCategory')),
+            'color' => new DiceColorResource($this->whenLoaded('color')),
             'criterias' => CriteriaResource::collection($this->whenLoaded('criterias')),
             'images' => DiceImageResource::collection($this->whenLoaded('images')),
             'likes_count' => $this->whenCounted('likedByUsers'),

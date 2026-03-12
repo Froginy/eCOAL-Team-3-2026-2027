@@ -13,13 +13,12 @@ class CriteriaSeeder extends Seeder
     public function run(): void
     {
         $criterias = [
-            ['title' => 'Nombre de face', 'description' => 'Combien de faces possède ce dé ? (ex: 20)'],
-            ['title' => 'Taille', 'description' => 'Taille ou diamètre en mm'],
-            ['title' => 'Couleur', 'description' => 'Couleur dominante du dé'],
+            ['title' => 'Faces', 'description' => 'How many faces does this die have? (e.g., 20)'],
+            ['title' => 'Size', 'description' => 'Size or diameter in mm'],
         ];
 
         foreach ($criterias as $criteria) {
-            Criteria::firstOrCreate(['title' => $criteria['title']], ['description' => $criteria['description']]);
+            Criteria::updateOrCreate(['title' => $criteria['title']], ['description' => $criteria['description']]);
         }
     }
 }

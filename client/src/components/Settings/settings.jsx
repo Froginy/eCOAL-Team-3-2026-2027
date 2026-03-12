@@ -22,6 +22,7 @@ function Settings() {
   const [isDraggingCrop, setIsDraggingCrop] = useState(false);
   const [startDrag, setStartDrag] = useState({ x: 0, y: 0 });
   const [imgAspectStyle, setImgAspectStyle] = useState({});
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const imgRef = useRef(null);
   const navigate = useNavigate();
 
@@ -253,6 +254,31 @@ function Settings() {
     navigate("/login", { replace: true });
   };
 
+  const handleDeleteAccount = async () => {
+    try {
+      const response = await fetch(api_url + "/user/", {
+        method: "DELETE",
+        headers: getAuthHeaders(),
+      });
+
+      if (response.ok) {
+        showStatus("Account deleted ✓");
+        localStorage.removeItem("token");
+        setTimeout(() => navigate("/login", { replace: true }), 1000);
+      } else {
+        console.warn("Backend error. Deleting locally.");
+        showStatus("Deleted locally only.");
+        localStorage.removeItem("token");
+        setTimeout(() => navigate("/login", { replace: true }), 1000);
+      }
+    } catch (error) {
+      console.warn("Backend API not ready.", error);
+      showStatus("Deleted locally only.");
+      localStorage.removeItem("token");
+      setTimeout(() => navigate("/login", { replace: true }), 1000);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -361,7 +387,7 @@ function Settings() {
             </span>
             <span className="warning-text">This action cannot be<br />undone.</span>
           </div>
-          <button className="danger-btn delete-account-btn">Delete account</button>
+          <button className="danger-btn delete-account-btn" onClick={() => setIsDeleteModalOpen(true)}>Delete account</button>
         </footer>
 
         {isModalOpen && (
@@ -470,6 +496,44 @@ function Settings() {
                 </button>
                 <button className="dark-btn" onClick={handleSaveProfile}>
                   Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isDeleteModalOpen && (
+          <div className="modal-overlay" onClick={() => setIsDeleteModalOpen(false)}>
+            <div className="modal-content delete-modal-premium" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <div className="modal-title-with-icon">
+                  <div className="warning-icon-badge">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <h3 className="modal-title">Delete Account</h3>
+                </div>
+                <button className="close-modal-btn" onClick={() => setIsDeleteModalOpen(false)}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="modal-body">
+                <p className="delete-confirmation-text">
+                  You are about to permanently delete your account. <strong>This action is irreversible and all your data will be lost.</strong>
+                </p>
+                <p className="delete-sub-text">Are you sure you want to continue?</p>
+              </div>
+
+              <div className="modal-footer">
+                <button className="dark-btn cancel-btn-premium" onClick={() => setIsDeleteModalOpen(false)}>
+                  Keep Account
+                </button>
+                <button className="danger-btn delete-btn-premium" onClick={handleDeleteAccount}>
+                  Delete Account
                 </button>
               </div>
             </div>
