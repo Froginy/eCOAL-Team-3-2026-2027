@@ -13,7 +13,7 @@ class DiceController extends Controller
      */
     public function index()
     {
-        $dices = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers'])->withCount('likedByUsers')->get();
+        $dices = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers', 'color'])->withCount('likedByUsers')->get();
 
         return DiceResource::collection($dices);
     }
@@ -23,7 +23,7 @@ class DiceController extends Controller
      */
     public function show(int $id)
     {
-        $dice = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers'])->withCount('likedByUsers')->findOrFail($id);
+        $dice = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers', 'color'])->withCount('likedByUsers')->findOrFail($id);
 
         return new DiceResource($dice);
     }
@@ -44,9 +44,17 @@ class DiceController extends Controller
             'criterias'      => 'nullable|array',
             'criterias.*.criteria_id' => 'required|exists:criterias,id',
             'criterias.*.value'       => 'nullable|integer',
+            'color'          => 'nullable|array',
+            'color.name'     => 'required_with:color|string|max:50',
+            'color.hex'      => 'required_with:color|string|max:7',
         ]);
 
         $dice = Dice::create($validated);
+
+        // Attacher la couleur si fournie
+        if ($request->has('color')) {
+            $dice->color()->create($request->color);
+        }
 
         // Attacher les images si fournies
         if ($request->has('images') && is_array($request->images)) {
@@ -65,7 +73,7 @@ class DiceController extends Controller
             $dice->criterias()->attach($criteriaData);
         }
 
-        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers']);
+        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers', 'color']);
         $dice->loadCount('likedByUsers');
 
         return new DiceResource($dice);
@@ -89,9 +97,17 @@ class DiceController extends Controller
             'criterias'      => 'nullable|array',
             'criterias.*.criteria_id' => 'required|exists:criterias,id',
             'criterias.*.value'       => 'nullable|integer',
+            'color'          => 'nullable|array',
+            'color.name'     => 'required_with:color|string|max:50',
+            'color.hex'      => 'required_with:color|string|max:7',
         ]);
 
         $dice->update($validated);
+
+        // Mettre à jour la couleur si fournie
+        if ($request->has('color')) {
+            $dice->color()->updateOrCreate([], $request->color);
+        }
 
         // Sync les images si fournies
         if ($request->has('images') && is_array($request->images)) {
@@ -111,7 +127,7 @@ class DiceController extends Controller
             $dice->criterias()->sync($criteriaData);
         }
 
-        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers']);
+        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers', 'color']);
         $dice->loadCount('likedByUsers');
 
         return new DiceResource($dice);
