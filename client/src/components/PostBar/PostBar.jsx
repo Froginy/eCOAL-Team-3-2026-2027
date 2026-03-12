@@ -107,9 +107,9 @@ useEffect(() => {
               <span className="text-xs text-black/60">{likesCount}</span>
             )}
           </button>
-          <a href="#">
+          <Link to={`/profile/${user_id}`}>
             <img src={add} alt="add" className="h-6" />
-          </a>
+          </Link>
         </div>
       </div>
     </div>

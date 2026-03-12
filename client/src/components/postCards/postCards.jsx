@@ -37,9 +37,9 @@ function PostCard({ id, name, description, images, collection }) {
 
       <button
         onClick={nextImage}
-        className="absolute top-35 md:top-60 md:-right-5 aspect-square w-5 md:w-10 -right-3.5 flex justify-center items-center bg-white rounded-full p-1.25 md:p-4 shadow-xl"
+        className="absolute top-35 md:top-60 md:-right-5 aspect-square w-5 md:w-25 aspect-square -right-3.5 flex justify-center items-center bg-white rounded-full shadow-xl"
       >
-        <img src={arrow} alt="arrow" className="rotate-270 h-1.5 scale-200" />
+        <img src={arrow} alt="arrow" className="rotate-270 h-5 aspect-square scale-200" />
       </button>
 
       <div className="flex justify-center bg-black/80 rounded-full backdrop-blur-3xl p-2 absolute top-63 md:top-104 gap-1.25 ml-2.5">

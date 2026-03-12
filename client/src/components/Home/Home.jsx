@@ -30,16 +30,19 @@ function Home() {
   const ctaGRef    = useRef(null);
   const trackRef   = useRef(null);
 
-  useEffect(() => {
-    axios.get(api_url + "/dices")
-      .then(res => {
-        if (Array.isArray(res.data.data)) {
-          setCards(res.data.data.slice(0, MAX_CARDS));
-        }
-      })
-      .catch(err => console.error(err))
-      .finally(() => setLoading(false));
-  }, []);
+useEffect(() => {
+  axios.get(api_url + "/dices")
+    .then(res => {
+      if (Array.isArray(res.data.data)) {
+        const items = res.data.data;
+        if (items.length === 0) return;
+        const filled = Array.from({ length: MAX_CARDS }, (_, i) => items[i % items.length]);
+        setCards(filled);
+      }
+    })
+    .catch(err => console.error(err))
+    .finally(() => setLoading(false));
+}, []);
 
   useEffect(() => {
     axios.get(api_url + "/user", {
