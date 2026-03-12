@@ -22,6 +22,7 @@ class UserResource extends JsonResource
             'profile_picture_url' => $this->profile_picture_url,
             'followers_count' => $this->whenCounted('followers'),
             'following_count' => $this->whenCounted('following'),
+            'collections' => CollectionResource::collection($this->whenLoaded('collections')),
         ];
     }
 }

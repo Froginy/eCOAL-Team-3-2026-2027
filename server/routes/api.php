@@ -11,18 +11,24 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\DiceColorController;
+use App\Http\Controllers\CommentController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::apiResource('dice-colors', DiceColorController::class)->only(['index', 'show']);
 
 // Routes publiques pour les utilisateurs
 Route::get('/users', [UserController::class, 'index']);
 Route::get('/users/{id}', [UserController::class, 'show']);
 Route::get('/users/{id}/dices', [UserController::class, 'dices']);
+Route::get('/users/{id}/followers', [UserController::class, 'followers']);
+Route::get('/users/{id}/following', [UserController::class, 'following']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
-        return $request->user();
+        return new \App\Http\Resources\UserResource($request->user()->load('collections'));
     });
     Route::put('/user', [UserController::class, 'update']);
     Route::get('/logout', [AuthController::class, 'logout']);
@@ -52,16 +58,18 @@ Route::prefix('collections')->group(function () {
 // --- DICES ---
 Route::prefix('dices')->group(function () {
     Route::get('/', [DiceController::class, 'index']);
-    Route::post('/', [DiceController::class, 'store']);
-    Route::get('/{id}', [DiceController::class, 'show']);
-    Route::put('/{id}', [DiceController::class, 'update']);
-    Route::delete('/{id}', [DiceController::class, 'destroy']);
+    Route::get('/{id}', [DiceController::class, 'show'])->middleware('auth:sanctum')->withoutMiddleware([]);
 
-    // Auth routes for dices
     Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [DiceController::class, 'store']);
+        Route::put('/{id}', [DiceController::class, 'update']);
+        Route::delete('/{id}', [DiceController::class, 'destroy']);
         Route::post('/{id}/like', [LikeController::class, 'like']);
         Route::delete('/{id}/like', [LikeController::class, 'unlike']);
+        Route::post('/{id}/comments', [CommentController::class, 'store']);
     });
+
+    Route::get('/{id}/comments', [CommentController::class, 'index']);
 });
 
 // --- CATEGORIES ---

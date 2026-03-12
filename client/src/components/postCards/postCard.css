@@ -1,93 +1,80 @@
-
-
-    
-    
-    .PostCard{
-        position : relative;
-        width: 300px;
-        margin-bottom: 30px;
-    }
-
-    .PostBar{
-        position : absolute;
-        left : 10px;
-        top : 10px;
-        ;
-    }
-
-    
-
-
-.PostCard p{
-    text-align: left;
-    line-height: 20px;
-}
-.DicePic{
-    aspect-ratio: 1/1;
-    object-fit: cover;
-    width : 300px;
-    text-align: center;
-    border-radius: 1.5rem;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.368), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+.PostCard {
+  position: relative;
+  width: 300px;
+  margin-bottom: 30px;
 }
 
-.dicesNumbers{
-    display: flex;
-    justify-content: center;
-    position : absolute;
-    top : 265px;
-    gap :5px;
-    margin-left : 5px;
-
-    img{
-        width : 20px;
-
-        &:nth-child(odd){
-            transform: rotate(15deg);
-        }
-
-        &:nth-child(even){
-            transform: rotate(-15deg);
-        }
-    }
+.PostBar {
+  position: absolute;
+  left: 10px;
+  top: 10px;
 }
 
+.PostCard p {
+  text-align: left;
+  line-height: 20px;
+}
+.DicePic {
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  width: 300px;
+  text-align: center;
+  border-radius: 1.5rem;
+  box-shadow:
+    0 4px 8px 0 rgba(0, 0, 0, 0.368),
+    0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
 
+.dicesNumbers {
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  top: 265px;
+  gap: 5px;
+  margin-left: 5px;
 
-.more{
-    position: absolute;
-    aspect-ratio: 1/1;
-        width: 20px;
-        right :20px;
-        top : 265px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        
+  img {
+    width: 20px;
 
-        img{
-        height: 26px;
-        }
+    &:nth-child(odd) {
+      transform: rotate(15deg);
+    }
 
+    &:nth-child(even) {
+      transform: rotate(-15deg);
+    }
+  }
+}
+
+.more {
+  position: absolute;
+  aspect-ratio: 1/1;
+  width: 20px;
+  right: 20px;
+  top: 265px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  img {
+    height: 26px;
+  }
 }
 .next {
-        position: absolute;
-        top : 140px;
-        aspect-ratio: 1/1;
-        width: 20px;
-        right :-15px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: white;
-        border-radius: 2rem;
-        padding: 5px;
+  position: absolute;
+  top: 140px;
+  aspect-ratio: 1/1;
+  width: 20px;
+  right: -15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+  border-radius: 2rem;
+  padding: 5px;
 
-        img{
-        transform: rotate(-90deg);
-        height: 6px;
-        
-
-    }
-    }
-
+  img {
+    transform: rotate(-90deg);
+    height: 6px;
+  }
+}

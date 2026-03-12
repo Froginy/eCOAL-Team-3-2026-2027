@@ -1,24 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { Link } from "react-router-dom";
+import UserAvatar from "../UserAvatar/UserAvatar";
 
-function DiceCard({ card }) {
+function DiceCard({ name, images, color, collection, id, user_id }) {
+  const serverURL = import.meta.env.VITE_API_URL;
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    if (!user_id) return;
+    const fetchUser = async () => {
+      try {
+        const response = await axios.get(`${serverURL}/users/${user_id}`);
+        setUser(response.data.data);
+      } catch (error) {
+        console.error("API Error:", error.response?.status);
+      }
+    };
+    fetchUser();
+  }, [user_id]);
+
   return (
-    <div className="relative shrink-0" style={{ width: 300 }}>
-      
+    <div href={`/profile/${user_id}`} className="bg-white/80 rounded-[3rem] border border-black/80 relative shrink-0" style={{ width: 300 }}>
       <div
         className="inverted bg-black/80 w-full h-full p-3.5"
         style={{
-          filter: `drop-shadow(0 0 0.5rem ${card.glow})`,
+          filter: `drop-shadow(0 0 0.5rem ${color})`,
         }}
       >
         <div className="mb-3.5 flex items-center justify-center bg-[#f0f0f0] h-[50%] rounded-4xl">
           <img
-            src={card.image}
-            alt={card.title}
-            className="w-full h-full object-contain"
+            src={`${import.meta.env.VITE_API_URL.replace("/api", "")}/${images?.[0]?.image_url}`}
+            alt={name}
+            className="w-full h-full object-cover rounded-4xl"
           />
         </div>
         <div className="mb-2.5 text-[20px] font-semibold tracking-tight text-white">
-          {card.title}
+          {name}
         </div>
       </div>
 
@@ -31,18 +49,14 @@ function DiceCard({ card }) {
         </svg>
       </div>
 
-      <div className="absolute -bottom-2 left-3.5 z-10 flex items-center gap-2 rounded-full bg-white shadow-md px-3.5 py-1.75">
-        <div className="flex h-6.5 w-6.5 items-center justify-center rounded-full bg-white">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="8" r="4" fill="#555" />
-            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" fill="#555" />
-          </svg>
-        </div>
-        <span className="text-[14px] font-medium text-[#222]">
-          {card.user}
-        </span>
+      <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2 rounded-full bg-white shadow-md px-3.5 py-1.75">
+        <UserAvatar
+          name={user?.name}
+          to={user ? `/profile/${user.id}` : "#"}
+          size={32}
+          showName
+        />
       </div>
-
     </div>
   );
 }

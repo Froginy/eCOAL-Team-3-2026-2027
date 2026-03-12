@@ -1,7 +1,9 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { useLocation, Link } from "react-router-dom";
 import gsap from "gsap";
 import { useEntranceAnimation } from "../../hooks/useEntranceAnimation";
+import UserAvatar from "../UserAvatar/UserAvatar";
+import { useAuth } from "../../context/AuthContext";
 
 const HomeIcon = ({ active }) => (
   <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
@@ -28,12 +30,12 @@ const NAV_ITEMS = [
   { path: "/feed", label: "Feed", icon: DiceIcon },
 ];
 
-function Navbar() {
-  const location = useLocation();
+function NavbarInner({ user, currentIndex, location }) {
   const indicatorRef = useRef(null);
   const itemRefs = useRef([]);
   const prevIndexRef = useRef(-1);
   const isFirstRender = useRef(true);
+  const userBlockRef = useRef(null);
 
   const navRef = useEntranceAnimation({
     y: 60,
@@ -42,48 +44,54 @@ function Navbar() {
     ease: "elastic.out(1, 0.6)",
   });
 
-  const currentIndex = NAV_ITEMS.findIndex((item) =>
-    item.path === "/"
-      ? location.pathname === "/"
-      : location.pathname.includes(item.path),
-  );
-
-  const measure = () => {
+  const measure = useCallback(() => {
     const activeEl = itemRefs.current[currentIndex];
     const navEl = navRef.current;
-    const indicator = indicatorRef.current;
-    if (!activeEl || !navEl || !indicator || currentIndex === -1) return null;
-    const navRect = navEl.getBoundingClientRect();
-    const itemRect = activeEl.getBoundingClientRect();
-    return {
-      left: itemRect.left - navRect.left,
-      width: itemRect.width,
-    };
-  };
+    if (!activeEl || !navEl || currentIndex === -1) return null;
 
-useEffect(() => {
+    let left = 0;
+    let current = activeEl;
+    while (current && current !== navEl) {
+      left += current.offsetLeft;
+      current = current.offsetParent;
+    }
+    
+    return { left, width: activeEl.offsetWidth };
+  }, [currentIndex]);
+
+  useEffect(() => {
+    const navEl = navRef.current;
+    if (!navEl) return;
+
+    const observer = new ResizeObserver(() => {
+      const pos = measure();
+      if (pos && indicatorRef.current) {
+        gsap.set(indicatorRef.current, { left: pos.left, width: pos.width });
+      }
+    });
+
+    observer.observe(navEl);
+    return () => observer.disconnect();
+  }, [measure]);
+
+  useEffect(() => {
     const indicator = indicatorRef.current;
     if (!indicator) return;
 
     gsap.set(indicator, { opacity: 0 });
 
-    const raf1 = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const pos = measure();
-          if (!pos) return;
+    const init = () => {
+      const pos = measure();
+      if (!pos) return;
+      gsap.set(indicator, { left: pos.left, width: pos.width, x: 0 });
+      gsap.to(indicator, { opacity: 1, duration: 0.2, delay: 0.15 });
+      prevIndexRef.current = currentIndex;
+      isFirstRender.current = false;
+    };
 
-          gsap.set(indicator, { left: pos.left, width: pos.width, x: 0 });
-          gsap.to(indicator, { opacity: 1, duration: 0.2, delay: 0.15 });
-
-          prevIndexRef.current = currentIndex;
-          isFirstRender.current = false;
-        });
-      });
-    });
-
-    return () => cancelAnimationFrame(raf1);
-  }, []);
+    const timer = setTimeout(init, 50);
+    return () => clearTimeout(timer);
+  }, [measure, currentIndex]);
 
   useEffect(() => {
     if (isFirstRender.current || currentIndex === -1) return;
@@ -98,13 +106,7 @@ useEffect(() => {
 
     gsap.killTweensOf(indicator);
 
-    gsap.to(indicator, {
-      left: pos.left,
-      width: pos.width,
-      duration: 0.42,
-      ease: "power3.out",
-    });
-
+    gsap.to(indicator, { left: pos.left, width: pos.width, duration: 0.42, ease: "power3.out" });
     gsap.fromTo(navEl,
       { scale: 1 },
       { scale: 0.97, duration: 0.12, ease: "power2.out", yoyo: true, repeat: 1 }
@@ -142,7 +144,14 @@ useEffect(() => {
     prevIndexRef.current = currentIndex;
   }, [currentIndex]);
 
-  if (currentIndex === -1) return null;
+  useEffect(() => {
+    if (!userBlockRef.current) return;
+    gsap.fromTo(
+      userBlockRef.current,
+      { opacity: 0, scale: 0.7, x: 10 },
+      { opacity: 1, scale: 1, x: 0, duration: 0.4, ease: "back.out(2)" }
+    );
+  }, [user]);
 
   return (
     <>
@@ -179,16 +188,13 @@ useEffect(() => {
                     textDecoration: "none",
                     color: isActive ? "white" : "black",
                     transition: "color 0.2s ease",
-                    padding: isActive ? "0 20px" : "0 20px",
+                    padding: "0 20px",
                     flexShrink: 0,
                   }}
                 >
                   <item.icon active={isActive} />
                   {isActive && (
-                    <span
-                      className="text-sm font-medium"
-                      style={{ whiteSpace: "nowrap" }}
-                    >
+                    <span className="text-sm font-medium" style={{ whiteSpace: "nowrap" }}>
                       {item.label}
                     </span>
                   )}
@@ -197,29 +203,62 @@ useEffect(() => {
             })}
           </div>
 
-          <Link
-            to="/login"
-            className="relative z-10 mr-2 flex items-center justify-center h-8 px-4 rounded-full text-sm font-medium text-black"
-            style={{
-              border: "1.5px solid black",
-              textDecoration: "none",
-              transition: "background 0.2s ease, color 0.2s ease",
-              whiteSpace: "nowrap",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "black";
-              e.currentTarget.style.color = "white";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.color = "black";
-            }}
-          >
-            Login
-          </Link>
+          <div ref={userBlockRef} className="relative z-10 mr-2">
+            {user ? (
+              <UserAvatar
+                src={user.avatar || user.profile_picture_url}
+                name={user.name}
+                size={32}
+                showName
+                to="/profile"
+              />
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center justify-center h-8 px-4 rounded-full text-sm font-medium text-black"
+                style={{
+                  border: "1.5px solid black",
+                  textDecoration: "none",
+                  transition: "background 0.2s ease, color 0.2s ease",
+                  whiteSpace: "nowrap",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "black";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "black";
+                }}
+              >
+                Login
+              </Link>
+            )}
+          </div>
         </div>
       </nav>
     </>
+  );
+}
+
+function Navbar() {
+  const location = useLocation();
+  const { user } = useAuth();
+  
+  const currentIndex = NAV_ITEMS.findIndex((item) =>
+    item.path === "/"
+      ? location.pathname === "/"
+      : location.pathname.includes(item.path)
+  );
+
+  if (currentIndex === -1) return null;
+
+  return (
+    <NavbarInner 
+      user={user} 
+      currentIndex={currentIndex} 
+      location={location} 
+    />
   );
 }
 

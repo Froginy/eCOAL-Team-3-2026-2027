@@ -69,4 +69,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Dice::class, 'likes');
     }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
 }

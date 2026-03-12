@@ -25,6 +25,11 @@ class Dice extends Model
         return $this->hasMany(DiceImage::class);
     }
 
+    public function color(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(DiceColor::class);
+    }
+
     public function collection(): BelongsTo
     {
         return $this->belongsTo(Collection::class);
@@ -49,5 +54,10 @@ class Dice extends Model
     public function likedByUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'likes');
+    }
+
+    public function comments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Comment::class);
     }
 }

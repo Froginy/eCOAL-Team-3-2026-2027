@@ -1,6 +1,5 @@
 import axios from "axios";
-import { useState } from "react";
-import { useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link } from "react-router-dom";
@@ -9,127 +8,192 @@ import hero from "../../assets/hero.svg";
 import ThreeModel from "../ThreeModel/ThreeModel";
 import DiceCard from "../DiceCard/DiceCard";
 import heroVideo from "../../assets/hero_video.mp4";
+import { useEntranceAnimation } from "../../hooks/useEntranceAnimation"; 
 import "./Home.css";
 
 const api_url = import.meta.env.VITE_API_URL;
-
 gsap.registerPlugin(ScrollTrigger);
-
-const BASE_CARDS = [
-  {
-    id: 1,
-    title: "Dice 20",
-    user: "John Doe",
-    glow: "#00e5ff",
-    image: new URL("../../assets/dice20.png", import.meta.url).href,
-  },
-  {
-    id: 2,
-    title: "Dice 12",
-    user: "Jane Smith",
-    glow: "#a78bfa",
-    image: new URL("../../assets/dice12.png", import.meta.url).href,
-  },
-  {
-    id: 3,
-    title: "Dice 8",
-    user: "Alice Johnson",
-    glow: "#f9a825",
-    image: new URL("../../assets/dice8.png", import.meta.url).href,
-  },
-  {
-    id: 4,
-    title: "Dice 4",
-    user: "Bob Brown",
-    glow: "#ff5722",
-    image: new URL("../../assets/dice4.png", import.meta.url).href,
-  },
-  {
-    id: 5,
-    title: "Dice 6",
-    user: "Clara Moon",
-    glow: "#34d399",
-    image: new URL("../../assets/dice20.png", import.meta.url).href,
-  },
-  {
-    id: 6,
-    title: "Dice 10",
-    user: "Sam Rivers",
-    glow: "#f43f5e",
-    image: new URL("../../assets/dice12.png", import.meta.url).href,
-  },
-  {
-    id: 7,
-    title: "Dice 100",
-    user: "Leo Vance",
-    glow: "#818cf8",
-    image: new URL("../../assets/dice8.png", import.meta.url).href,
-  },
-  {
-    id: 8,
-    title: "Dice 2",
-    user: "Mia Chen",
-    glow: "#fb923c",
-    image: new URL("../../assets/dice4.png", import.meta.url).href,
-  },
-  {
-    id: 9,
-    title: "Dice 30",
-    user: "Kai Park",
-    glow: "#38bdf8",
-    image: new URL("../../assets/dice20.png", import.meta.url).href,
-  },
-  {
-    id: 10,
-    title: "Dice 16",
-    user: "Zoe Hart",
-    glow: "#e879f9",
-    image: new URL("../../assets/dice12.png", import.meta.url).href,
-  },
-];
-
-const CARDS = [...BASE_CARDS, ...BASE_CARDS, ...BASE_CARDS];
 
 const CARD_W = 300;
 const CARD_GAP = 24;
 const CARD_STRIDE = CARD_W + CARD_GAP;
-const SET_W = BASE_CARDS.length * CARD_STRIDE;
+const MAX_CARDS = 10;
 
 function Home() {
-  const heroRef = useRef(null);
-  const textRef = useRef(null);
-  const buttonsRef = useRef(null);
-  const modelRef = useRef(null);
-  const ctaGRef = useRef(null);
-  const trackRef = useRef(null);
-  const offsetRef = useRef(0);
-  const dragging = useRef(false);
-  const dragStart = useRef(0);
-  const velRef = useRef(0);
-  const lastX = useRef(0);
-  const rafRef = useRef(null);
-
+  const [cards, setCards] = useState([]);
   const [user, setUser] = useState(null);
-  const [userLoading, setUserLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+
+const heroRef    = useEntranceAnimation({ delay: 0.1, ease: "elastic.out(1,0.6)" });
+const textRef    = useEntranceAnimation({ y: 20, scale: 1, delay: 0.3 });
+const buttonsRef = useEntranceAnimation({ y: 20, scale: 1, delay: 0.45 });
+const modelRef   = useEntranceAnimation({ y: 30, scale: 1, delay: 0.55 });
+const ctaGRef    = useEntranceAnimation({ y: 30, scale: 1, delay: 0.1 });
+  const trackRef = useRef(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await axios.get(api_url + "/user", {
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setUser(response.data);
-      } catch (error) {
-        setUser(null);
-      } finally {
-        setUserLoading(false);
-      }
-    };
-    fetchUser();
+    axios
+      .get(api_url + "/dices")
+      .then((res) => {
+        if (Array.isArray(res.data.data)) {
+          const items = res.data.data;
+          if (items.length === 0) return;
+          const filled = Array.from(
+            { length: MAX_CARDS },
+            (_, i) => items[i % items.length],
+          );
+          setCards(filled);
+        }
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    axios
+      .get(api_url + "/user", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      })
+      .then((res) => setUser(res.data))
+      .catch(() => setUser(null));
+  }, []);
+
+  useEffect(() => {
+    if (loading || cards.length === 0) return;
+
+    const track = trackRef.current;
+    if (!track) return;
+
+    const SET_W = cards.length * CARD_STRIDE;
+    const BOUNCE = 40;
+
+    let offset = 0;
+    let vel = 0;
+    let lastX = 0;
+    let isDragging = false;
+    let autoRaf = null;
+    let inertiaRaf = null;
+
+    function clamp(val, min, max) {
+      return Math.max(min, Math.min(max, val));
+    }
+
+    function maxOffset() {
+      return Math.max(0, SET_W - window.innerWidth);
+    }
+
+    function rubberband(val, min, max) {
+      if (val < min) return min - Math.sqrt(min - val) * BOUNCE * 0.5;
+      if (val > max) return max + Math.sqrt(val - max) * BOUNCE * 0.5;
+      return val;
+    }
+
+    function applyOffset() {
+      const displayed = rubberband(offset, 0, maxOffset());
+      gsap.set(track, { x: -displayed });
+    }
+
+    function updateArc() {
+      const vw = window.innerWidth;
+      track.querySelectorAll(".carousel-card").forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        const t = (rect.left + rect.width / 2 - vw / 2) / (vw / 2);
+        gsap.set(el, {
+          rotation: t * 10,
+          y: t * t * 60,
+          scale: 1 - Math.abs(t) * 0.06,
+          transformOrigin: "bottom center",
+        });
+      });
+    }
+
+    function snapBack() {
+      const max = maxOffset();
+      const target = clamp(offset, 0, max);
+      if (target === offset) return false;
+      gsap.to(
+        { val: offset },
+        {
+          val: target,
+          duration: 0.4,
+          ease: "elastic.out(1, 0.5)",
+          onUpdate: function () {
+            offset = this.targets()[0].val;
+            applyOffset();
+            updateArc();
+          },
+        },
+      );
+      return true;
+    }
+
+    function startInertia() {
+      cancelAnimationFrame(inertiaRaf);
+      (function tick() {
+        if (Math.abs(vel) < 0.5) {
+          vel = 0;
+          if (!snapBack()) updateArc();
+          return;
+        }
+        const max = maxOffset();
+        const friction = offset < 0 || offset > max ? 0.7 : 0.92;
+        vel *= friction;
+        offset += vel;
+        applyOffset();
+        updateArc();
+        inertiaRaf = requestAnimationFrame(tick);
+      })();
+    }
+
+    function onDown(e) {
+      isDragging = true;
+      lastX = e.clientX;
+      vel = 0;
+      cancelAnimationFrame(autoRaf);
+      cancelAnimationFrame(inertiaRaf);
+      track.setPointerCapture(e.pointerId);
+    }
+
+    function onMove(e) {
+      if (!isDragging) return;
+      const dx = lastX - e.clientX;
+      vel = dx;
+      offset += dx;
+      applyOffset();
+      updateArc();
+      lastX = e.clientX;
+    }
+
+    function onUp() {
+      if (!isDragging) return;
+      isDragging = false;
+      if (offset < 0 || offset > maxOffset()) {
+        vel = 0;
+        snapBack();
+      } else {
+        startInertia();
+      }
+    }
+
+    track.addEventListener("pointerdown", onDown);
+    track.addEventListener("pointermove", onMove);
+    track.addEventListener("pointerup", onUp);
+    track.addEventListener("pointerleave", onUp);
+    track.addEventListener("pointercancel", onUp);
+
+    applyOffset();
+    updateArc();
+
+    return () => {
+      cancelAnimationFrame(autoRaf);
+      cancelAnimationFrame(inertiaRaf);
+      track.removeEventListener("pointerdown", onDown);
+      track.removeEventListener("pointermove", onMove);
+      track.removeEventListener("pointerup", onUp);
+      track.removeEventListener("pointerleave", onUp);
+      track.removeEventListener("pointercancel", onUp);
+    };
+  }, [loading, cards]);
 
   useEffect(() => {
     const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
@@ -140,26 +204,26 @@ function Home() {
         opacity: 1,
         scale: 1,
         duration: 0.8,
-        ease: "elastic.out(1, 0.6)",
+        ease: "elastic.out(1,0.6)",
         delay: 0.1,
       },
     )
       .fromTo(
         textRef.current,
-        { opacity: 0, y: 20, scale: 0.95 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.6 },
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.6 },
         "-=0.4",
       )
       .fromTo(
         buttonsRef.current,
-        { opacity: 0, y: 20, scale: 0.95 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.6 },
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.6 },
         "-=0.3",
       )
       .fromTo(
         modelRef.current,
-        { opacity: 0, y: 30, scale: 0.9 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.7 },
+        { opacity: 0, y: 30 },
+        { opacity: 1, y: 0, duration: 0.7 },
         "-=0.3",
       );
     return () => tl.kill();
@@ -170,11 +234,10 @@ function Home() {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         ctaGRef.current,
-        { opacity: 0, y: 30, scale: 0.9 },
+        { opacity: 0, y: 30 },
         {
           opacity: 1,
           y: 0,
-          scale: 1,
           duration: 0.7,
           ease: "power3.out",
           scrollTrigger: {
@@ -188,113 +251,7 @@ function Home() {
     return () => ctx.revert();
   }, []);
 
-  const applyOffset = useCallback((x) => {
-    const track = trackRef.current;
-    if (!track) return;
-    const wrapped = ((x % SET_W) + SET_W) % SET_W;
-    offsetRef.current = wrapped;
-    gsap.set(track, { x: -wrapped });
-  }, []);
-
-  const updateArc = useCallback(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    const vw = window.innerWidth;
-    const cards = track.querySelectorAll(".carousel-card");
-    cards.forEach((el) => {
-      const rect = el.getBoundingClientRect();
-      const cardCenter = rect.left + rect.width / 2;
-      const t = (cardCenter - vw / 2) / (vw / 2);
-      const rotate = t * 10;
-      const translateY = t * t * 60;
-      const scale = 1 - Math.abs(t) * 0.06;
-      gsap.set(el, {
-        rotation: rotate,
-        y: translateY,
-        scale,
-        transformOrigin: "bottom center",
-      });
-    });
-  }, []);
-
-  useEffect(() => {
-    let pos = 0;
-    let raf;
-    const tick = () => {
-      pos += 0.6;
-      applyOffset(pos);
-      updateArc();
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-
-    const stopAuto = () => cancelAnimationFrame(raf);
-
-    const track = trackRef.current;
-    if (track) {
-      track.addEventListener("mousedown", stopAuto, { once: true });
-      track.addEventListener("touchstart", stopAuto, { once: true });
-    }
-
-    return () => cancelAnimationFrame(raf);
-  }, [applyOffset, updateArc]);
-
-  const inertiaLoop = useCallback(() => {
-    if (Math.abs(velRef.current) < 0.1) return;
-    velRef.current *= 0.94;
-    applyOffset(offsetRef.current + velRef.current);
-    updateArc();
-    rafRef.current = requestAnimationFrame(inertiaLoop);
-  }, [applyOffset, updateArc]);
-
-  const onPointerDown = useCallback((e) => {
-    dragging.current = true;
-    dragStart.current = e.clientX ?? e.touches?.[0]?.clientX;
-    lastX.current = dragStart.current;
-    velRef.current = 0;
-    cancelAnimationFrame(rafRef.current);
-    e.currentTarget.setPointerCapture?.(e.pointerId);
-  }, []);
-
-  const onPointerMove = useCallback(
-    (e) => {
-      if (!dragging.current) return;
-      const x = e.clientX ?? e.touches?.[0]?.clientX;
-      const dx = lastX.current - x;
-      velRef.current = dx;
-      applyOffset(offsetRef.current + dx);
-      updateArc();
-      lastX.current = x;
-    },
-    [applyOffset, updateArc],
-  );
-
-  const onPointerUp = useCallback(() => {
-    if (!dragging.current) return;
-    dragging.current = false;
-    rafRef.current = requestAnimationFrame(inertiaLoop);
-  }, [inertiaLoop]);
-
-  const onWheel = useCallback(
-    (e) => {
-      e.preventDefault();
-      const delta =
-        Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      cancelAnimationFrame(rafRef.current);
-      velRef.current = delta * 0.8;
-      applyOffset(offsetRef.current + delta);
-      updateArc();
-      rafRef.current = requestAnimationFrame(inertiaLoop);
-    },
-    [applyOffset, updateArc, inertiaLoop],
-  );
-
-  useEffect(() => {
-    const el = trackRef.current?.parentElement;
-    if (!el) return;
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, [onWheel]);
+  const setW = cards.length * CARD_STRIDE;
 
   return (
     <div className="relative max-h-[300vh]">
@@ -302,7 +259,6 @@ function Home() {
         <div className="absolute top-4 md:top-1/2 left-1/2 -translate-x-1/2 translate-0 md:-translate-y-1/2 max-h-[90vh] max-w-[90vw] grid-dots-black rounded-4xl overflow-hidden">
           <video
             className="min-w-screen min-h-[80vh] md:min-h-screen object-cover"
-            id="video-field"
             src={heroVideo}
             autoPlay
             loop
@@ -322,8 +278,8 @@ function Home() {
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
-              fill-rule="evenodd"
-              clip-rule="evenodd"
+              fillRule="evenodd"
+              clipRule="evenodd"
               d="M9.52637 0.123004C12.1558 0.123004 14.3984 1.07037 16.2529 2.96578C17.9989 4.72603 18.9276 6.83034 19.041 9.27828L14.8467 10.9482L14.7041 11.0097C13.2981 11.6568 12.6293 13.2982 13.208 14.7529L14.5186 18.0478C14.8789 18.9541 15.1368 19.602 14.8789 18.9541L16.9482 24.1533L17.0098 24.2968C17.3236 24.9778 17.8867 25.5127 18.583 25.791C19.2793 26.0691 20.0562 26.0692 20.7529 25.792L30.1533 22.0527L30.2959 21.9912C31.7019 21.3441 32.3707 19.7027 31.792 18.248L29.2549 11.8711V0.670856H34.9707V23.0771C34.9707 25.2862 33.1798 27.0771 30.9707 27.0771H29.2549L22.02 27.1386L14.7852 27.2002L7.93652 20.248C7.11711 19.4162 5.71582 20.0053 5.71582 21.1816V27.2002H0V9.79293C7.25328e-05 7.12402 0.927749 4.84822 2.78223 2.96578C4.64933 1.07065 6.89728 0.123108 9.52637 0.123004ZM9.52637 5.92476C8.47225 5.92487 7.57063 6.30573 6.82129 7.06636C6.08465 7.81413 5.71589 8.72289 5.71582 9.79293C5.71582 11.9291 7.42196 13.6609 9.52637 13.6611C10.5805 13.6611 11.4762 13.2876 12.2129 12.54C12.9623 11.7793 13.3379 10.8631 13.3379 9.79293C13.3378 8.72287 12.9623 7.81414 12.2129 7.06636C11.4762 6.30571 10.5806 5.92476 9.52637 5.92476Z"
               fill="white"
             />
@@ -340,8 +296,8 @@ function Home() {
               fill="white"
             />
             <path
-              fill-rule="evenodd"
-              clip-rule="evenodd"
+              fillRule="evenodd"
+              clipRule="evenodd"
               d="M24.0635 8.18648C25.365 7.66866 26.8342 8.26632 27.4131 9.52437L27.4678 9.6523L30.8135 18.0644C31.3311 19.3659 30.7334 20.8341 29.4756 21.413L29.3477 21.4677L20.9365 24.8144C20.3131 25.0625 19.6182 25.0614 18.9951 24.8125C18.3723 24.5636 17.8687 24.0856 17.5879 23.4765L17.5322 23.3476L14.1865 14.9365C13.6688 13.635 14.2666 12.1669 15.5244 11.5878L15.6523 11.5322L24.0635 8.18648ZM26.1729 16.915C25.9118 16.8026 25.6166 16.7992 25.3525 16.9043C25.0886 17.0093 24.8771 17.2146 24.7646 17.4755C24.6522 17.7366 24.6479 18.0317 24.7529 18.2959C24.858 18.56 25.0641 18.7722 25.3252 18.8847C25.5862 18.997 25.8815 19.0015 26.1455 18.8964C26.4096 18.7913 26.6209 18.5852 26.7334 18.3242C26.8458 18.0631 26.8501 17.768 26.7451 17.5039C26.64 17.2397 26.434 17.0275 26.1729 16.915ZM22.9238 15.5156C22.6628 15.4032 22.3676 15.3988 22.1035 15.5039C21.8394 15.609 21.6281 15.8151 21.5156 16.0761C21.4032 16.3372 21.3989 16.6323 21.5039 16.8964C21.609 17.1606 21.8151 17.3728 22.0762 17.4853C22.3372 17.5976 22.6324 17.6011 22.8965 17.4961C23.1604 17.391 23.3719 17.1856 23.4844 16.9248C23.5968 16.6638 23.601 16.3685 23.4961 16.1045C23.391 15.8403 23.1849 15.6281 22.9238 15.5156ZM19.6748 14.1162C19.4138 14.0038 19.1185 13.9994 18.8545 14.1044C18.5905 14.2096 18.379 14.4157 18.2666 14.6767C18.1542 14.9378 18.1498 15.2329 18.2549 15.497C18.36 15.7612 18.566 15.9724 18.8271 16.0849C19.0883 16.1974 19.3833 16.2017 19.6475 16.0966C19.9116 15.9915 20.1229 15.7855 20.2354 15.5244C20.3477 15.2633 20.3521 14.9682 20.2471 14.7041C20.1419 14.44 19.9358 14.2286 19.6748 14.1162Z"
               fill="white"
             />
@@ -387,20 +343,19 @@ function Home() {
               >
                 Discover
               </Link>
-              {user && (
+              {user ? (
                 <Link
-                  className="text-center py-2 px-10 rounded-full shadow-sm shadow-gray-100/20 bg-black text-white transition-transform duration-200 hover:scale-105 hover:-rotate-2"
+                  className="text-center py-2 px-10 rounded-full bg-black text-white transition-transform duration-200 hover:scale-105 hover:-rotate-2"
                   to="/profile"
                 >
                   Profile
                 </Link>
-              )}
-              {!user && (
+              ) : (
                 <Link
-                  className="text-center py-2 px-10 rounded-full shadow-sm shadow-gray-100/20 bg-black text-white transition-transform duration-200 hover:scale-105 hover:-rotate-2"
-                  to="/login"
+                  className="text-center py-2 px-10 rounded-full bg-black text-white transition-transform duration-200 hover:scale-105 hover:-rotate-2"
+                  to="/register"
                 >
-                  Login
+                  Sign up
                 </Link>
               )}
             </article>
@@ -414,59 +369,29 @@ function Home() {
             <div className="absolute left-1/2 -translate-x-1/2 z-1 pointer-events-none">
               <ThreeModel />
             </div>
-
             <div
               className="absolute mt-60 min-h-150 mb-10 z-10 w-full"
-              style={{
-                cursor: "grab",
-                userSelect: "none",
-                overflow: "hidden",
-              }}
+              style={{ cursor: "grab", userSelect: "none", overflow: "hidden" }}
             >
               ⁄
               <div
                 ref={trackRef}
                 className="flex"
-                style={{ gap: CARD_GAP, width: CARD_STRIDE * CARDS.length }}
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
-                onPointerLeave={onPointerUp}
+                style={{ gap: CARD_GAP, width: setW }}
               >
-                {CARDS.map((card, i) => (
-                  <div
-                    key={`${card.id}-${i}`}
-                    className="carousel-card"
-                    style={{ flexShrink: 0, width: CARD_W, cursor: "pointer" }}
-                    onMouseEnter={(e) => {
-                      const cur = gsap.getProperty(e.currentTarget, "y");
-                      gsap.to(e.currentTarget, {
-                        y: Number(cur) - 22,
-                        scale: 1.05,
-                        duration: 0.25,
-                        ease: "power2.out",
-                        overwrite: "auto",
-                      });
-                    }}
-                    onMouseLeave={(e) => {
-                      const vw = window.innerWidth;
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const t =
-                        (rect.left + rect.width / 2 - vw / 2) / (vw / 2);
-                      const ty = t * t * 60;
-                      const scale = 1 - Math.abs(t) * 0.06;
-                      gsap.to(e.currentTarget, {
-                        y: ty,
-                        scale,
-                        duration: 0.3,
-                        ease: "power2.out",
-                        overwrite: "auto",
-                      });
-                    }}
-                  >
-                    <DiceCard card={card} />
-                  </div>
-                ))}
+                {loading ? (
+                  <p>Loading Cards...</p>
+                ) : (
+                  cards.map((card, i) => (
+                    <div
+                      key={`${card.id}-${i}`}
+                      className="carousel-card"
+                      style={{ flexShrink: 0, width: CARD_W }}
+                    >
+                      <DiceCard {...card} user_id={card.collection?.user_id} />
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </article>
@@ -490,8 +415,8 @@ function Home() {
               <path
                 d="M162.694 49.5102C162.729 49.5102 163.219 49.465 165.942 48.9007C168.204 48.4319 172.209 47.3901 174.837 46.8235C177.466 46.2569 178.585 46.1453 178.083 47.1015C176.225 50.6402 173.087 52.3134 173.113 52.4648C173.137 52.6025 173.647 52.3571 177.323 50.9856C180.999 49.6142 187.943 46.9946 191.718 45.6118C195.493 44.2289 195.889 44.1621 194.877 45.0832C193.866 46.0043 191.435 47.9152 190.097 48.9872C188.57 50.2108 188.327 50.5748 188.321 50.785C188.319 50.88 188.654 50.7698 191.214 50.0875C193.775 49.4053 198.637 48.1079 201.696 47.3754C204.755 46.6428 205.863 46.5143 207.185 46.382"
                 stroke="#060606"
-                stroke-width="2"
-                stroke-linecap="round"
+                strokeWidth="2"
+                strokeLinecap="round"
               />
             </svg>
 
