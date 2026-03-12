@@ -66,7 +66,7 @@ function modalHandler() {
         </button>
                 {isOpen && (
         <div className="fixed right-5 flex items-center justify-center z-100 bg-opacity-50">
-          <div className="bg-gray-600 opacity-85 rounded-2xl text-white p-6 rounded shadow-lg w-80">
+          <div className="bg-gray-600 opacity-85 rounded-2xl text-white p-6 shadow-lg w-80">
             <h2 className="text-xl font-bold mb-4">Select Options</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
          
