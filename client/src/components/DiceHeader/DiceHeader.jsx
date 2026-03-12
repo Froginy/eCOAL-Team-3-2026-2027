@@ -28,10 +28,6 @@ useEffect(() => {
       </button>
 
       <h2 className="header-title text-black">{user?.name}</h2>
-
-      <button className="icon-button" type="button" aria-label="More">
-        ...
-      </button>
     </div>
   );
 }

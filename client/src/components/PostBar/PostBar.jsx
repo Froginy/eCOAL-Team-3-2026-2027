@@ -7,7 +7,7 @@ import UserAvatar from "../UserAvatar/UserAvatar";
 function PostBar({ user_id, dice_id }) {
   const serverURL = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
-  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  const headers = { Authorization: `Bearer ${token}`, Accept: "application/json" };
 
   const [user, setUser] = useState();
   const [isLiked, setIsLiked] = useState(false);
@@ -16,48 +16,38 @@ function PostBar({ user_id, dice_id }) {
 
   // Fetch User Info
   useEffect(() => {
-    const getProtectedUser = async () => {
-      if (!user_id) return;
-      try {
-        const response = await axios.get(`${serverURL}/users/${user_id}`);
-        setUser(response.data.data);
-      } catch (error) {
-        console.error("API Error fetching user:", error.response?.status);
-      }
-    };
-    getProtectedUser();
-  }, [user_id, serverURL]);
+    if (!user_id) return;
+    axios.get(`${serverURL}/users/${user_id}`)
+      .then(res => setUser(res.data.data ?? res.data))
+      .catch(() => {});
+  }, [user_id]);
 
-  // Fetch Like Status
   useEffect(() => {
     if (!dice_id) return;
     axios.get(`${serverURL}/dices/${dice_id}`, { headers })
-      .then((res) => {
+      .then(res => {
         const dice = res.data.data ?? res.data;
         setIsLiked(dice.is_liked_by_current_user ?? false);
         setLikesCount(dice.likes_count ?? 0);
       })
       .catch(() => {});
-  }, [dice_id, serverURL]);
+  }, [dice_id]);
 
   const handleLike = async () => {
-    if (!token || loadingLike || !dice_id) return;
+    if (!token || loadingLike) return;
     setLoadingLike(true);
     try {
       if (isLiked) {
         await axios.delete(`${serverURL}/dices/${dice_id}/like`, { headers });
         setIsLiked(false);
-        setLikesCount((prev) => prev - 1);
+        setLikesCount(prev => prev - 1);
       } else {
         await axios.post(`${serverURL}/dices/${dice_id}/like`, {}, { headers });
         setIsLiked(true);
-        setLikesCount((prev) => prev + 1);
+        setLikesCount(prev => prev + 1);
       }
-    } catch (error) {
-      console.error("Like Error:", error.response?.status);
-    } finally {
-      setLoadingLike(false);
-    }
+    } catch {}
+    setLoadingLike(false);
   };
 
   return (
@@ -87,11 +77,25 @@ function PostBar({ user_id, dice_id }) {
               className="h-6"
               style={{ opacity: isLiked ? 1 : 0.4, transition: "opacity 0.2s" }}
             />
+          )}
+        </Link>
+        <div className="flex items-center gap-2 m-2.5">
+          <button
+            type="button"
+            onClick={handleLike}
+            disabled={loadingLike || !token}
+            className="flex items-center gap-1 border-none bg-transparent cursor-pointer p-0"
+          >
+            <img
+              src={like}
+              alt="like"
+              className="h-6"
+              style={{ opacity: isLiked ? 1 : 0.4, transition: "opacity 0.2s" }}
+            />
             {likesCount > 0 && (
               <span className="text-xs text-black/60">{likesCount}</span>
             )}
           </button>
-
           <a href="#">
             <img src={add} alt="add" className="h-6" />
           </a>

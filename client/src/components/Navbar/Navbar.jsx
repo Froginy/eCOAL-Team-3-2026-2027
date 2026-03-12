@@ -1,8 +1,9 @@
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import { useLocation, Link } from "react-router-dom";
 import gsap from "gsap";
 import { useEntranceAnimation } from "../../hooks/useEntranceAnimation";
 import UserAvatar from "../UserAvatar/UserAvatar";
+import { useAuth } from "../../context/AuthContext";
 
 const HomeIcon = ({ active }) => (
   <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
@@ -50,7 +51,6 @@ function NavbarInner({ user, currentIndex, location }) {
 
     let left = 0;
     let current = activeEl;
-    // Walk up the offsetParent chain until we hit the nav element
     while (current && current !== navEl) {
       left += current.offsetLeft;
       current = current.offsetParent;
@@ -89,7 +89,6 @@ function NavbarInner({ user, currentIndex, location }) {
       isFirstRender.current = false;
     };
 
-    // Use a small timeout to ensure DOM is ready on reload
     const timer = setTimeout(init, 50);
     return () => clearTimeout(timer);
   }, [measure, currentIndex]);
@@ -244,35 +243,8 @@ function NavbarInner({ user, currentIndex, location }) {
 
 function Navbar() {
   const location = useLocation();
-  const [user, setUser] = useState(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return null;
-    try {
-      const cached = localStorage.getItem("user");
-      return cached ? JSON.parse(cached) : { name: "", avatar: "" };
-    } catch {
-      return { name: "", avatar: "" };
-    }
-  });
-
-  useEffect(() => {
-    const onStorage = () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setUser(null);
-        return;
-      }
-      try {
-        const cached = localStorage.getItem("user");
-        setUser(cached ? JSON.parse(cached) : { name: "", avatar: "" });
-      } catch {
-        setUser({ name: "", avatar: "" });
-      }
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
-
+  const { user } = useAuth();
+  
   const currentIndex = NAV_ITEMS.findIndex((item) =>
     item.path === "/"
       ? location.pathname === "/"
@@ -290,4 +262,4 @@ function Navbar() {
   );
 }
 
-export default Navbar;
+export default Navbar;

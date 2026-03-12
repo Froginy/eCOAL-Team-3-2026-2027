@@ -2,20 +2,19 @@ import axios from "axios";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import UserAvatar from "../UserAvatar/UserAvatar";
+import { useAuth } from "../../context/AuthContext";
 import "./settings.css";
 
 function Settings() {
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [avatar, setAvatar] = useState("");
-  const [loading, setLoading] = useState(true);
+  const { user, token } = useAuth();
+  const [description, setDescription] = useState(user?.description || "");
+  const [loading, setLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState("");
 
   const [isDescOpen, setIsDescOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tempName, setTempName] = useState("");
-  const [tempAvatar, setTempAvatar] = useState("");
+  const [tempName, setTempName] = useState(user?.name || "");
+  const [tempAvatar, setTempAvatar] = useState(user?.avatar || user?.profile_picture_url || "");
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarError, setAvatarError] = useState("");
   const [isDragging, setIsDragging] = useState(false);
@@ -33,7 +32,7 @@ function Settings() {
   const getAuthHeaders = () => ({
     "Content-Type": "application/json",
     Accept: "application/json",
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
+    Authorization: `Bearer ${token}`,
   });
 
   const showStatus = (msg, isError = false) => {
@@ -47,38 +46,14 @@ function Settings() {
   }, [navigate]);
 
   useEffect(() => {
-    if (!localStorage.getItem("token")) {
+    if (!token) {
       navigate("/login", { replace: true });
       return;
     }
-
-    const fetchUserData = async () => {
-      try {
-        const response = await axios.get(`${api_url}/user`, {
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        const userData = response.data;
-        if (userData.email) setEmail(userData.email);
-        if (userData.name) setName(userData.name);
-        if (userData.description) setDescription(userData.description || "");
-        if (userData.profile_picture_url) setAvatar(userData.profile_picture_url);
-      } catch (error) {
-        if (error.response?.status === 401 || error.status === 401) {
-          handleUnauthorized();
-          return;
-        }
-        console.error("Failed to fetch user data:", error);
-        showStatus("Failed to load profile.", true);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, [handleUnauthorized]);
+    setDescription(user?.description || "");
+    setTempName(user?.name || "");
+    setTempAvatar(user?.avatar || user?.profile_picture_url || "");
+  }, [token, user, navigate]);
 
   const putUser = async (body) => {
     const response = await fetch(`${api_url}/user`, {
@@ -101,8 +76,8 @@ function Settings() {
   };
 
   const openEditProfile = () => {
-    setTempName(name);
-    setTempAvatar(avatar);
+    setTempName(user?.name || "");
+    setTempAvatar(user?.avatar || user?.profile_picture_url || "");
     setAvatarError("");
     setAvatarFile(null);
     setCrop({ x: 0, y: 0 });
@@ -328,7 +303,8 @@ function Settings() {
             <div className="profile-row">
               <div className="profile-info">
              <UserAvatar
-                  name={name}
+                  name={user?.name}
+                  src={user?.avatar || user?.profile_picture_url}
                   size={48}
                   showName
                   className="gap-4"
@@ -369,9 +345,10 @@ function Settings() {
                   <input
                     type="email"
                     className="email-input"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={user?.email || ""}
+                    onChange={(e) => setSaveStatus("Modification de l'email non supportée via le contexte.")}
                     placeholder="Enter your email"
+                    disabled
                   />
                 </form>
               </div>
