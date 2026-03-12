@@ -41,8 +41,8 @@ class DiceSeeder extends Seeder
             'description' => 'A gorgeous resin die with icy reflections.',
         ]);
         $dice1->images()->createMany([
-            ['image_url' => asset('storage/dices/dice_1.jpg')],
-            ['image_url' => asset('storage/dices/dice-2.jpg')],
+            ['image_url' => 'storage/dices/dice_1.jpg'],
+            ['image_url' => 'storage/dices/dice-2.jpg'],
         ]);
         if ($critFaces) $dice1->criterias()->attach($critFaces->id, ['value' => 20]);
         if ($critTaille) $dice1->criterias()->attach($critTaille->id, ['value' => 15]);
@@ -57,8 +57,8 @@ class DiceSeeder extends Seeder
             'description' => 'Perfect for crushing enemies on the table.',
         ]);
         $dice2->images()->createMany([
-            ['image_url' => asset('storage/dices/dice-2.jpg')],
-            ['image_url' => asset('storage/dices/dice-3.jpg')],
+            ['image_url' => 'storage/dices/dice-2.jpg'],
+            ['image_url' => 'storage/dices/dice-3.jpg'],
         ]);
         if ($critFaces) $dice2->criterias()->attach($critFaces->id, ['value' => 6]);
         if ($critTaille) $dice2->criterias()->attach($critTaille->id, ['value' => 12]);
@@ -73,9 +73,9 @@ class DiceSeeder extends Seeder
             'description' => 'A set reminiscent of nebulas.',
         ]);
         $dice3->images()->createMany([
-            ['image_url' => asset('storage/dices/dice-3.jpg')],
-            ['image_url' => asset('storage/dices/dice_1.jpg')],
-            ['image_url' => asset('storage/dices/dice-2.jpg')],
+            ['image_url' => 'storage/dices/dice-3.jpg'],
+            ['image_url' => 'storage/dices/dice_1.jpg'],
+            ['image_url' => 'storage/dices/dice-2.jpg'],
         ]);
         if ($critFaces) $dice3->criterias()->attach($critFaces->id, ['value' => 12]);
         if ($critTaille) $dice3->criterias()->attach($critTaille->id, ['value' => 20]);
