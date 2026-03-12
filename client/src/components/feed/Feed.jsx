@@ -34,10 +34,11 @@ function modalHandler() {
     
     setIsOpen(!isOpen);
 }
-useEffect(() => {
+  useEffect(() => {
+    const api_url = import.meta.env.VITE_API_URL;
     const getProtecteddices = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:8000/api/dices");
+        const response = await axios.get(`${api_url}/dices`);
         const dataToSet = response.data.data;
 
         if (Array.isArray(dataToSet)) {
@@ -60,16 +61,9 @@ useEffect(() => {
     <div className="flex flex-col w-full items-center m-0 mb-15 p-0">
       <div className="w-11/12 m-6  flex flex-row justify-between">
         <img src={logo} alt="Logo" className="h-5" />
-        <a href="">
+        <button onClick={modalHandler}>
           <img src={sort} alt="Sort" className="h-5" />
-        </a>
-      </div>
-
-    return(
-        <div className="flex flex-col w-full items-center m-0 mb-15 p-0">
-            <div className="w-11/12 m-6  flex flex-row justify-between">
-                <img src={logo} alt="Logo" className="h-5" />
-                <button onClick={modalHandler}><img src={sort} alt="Sort" className="h-5" /></button>
+        </button>
                 {isOpen && (
         <div className="fixed right-5 flex items-center justify-center z-100 bg-opacity-50">
           <div className="bg-gray-600 opacity-85 rounded-2xl text-white p-6 rounded shadow-lg w-80">

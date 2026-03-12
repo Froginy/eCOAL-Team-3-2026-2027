@@ -10,7 +10,7 @@ useEffect(() => {
     if (!userId) return;
 
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/users/${userId}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/users/${userId}`);
       // Change response.data.data to response.data
       setUser(response.data); 
     } catch (error) {
