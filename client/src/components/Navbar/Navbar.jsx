@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { useLocation, Link } from "react-router-dom";
 import gsap from "gsap";
 import { useEntranceAnimation } from "../../hooks/useEntranceAnimation";
@@ -29,42 +29,12 @@ const NAV_ITEMS = [
   { path: "/feed", label: "Feed", icon: DiceIcon },
 ];
 
-function Navbar() {
-  const location = useLocation();
+function NavbarInner({ user, currentIndex, location }) {
   const indicatorRef = useRef(null);
   const itemRefs = useRef([]);
   const prevIndexRef = useRef(-1);
   const isFirstRender = useRef(true);
   const userBlockRef = useRef(null);
-
-  const [user, setUser] = useState(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return null;
-    try {
-      const cached = localStorage.getItem("user");
-      return cached ? JSON.parse(cached) : { name: "", avatar: "" };
-    } catch {
-      return { name: "", avatar: "" };
-    }
-  });
-
-  useEffect(() => {
-    const onStorage = () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setUser(null);
-        return;
-      }
-      try {
-        const cached = localStorage.getItem("user");
-        setUser(cached ? JSON.parse(cached) : { name: "", avatar: "" });
-      } catch {
-        setUser({ name: "", avatar: "" });
-      }
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
 
   const navRef = useEntranceAnimation({
     y: 60,
@@ -73,21 +43,36 @@ function Navbar() {
     ease: "elastic.out(1, 0.6)",
   });
 
-  const currentIndex = NAV_ITEMS.findIndex((item) =>
-    item.path === "/"
-      ? location.pathname === "/"
-      : location.pathname.includes(item.path),
-  );
-
-  const measure = () => {
+  const measure = useCallback(() => {
     const activeEl = itemRefs.current[currentIndex];
     const navEl = navRef.current;
-    const indicator = indicatorRef.current;
-    if (!activeEl || !navEl || !indicator || currentIndex === -1) return null;
-    const navRect = navEl.getBoundingClientRect();
-    const itemRect = activeEl.getBoundingClientRect();
-    return { left: itemRect.left - navRect.left, width: itemRect.width };
-  };
+    if (!activeEl || !navEl || currentIndex === -1) return null;
+
+    let left = 0;
+    let current = activeEl;
+    // Walk up the offsetParent chain until we hit the nav element
+    while (current && current !== navEl) {
+      left += current.offsetLeft;
+      current = current.offsetParent;
+    }
+    
+    return { left, width: activeEl.offsetWidth };
+  }, [currentIndex]);
+
+  useEffect(() => {
+    const navEl = navRef.current;
+    if (!navEl) return;
+
+    const observer = new ResizeObserver(() => {
+      const pos = measure();
+      if (pos && indicatorRef.current) {
+        gsap.set(indicatorRef.current, { left: pos.left, width: pos.width });
+      }
+    });
+
+    observer.observe(navEl);
+    return () => observer.disconnect();
+  }, [measure]);
 
   useEffect(() => {
     const indicator = indicatorRef.current;
@@ -95,21 +80,19 @@ function Navbar() {
 
     gsap.set(indicator, { opacity: 0 });
 
-    const raf1 = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const pos = measure();
-          if (!pos) return;
-          gsap.set(indicator, { left: pos.left, width: pos.width, x: 0 });
-          gsap.to(indicator, { opacity: 1, duration: 0.2, delay: 0.15 });
-          prevIndexRef.current = currentIndex;
-          isFirstRender.current = false;
-        });
-      });
-    });
+    const init = () => {
+      const pos = measure();
+      if (!pos) return;
+      gsap.set(indicator, { left: pos.left, width: pos.width, x: 0 });
+      gsap.to(indicator, { opacity: 1, duration: 0.2, delay: 0.15 });
+      prevIndexRef.current = currentIndex;
+      isFirstRender.current = false;
+    };
 
-    return () => cancelAnimationFrame(raf1);
-  }, []);
+    // Use a small timeout to ensure DOM is ready on reload
+    const timer = setTimeout(init, 50);
+    return () => clearTimeout(timer);
+  }, [measure, currentIndex]);
 
   useEffect(() => {
     if (isFirstRender.current || currentIndex === -1) return;
@@ -170,8 +153,6 @@ function Navbar() {
       { opacity: 1, scale: 1, x: 0, duration: 0.4, ease: "back.out(2)" }
     );
   }, [user]);
-
-  if (currentIndex === -1) return null;
 
   return (
     <>
@@ -261,4 +242,52 @@ function Navbar() {
   );
 }
 
-export default Navbar;
+function Navbar() {
+  const location = useLocation();
+  const [user, setUser] = useState(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+    try {
+      const cached = localStorage.getItem("user");
+      return cached ? JSON.parse(cached) : { name: "", avatar: "" };
+    } catch {
+      return { name: "", avatar: "" };
+    }
+  });
+
+  useEffect(() => {
+    const onStorage = () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setUser(null);
+        return;
+      }
+      try {
+        const cached = localStorage.getItem("user");
+        setUser(cached ? JSON.parse(cached) : { name: "", avatar: "" });
+      } catch {
+        setUser({ name: "", avatar: "" });
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  const currentIndex = NAV_ITEMS.findIndex((item) =>
+    item.path === "/"
+      ? location.pathname === "/"
+      : location.pathname.includes(item.path)
+  );
+
+  if (currentIndex === -1) return null;
+
+  return (
+    <NavbarInner 
+      user={user} 
+      currentIndex={currentIndex} 
+      location={location} 
+    />
+  );
+}
+
+export default Navbar;

@@ -61,13 +61,7 @@ export default function ProfileSection({ userId }) {
   const handleFollow = async () => {
     setLoading(true);
     try {
-<<<<<<< HEAD
       await axios.post(`${api_url}/users/${userId}/subscribe`, {}, { headers });
-=======
-      await axios.post(`${api_url}/users/${userId}/subscribe`, {}, {
-        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
-      });
->>>>>>> 27e719a (modif)
       setIsSubscribed(true);
       setProfile((prev) => ({
         ...prev,
@@ -80,13 +74,7 @@ export default function ProfileSection({ userId }) {
   const handleUnfollow = async () => {
     setLoading(true);
     try {
-<<<<<<< HEAD
       await axios.delete(`${api_url}/users/${userId}/subscribe`, { headers });
-=======
-      await axios.delete(`${api_url}/users/${userId}/subscribe`, {
-        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
-      });
->>>>>>> 27e719a (modif)
       setIsSubscribed(false);
       setProfile((prev) => ({
         ...prev,

@@ -59,27 +59,26 @@ function Feed() {
         <button onClick={modalHandler}>
           <img src={sort} alt="Sort" className="h-5" />
         </button>
-        {isOpen && (
-          <div className="fixed right-5 flex items-center justify-center z-100 bg-opacity-50">
-            <div className="bg-gray-600 opacity-85 rounded-2xl text-white p-6 rounded shadow-lg w-80">
-              <h2 className="text-xl font-bold mb-4">Select Options</h2>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block mb-1 font-semibold">Colors:</label>
-                  <select
-                    name="color"
-                    value={formData.color}
-                    onChange={handleChange}
-                    className="border p-2 w-full rounded"
-                  >
-                    <option value="">Select a color</option>
-                    {colors.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {isOpen && (
+        <div className="fixed right-5 flex items-center justify-center z-100 bg-opacity-50">
+          <div className="bg-gray-600 opacity-85 rounded-2xl text-white p-6 shadow-lg w-80">
+            <h2 className="text-xl font-bold mb-4">Select Options</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+         
+              <div>
+                <label className="block mb-1 font-semibold">Colors:</label>
+                <select
+                  name="color"
+                  value={formData.color}
+                  onChange={handleChange}
+                  className="border p-2 w-full rounded"
+                >
+                  <option value="">Select a color</option>
+                  {colors.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
 
                 <div>
                   <label className="block mb-1 font-semibold">Height:</label>

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Header from "../DiceHeader/DiceHeader";
 import ProfileSection from "../ProfileSection/ProfileSection";
 import DiceGrid from "../DiceGrid/DiceGrid";
@@ -9,13 +9,14 @@ import "./Profile.css";
 
 export default function Profile() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
-
-<<<<<<< HEAD
-=======
-  const api_url = import.meta.env.VITE_API_URL;
-
->>>>>>> 27e719a (modif)
+  useEffect(() => {
+    if (!localStorage.getItem("token")) {
+      navigate("/login", { replace: true });
+      return;
+    }
+  });
   return (
     <div className="page-container">
       <Header userId={id} />
