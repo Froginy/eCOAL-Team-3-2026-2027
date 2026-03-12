@@ -1,13 +1,13 @@
-import axios from 'axios';
+import axios from "axios";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./settings.css";
 
 function Settings() {
-  const [email, setEmail] = useState("john.doe@gmail.com");
-  const [name, setName] = useState("John Doe");
-  const [description, setDescription] = useState("I like dices");
-  const [avatar, setAvatar] = useState("https://i.pravatar.cc/150?u=johndoe");
+  const [email, setEmail] = useState();
+  const [name, setName] = useState();
+  const [description, setDescription] = useState("");
+  const [avatar, setAvatar] = useState();
   const [loading, setLoading] = useState(true);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,28 +24,32 @@ function Settings() {
   const imgRef = useRef(null);
   const navigate = useNavigate();
 
+  const api_url = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
-    if (!localStorage.getItem('token')) {
-      navigate('/login', { replace: true });
+    if (!localStorage.getItem("token")) {
+      navigate("/login", { replace: true });
       return;
     }
 
     const fetchUserData = async () => {
       try {
-        const response = await axios.get('/api/user', {
+        const response = await axios.get(api_url + "/user", {
           headers: {
-            Accept: 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+            Accept: "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
         const userData = response.data;
+        console.log(userData);
         if (userData.email) setEmail(userData.email);
         if (userData.name) setName(userData.name);
-        if (userData.description) setDescription(userData.description);
-        if (userData.profile_picture_url) setAvatar(userData.profile_picture_url);
+        if (userData.description) setDescription(userData.description || "");
+        if (userData.profile_picture_url)
+          setAvatar(userData.profile_picture_url);
       } catch (error) {
         console.warn(
-          'Backend API not ready, falling back to mockup data.',
+          "Backend API not ready, falling back to mockup data.",
           error,
         );
       } finally {
@@ -189,11 +193,12 @@ function Settings() {
     if (e && e.preventDefault) e.preventDefault();
 
     try {
-      const response = await fetch("/api/user/description", {
+      const response = await fetch(api_url + "/user/", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({ description }),
       });
@@ -210,7 +215,7 @@ function Settings() {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/logout", { method: "POST" });
+      await fetch(api_url + "/logout", { method: "POST" });
     } catch (error) {
       console.warn("Backend API not ready. Action simulated locally.", error);
     }
@@ -223,11 +228,12 @@ function Settings() {
     if (e && e.preventDefault) e.preventDefault();
 
     try {
-      const response = await fetch("/api/user/email", {
+      const response = await fetch(api_url + "/user/", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({ email: email }),
       });
@@ -336,7 +342,7 @@ function Settings() {
                   />
                 </form>
                 <span className="description-counter">
-                  {description.length} / 150
+                  {(description || "").length} / 150
                 </span>
               </div>
               <button

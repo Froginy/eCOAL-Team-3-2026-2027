@@ -9,6 +9,8 @@ function Login() {
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
+    const api_url = import.meta.env.VITE_API_URL; 
+
     const handleLogin = async (e) => {
         e.preventDefault();
         setError('');
@@ -19,7 +21,7 @@ function Login() {
         }
 
         try {
-            const response = await axios.post('/api/login', { email, password });
+            const response = await axios.post(api_url + '/login', { email, password });
         
             if (response.status === 200) {
                 localStorage.setItem('token', response.data.token);
