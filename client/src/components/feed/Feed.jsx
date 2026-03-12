@@ -1,5 +1,6 @@
 import logo from "../../assets/logo.svg";
 import PostCard from "../postCards/postCards";
+import EditDrawer from "../EditDrawer/EditDrawer";
 import sort from "../../assets/sort.svg";
 import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
@@ -7,6 +8,9 @@ import axios from "axios";
 function Feed() {
   const [dices, setdices] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingDice, setEditingDice] = useState(null);
+
   const [formData, setFormData] = useState({
     color: "",
     facesMin: "",
@@ -79,6 +83,31 @@ function Feed() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEdit = (dice) => {
+    setEditingDice(dice);
+    setIsEditOpen(true);
+  };
+
+  const handleUpdated = (updatedDice) => {
+    setdices(prev => prev.map(d => d.id === updatedDice.id ? updatedDice : d));
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce dé ?")) return;
+    
+    try {
+      const api_url = import.meta.env.VITE_API_URL;
+      const token = localStorage.getItem("token");
+      await axios.delete(`${api_url}/dices/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setdices(prev => prev.filter(d => d.id !== id));
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert("La suppression a échoué.");
+    }
   };
 
   function modalHandler() {
@@ -232,7 +261,14 @@ function Feed() {
 
       <div className="flex flex-col items-center w-full gap-4">
         {filteredDices && filteredDices.length > 0 ? (
-          filteredDices.map((dice) => <PostCard key={dice.id} {...dice} />)
+          filteredDices.map((dice) => (
+            <PostCard 
+              key={dice.id} 
+              {...dice} 
+              onEdit={() => handleEdit(dice)} 
+              onDelete={handleDelete}
+            />
+          ))
         ) : (
           <div className="flex flex-col items-center mt-20 text-black/20 italic">
             <p className="text-lg">No dice found in this range.</p>
@@ -242,6 +278,13 @@ function Feed() {
           </div>
         )}
       </div>
+
+      <EditDrawer 
+        dice={editingDice}
+        open={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        onUpdated={handleUpdated}
+      />
     </div>
   );
 }

@@ -340,39 +340,23 @@ export default function NewDiceDrawer({ open, onClose }) {
           onSubmit={handleSubmit}
           className="max-h-[70vh] w-full overflow-y-auto mx-auto px-6 py-5 flex flex-col gap-4 mt-6"
         >
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-semibold tracking-widest uppercase text-black/40 flex items-center gap-1.5">
-              Images <span className="text-black/25 font-normal normal-case tracking-normal">(up to 3)</span>
-            </label>
-            <div
-              onClick={() => images.length < 3 && fileRef.current?.click()}
-              onDrop={handleDrop}
-              onDragOver={e => e.preventDefault()}
-              className={`border border-dashed border-black/20 rounded-xl py-6 px-4 flex flex-col items-center gap-1 text-black/30 transition-all duration-200 text-center ${images.length < 3 ? 'cursor-pointer hover:border-black/40 hover:bg-black/2 hover:text-black/50' : 'opacity-50 cursor-not-allowed'}`}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M12 15V7M12 7l-3 3M12 7l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M3 17v1a3 3 0 003 3h12a3 3 0 003-3v-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-              <p className="text-[13px] m-0">
-                {images.length < 3 ? "Drop here or click browse" : "Upload limit reached"}
-              </p>
-              <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={e => handleImages(e.target.files)} disabled={images.length >= 3} />
-            </div>
-            {images.length > 0 && (
-              <div className="grid grid-cols-4 gap-2 mt-1">
-                {images.map((img, i) => (
-                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-black/10 group">
-                    <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(i)}
-                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-white/90 border border-black/10 text-black text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 cursor-pointer leading-none"
-                    >×</button>
-                  </div>
-                ))}
+          <div className="flex flex-col gap-1.5 text-left">
+            <label className="text-[11px] font-semibold tracking-widest uppercase text-black/40 flex items-center gap-1.5">Images</label>
+            <div className="grid grid-cols-4 gap-2">
+               <div
+                onClick={() => images.length < 3 && fileRef.current?.click()}
+                className={`aspect-square border border-dashed border-black/20 rounded-lg flex flex-col items-center justify-center text-black/30 transition-all ${images.length < 3 ? 'cursor-pointer hover:border-black/40 hover:bg-black/2' : 'opacity-30 cursor-not-allowed'}`}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={e => handleImages(e.target.files)} disabled={images.length >= 3} />
               </div>
-            )}
+              {images.map((img, i) => (
+                <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-black/10 group">
+                  <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                  <button type="button" onClick={() => removeImage(i)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-white/90 border border-black/10 text-black text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 cursor-pointer leading-none">×</button>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="flex flex-col gap-1.5">

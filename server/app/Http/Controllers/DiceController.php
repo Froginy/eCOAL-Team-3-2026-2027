@@ -100,7 +100,7 @@ class DiceController extends Controller
             'name'           => 'nullable|string|max:100',
             'description'    => 'nullable|string',
             'images'         => 'nullable|array|max:3',
-            'images.*'       => 'string|max:255',
+            'images.*'       => 'sometimes',
             'criterias'      => 'nullable|array',
             'criterias.*.criteria_id' => 'required|exists:criterias,id',
             'criterias.*.value'       => 'nullable|integer',
@@ -116,13 +116,26 @@ class DiceController extends Controller
             $dice->color()->updateOrCreate([], $request->color);
         }
 
-        // Sync les images si fournies
-        if ($request->has('images') && is_array($request->images)) {
-            $dice->images()->delete(); // Remove old images
-            $imagesData = array_map(function ($url) {
-                return ['image_url' => $url];
-            }, $request->images);
-            $dice->images()->createMany($imagesData);
+        // Sync les images si fournies (URLs existantes + Nouveaux fichiers)
+        if ($request->has('images') || $request->hasFile('images')) {
+            $dice->images()->delete(); // On repart de zéro pour la synchro
+            
+            // 1. Gérer les URLs existantes
+            if ($request->has('images') && is_array($request->images)) {
+                foreach ($request->images as $img) {
+                    if (is_string($img) && !empty($img)) {
+                        $dice->images()->create(['image_url' => $img]);
+                    }
+                }
+            }
+
+            // 2. Gérer les nouveaux fichiers uploadés
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    $path = $image->store('dices', 'public');
+                    $dice->images()->create(['image_url' => 'storage/' . $path]);
+                }
+            }
         }
 
         // Sync les critères si fournis
