@@ -3,7 +3,7 @@ import add from '../../assets/add.svg'
 import like from '../../assets/like.svg'
 import placeholder from '../../assets/placeholder_pp.png'
 
-function PostBar() {
+function PostBar({user_id}) {
 
     const username = "Username"; // This should be dynamically set based on the post's author
     return (
