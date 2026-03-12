@@ -1,0 +1,16 @@
+:root {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #1a1a1a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+
+
+#root {
+  min-height: 100vh;
+}

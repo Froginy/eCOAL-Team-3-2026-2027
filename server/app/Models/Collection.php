@@ -21,4 +21,9 @@ class Collection extends Model
     {
         return $this->hasMany(Dice::class);
     }
+
+    public function likedByUsers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'likes');
+    }
 }

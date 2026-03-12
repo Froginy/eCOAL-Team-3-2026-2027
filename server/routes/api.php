@@ -18,8 +18,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
-    
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/logout', [AuthController::class, 'logout']);
+});
+
+// --- SUBSCRIPTIONS ---
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/users/{id}/subscribe', [SubscriptionController::class, 'subscribe']);
+    Route::delete('/users/{id}/subscribe', [SubscriptionController::class, 'unsubscribe']);
 });
 
 // --- SUBSCRIPTIONS ---
@@ -35,6 +40,12 @@ Route::prefix('collections')->group(function () {
     Route::get('/{id}', [CollectionController::class, 'show']);
     Route::put('/{id}', [CollectionController::class, 'update']);
     Route::delete('/{id}', [CollectionController::class, 'destroy']);
+    
+    // Auth routes for collections
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/{id}/like', [LikeController::class, 'like']);
+        Route::delete('/{id}/like', [LikeController::class, 'unlike']);
+    });
 });
 
 // --- DICES ---
