@@ -4,10 +4,13 @@ import add from "../../assets/add.svg";
 import like from "../../assets/like.svg";
 import UserAvatar from "../UserAvatar/UserAvatar";
 
-function PostBar({ user_id, dice_id }) {
+function PostBar({ user_id, dice_id, title }) {
   const serverURL = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
-  const headers = { Authorization: `Bearer ${token}`, Accept: "application/json" };
+  const headers = { 
+    Authorization: `Bearer ${token}`, 
+    Accept: "application/json" 
+  };
 
   const [user, setUser] = useState();
   const [isLiked, setIsLiked] = useState(false);
@@ -20,8 +23,9 @@ function PostBar({ user_id, dice_id }) {
     axios.get(`${serverURL}/users/${user_id}`)
       .then(res => setUser(res.data.data ?? res.data))
       .catch(() => {});
-  }, [user_id]);
+  }, [user_id, serverURL]);
 
+  // Fetch Like Status and Counts
   useEffect(() => {
     if (!dice_id) return;
     axios.get(`${serverURL}/dices/${dice_id}`, { headers })
@@ -31,10 +35,10 @@ function PostBar({ user_id, dice_id }) {
         setLikesCount(dice.likes_count ?? 0);
       })
       .catch(() => {});
-  }, [dice_id]);
+  }, [dice_id, serverURL]);
 
   const handleLike = async () => {
-    if (!token || loadingLike) return;
+    if (!token || loadingLike || !dice_id) return;
     setLoadingLike(true);
     try {
       if (isLiked) {
@@ -46,8 +50,11 @@ function PostBar({ user_id, dice_id }) {
         setIsLiked(true);
         setLikesCount(prev => prev + 1);
       }
-    } catch {}
-    setLoadingLike(false);
+    } catch (error) {
+      console.error("Like Error:", error.response?.status);
+    } finally {
+      setLoadingLike(false);
+    }
   };
 
   return (
@@ -64,22 +71,7 @@ function PostBar({ user_id, dice_id }) {
           />
         )}
         
-        <div className="flex items-center gap-2 m-2.5">
-          <button
-            type="button"
-            onClick={handleLike}
-            disabled={loadingLike || !token}
-            className="flex items-center gap-1 border-none bg-transparent cursor-pointer p-0"
-          >
-            <img
-              src={like}
-              alt="like"
-              className="h-6"
-              style={{ opacity: isLiked ? 1 : 0.4, transition: "opacity 0.2s" }}
-            />
-          )}
-        </Link>
-        <div className="flex items-center gap-2 m-2.5">
+        <div className="flex items-center gap-2 m-2.5 text-black">
           <button
             type="button"
             onClick={handleLike}
@@ -93,10 +85,11 @@ function PostBar({ user_id, dice_id }) {
               style={{ opacity: isLiked ? 1 : 0.4, transition: "opacity 0.2s" }}
             />
             {likesCount > 0 && (
-              <span className="text-xs text-black/60">{likesCount}</span>
+              <span className="text-xs font-semibold">{likesCount}</span>
             )}
           </button>
-          <a href="#">
+
+          <a href="#" className="flex items-center">
             <img src={add} alt="add" className="h-6" />
           </a>
         </div>
