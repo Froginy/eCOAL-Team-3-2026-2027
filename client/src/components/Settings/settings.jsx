@@ -1,6 +1,7 @@
 import axios from "axios";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import UserAvatar from "../UserAvatar/UserAvatar";
 import "./settings.css";
 
 function Settings() {
@@ -29,6 +30,22 @@ function Settings() {
 
   const api_url = import.meta.env.VITE_API_URL;
 
+  const getAuthHeaders = () => ({
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  });
+
+  const showStatus = (msg, isError = false) => {
+    setSaveStatus({ msg, isError });
+    setTimeout(() => setSaveStatus(""), 3000);
+  };
+
+  const handleUnauthorized = useCallback(() => {
+    localStorage.removeItem("token");
+    navigate("/login", { replace: true });
+  }, [navigate]);
+
   useEffect(() => {
     if (!localStorage.getItem("token")) {
       navigate("/login", { replace: true });
@@ -37,7 +54,7 @@ function Settings() {
 
     const fetchUserData = async () => {
       try {
-        const response = await axios.get(api_url + "/user", {
+        const response = await axios.get(`${api_url}/user`, {
           headers: {
             Accept: "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -49,26 +66,39 @@ function Settings() {
         if (userData.description) setDescription(userData.description || "");
         if (userData.profile_picture_url) setAvatar(userData.profile_picture_url);
       } catch (error) {
-        console.warn("Backend API not ready, falling back to mockup data.", error);
+        if (error.response?.status === 401 || error.status === 401) {
+          handleUnauthorized();
+          return;
+        }
+        console.error("Failed to fetch user data:", error);
+        showStatus("Failed to load profile.", true);
       } finally {
         setLoading(false);
       }
     };
+
     fetchUserData();
-  }, []);
+  }, [handleUnauthorized]);
 
+  const putUser = async (body) => {
+    const response = await fetch(`${api_url}/user`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(body),
+    });
 
-  const showStatus = (msg) => {
-    setSaveStatus(msg);
-    setTimeout(() => setSaveStatus(""), 3000);
+    if (response.status === 401) {
+      handleUnauthorized();
+      throw new Error("Unauthorized");
+    }
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.message || `Server error ${response.status}`);
+    }
+
+    return response.json();
   };
-
-  const getAuthHeaders = () => ({
-    "Content-Type": "application/json",
-    Accept: "application/json",
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
-  });
-
 
   const openEditProfile = () => {
     setTempName(name);
@@ -78,7 +108,6 @@ function Settings() {
     setCrop({ x: 0, y: 0 });
     setIsModalOpen(true);
   };
-
 
   const validateAndSetImage = (file) => {
     if (!file.type.startsWith("image/")) {
@@ -109,17 +138,12 @@ function Settings() {
   const handleFileDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      validateAndSetImage(e.dataTransfer.files[0]);
-    }
+    if (e.dataTransfer.files?.[0]) validateAndSetImage(e.dataTransfer.files[0]);
   };
 
   const handleFileSelect = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      validateAndSetImage(e.target.files[0]);
-    }
+    if (e.target.files?.[0]) validateAndSetImage(e.target.files[0]);
   };
-
 
   const onDragStart = (clientX, clientY) => {
     setIsDraggingCrop(true);
@@ -136,7 +160,6 @@ function Settings() {
   const handleMouseUp = () => setIsDraggingCrop(false);
   const handleTouchStart = (e) => onDragStart(e.touches[0].clientX, e.touches[0].clientY);
   const handleTouchMove = (e) => onDragMove(e.touches[0].clientX, e.touches[0].clientY);
-
 
   const getCroppedBase64 = () => {
     if (!avatarFile || !imgRef.current) return null;
@@ -174,112 +197,91 @@ function Settings() {
     }
   };
 
-
   const handleSaveProfile = async () => {
     const croppedBase64 = getCroppedBase64();
-    const finalAvatar = croppedBase64 || tempAvatar;
 
-    setName(tempName);
-    setAvatar(finalAvatar);
-    setIsModalOpen(false);
+    const body = { name: tempName };
+    if (croppedBase64) body.profile_picture = croppedBase64;
 
     try {
-      const body = { name: tempName };
-
-      if (croppedBase64) {
-        body.profile_picture = croppedBase64;
-      }
-
-      const response = await fetch(api_url + "/user/", {
-        method: "PUT",
-        headers: getAuthHeaders(),
-        body: JSON.stringify(body),
-      });
-
-      if (response.ok) {
-        showStatus("Profile updated ✓");
-      } else {
-        console.warn("Backend returned an error. Profile updated locally only.");
-        showStatus("Profile updated locally only.");
-      }
+      const data = await putUser(body);
+      setName(data.name ?? tempName);
+      setAvatar(data.profile_picture_url ?? croppedBase64 ?? tempAvatar);
+      setIsModalOpen(false);
+      showStatus("Profile updated ✓");
     } catch (error) {
-      console.warn("Backend API not ready. Profile updated locally.", error);
-      showStatus("Profile updated locally only.");
+      console.error("Save profile error:", error);
+      showStatus(`Failed to save: ${error.message}`, true);
     }
   };
 
-
-  const handleSaveDescription = async (e) => {
-    if (e && e.preventDefault) e.preventDefault();
+  const handleSaveDescription = async () => {
     try {
-      const response = await fetch(api_url + "/user/", {
-        method: "PUT",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ description }),
-      });
-      showStatus(response.ok ? "Description updated ✓" : "Updated locally only.");
+      await putUser({ description });
+      setIsDescOpen(false);
+      showStatus("Description updated ✓");
     } catch (error) {
-      console.warn("Backend API not ready.", error);
-      showStatus("Updated locally only.");
+      console.error("Save description error:", error);
+      showStatus(`Failed to save: ${error.message}`, true);
     }
   };
-
 
   const handleSaveEmail = async (e) => {
-    if (e && e.preventDefault) e.preventDefault();
+    if (e?.preventDefault) e.preventDefault();
+    if (!email.trim()) {
+      showStatus("Email cannot be empty.", true);
+      return;
+    }
     try {
-      const response = await fetch(api_url + "/user/", {
-        method: "PUT",
-        headers: getAuthHeaders(),
-        body: JSON.stringify({ email }),
-      });
-      showStatus(response.ok ? "Email updated ✓" : "Updated locally only.");
+      await putUser({ email });
+      showStatus("Email updated ✓");
     } catch (error) {
-      console.warn("Backend API not ready.", error);
-      showStatus("Updated locally only.");
+      console.error("Save email error:", error);
+      showStatus(`Failed to save: ${error.message}`, true);
     }
   };
-
 
   const handleLogout = async () => {
     try {
-      await fetch(api_url + "/logout", {
+      await fetch(`${api_url}/logout`, {
         method: "POST",
         headers: getAuthHeaders(),
       });
     } catch (error) {
-      console.warn("Backend API not ready.", error);
+      console.warn("Logout endpoint error:", error);
+    } finally {
+      localStorage.removeItem("token");
+      navigate("/login", { replace: true });
     }
-
-    localStorage.removeItem("token");
-    navigate("/login", { replace: true });
   };
 
   const handleDeleteAccount = async () => {
     try {
-      const response = await fetch(api_url + "/user/", {
+      const response = await fetch(`${api_url}/user`, {
         method: "DELETE",
         headers: getAuthHeaders(),
       });
 
-      if (response.ok) {
-        showStatus("Account deleted ✓");
-        localStorage.removeItem("token");
-        setTimeout(() => navigate("/login", { replace: true }), 1000);
-      } else {
-        console.warn("Backend error. Deleting locally.");
-        showStatus("Deleted locally only.");
-        localStorage.removeItem("token");
-        setTimeout(() => navigate("/login", { replace: true }), 1000);
+      if (response.status === 401) {
+        handleUnauthorized();
+        return;
       }
-    } catch (error) {
-      console.warn("Backend API not ready.", error);
-      showStatus("Deleted locally only.");
-      localStorage.removeItem("token");
-      setTimeout(() => navigate("/login", { replace: true }), 1000);
-    }
-  };
 
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || `Server error ${response.status}`);
+      }
+
+      showStatus("Account deleted ✓");
+    } catch (error) {
+      console.error("Delete account error:", error);
+      showStatus(`Failed to delete: ${error.message}`, true);
+      return;
+    }
+
+    localStorage.removeItem("token");
+    setTimeout(() => navigate("/login", { replace: true }), 1000);
+  };
 
   if (loading) {
     return (
@@ -309,12 +311,13 @@ function Settings() {
         {saveStatus && (
           <div style={{
             position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)",
-            background: "#1c1c1e", color: "#fff", padding: "10px 20px",
+            background: saveStatus.isError ? "#c0392b" : "#1c1c1e",
+            color: "#fff", padding: "10px 20px",
             borderRadius: 20, fontSize: "0.85rem", fontWeight: 600,
             zIndex: 2000, boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
             animation: "fadeIn 0.2s ease-out"
           }}>
-            {saveStatus}
+            {saveStatus.msg}
           </div>
         )}
 
@@ -324,8 +327,12 @@ function Settings() {
 
             <div className="profile-row">
               <div className="profile-info">
-                {avatar && <img src={avatar} alt={name} className="avatar" />}
-                <span className="profile-name">{name}</span>
+             <UserAvatar
+                  name={name}
+                  size={48}
+                  showName
+                  className="gap-4"
+                />
               </div>
               <div className="profile-actions">
                 <button className="dark-btn edit-profile-btn" onClick={openEditProfile}>
@@ -354,6 +361,7 @@ function Settings() {
                 Change
               </button>
             </div>
+
             <div className="email-row">
               <div className="email-info">
                 <span className="email-label">Email</span>
@@ -383,25 +391,18 @@ function Settings() {
             </span>
             <span className="warning-text">This action cannot be<br />undone.</span>
           </div>
-          <button className="danger-btn delete-account-btn" onClick={() => setIsDeleteModalOpen(true)}>Delete account</button>
+          <button className="danger-btn delete-account-btn" onClick={() => setIsDeleteModalOpen(true)}>
+            Delete account
+          </button>
         </footer>
 
         {isDescOpen && (
           <div className="modal-overlay" onClick={() => setIsDescOpen(false)}>
-            <div
-              className="modal-content description-modal"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div className="modal-content description-modal" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
                 <h3 className="modal-title">Edit Description</h3>
-                <button
-                  className="close-modal-btn"
-                  onClick={() => setIsDescOpen(false)}
-                >
-                  x
-                </button>
+                <button className="close-modal-btn" onClick={() => setIsDescOpen(false)}>x</button>
               </div>
-
               <div className="modal-body">
                 <textarea
                   className="description-modal-input"
@@ -410,34 +411,15 @@ function Settings() {
                   maxLength={150}
                   rows={6}
                 />
-
-                <div className="description-counter">
-                  {(description || "").length} / 150
-                </div>
+                <div className="description-counter">{(description || "").length} / 150</div>
               </div>
-
               <div className="modal-footer">
-                <button
-                  className="dark-btn cancel-btn"
-                  onClick={() => setIsDescOpen(false)}
-                >
-                  Cancel
-                </button>
-
-                <button
-                  className="dark-btn"
-                  onClick={(e) => {
-                    handleSaveDescription(e);
-                    setIsDescOpen(false);
-                  }}
-                >
-                  Save
-                </button>
+                <button className="dark-btn cancel-btn" onClick={() => setIsDescOpen(false)}>Cancel</button>
+                <button className="dark-btn" onClick={handleSaveDescription}>Save</button>
               </div>
             </div>
           </div>
         )}
-
 
         {isModalOpen && (
           <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
@@ -452,81 +434,7 @@ function Settings() {
               </div>
 
               <div className="modal-body">
-                {avatarFile ? (
-                  <div className="crop-workspace">
-                    <p className="crop-instructions">Drag image to adjust position</p>
-                    <div
-                      className="crop-container"
-                      onMouseDown={handleMouseDown}
-                      onMouseMove={handleMouseMove}
-                      onMouseUp={handleMouseUp}
-                      onMouseLeave={handleMouseUp}
-                      onTouchStart={handleTouchStart}
-                      onTouchMove={handleTouchMove}
-                      onTouchEnd={handleMouseUp}
-                    >
-                      <img
-                        ref={imgRef}
-                        src={tempAvatar}
-                        className="crop-image object-cover"
-                        style={{
-                          ...imgAspectStyle,
-                          transform: `translate(calc(-50% + ${crop.x}px), calc(-50% + ${crop.y}px))`,
-                        }}
-                        draggable="false"
-                        alt="Crop preview"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      className="cancel-btn dark-btn"
-                      onClick={() => {
-                        setAvatarFile(null);
-                        setTempAvatar(avatar);
-                        setCrop({ x: 0, y: 0 });
-                      }}
-                    >
-                      Remove Image
-                    </button>
-                  </div>
-                ) : (
-                  <div className="modal-avatar-preview">
-                    {tempAvatar && (
-                      <img
-                        src={tempAvatar}
-                        alt={tempName}
-                        className="avatar-preview-img"
-                        onError={(e) => { e.target.src = "https://i.pravatar.cc/150?u=fallback"; }}
-                      />
-                    )}
-                    <div className="avatar-upload-container">
-                      <label className="input-label">Profile Picture</label>
-                      <div
-                        className={`upload-area ${isDragging ? "drag-over" : ""}`}
-                        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                        onDragLeave={() => setIsDragging(false)}
-                        onDrop={handleFileDrop}
-                        onClick={() => document.getElementById("avatar-upload").click()}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} className="upload-icon">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                        </svg>
-                        <p className="upload-text">
-                          <span>Click to upload</span> or drag and drop
-                        </p>
-                      </div>
-                      <input
-                        id="avatar-upload"
-                        type="file"
-                        accept="image/png, image/jpeg, image/jpg"
-                        className="file-input-hidden"
-                        onChange={handleFileSelect}
-                      />
-                      {avatarError && <p className="error-text">{avatarError}</p>}
-                    </div>
-                  </div>
-                )}
-
+          
                 <div className="input-group">
                   <label className="input-label">Name</label>
                   <input
@@ -540,12 +448,8 @@ function Settings() {
               </div>
 
               <div className="modal-footer">
-                <button className="dark-btn cancel-btn" onClick={() => setIsModalOpen(false)}>
-                  Cancel
-                </button>
-                <button className="dark-btn" onClick={handleSaveProfile}>
-                  Save
-                </button>
+                <button className="dark-btn cancel-btn" onClick={() => setIsModalOpen(false)}>Cancel</button>
+                <button className="dark-btn" onClick={handleSaveProfile}>Save</button>
               </div>
             </div>
           </div>
@@ -569,14 +473,13 @@ function Settings() {
                   </svg>
                 </button>
               </div>
-
               <div className="modal-body">
                 <p className="delete-confirmation-text">
-                  You are about to permanently delete your account. <strong>This action is irreversible and all your data will be lost.</strong>
+                  You are about to permanently delete your account.{" "}
+                  <strong>This action is irreversible and all your data will be lost.</strong>
                 </p>
                 <p className="delete-sub-text">Are you sure you want to continue?</p>
               </div>
-
               <div className="modal-footer">
                 <button className="dark-btn cancel-btn-premium" onClick={() => setIsDeleteModalOpen(false)}>
                   Keep Account

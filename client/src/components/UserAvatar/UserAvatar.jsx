@@ -3,18 +3,15 @@ import { Link } from "react-router-dom";
 import gsap from "gsap";
 import { useRef } from "react";
 
-/**
- * UserAvatar
- *
- * Props:
- *  - src        {string}  URL de l'image de profil
- *  - name       {string}  Nom affiché (utilisé pour les initiales en fallback)
- *  - size       {number}  Taille en px (défaut: 32)
- *  - showName   {boolean} Afficher le prénom à côté de l'avatar (défaut: false)
- *  - to         {string}  Route React Router (défaut: "/settings")
- *  - className  {string}  Classes CSS supplémentaires sur le wrapper
- */
-function UserAvatar({ src, name = "", size = 32, showName = false, to = "/settings", className = "" }) {
+function UserAvatar({
+  src,
+  name = "",
+  size = 32,
+  showName = false,
+  to = "/settings",
+  className = "",
+  hover = true,
+}) {
   const [imgError, setImgError] = useState(false);
   const containerRef = useRef(null);
 
@@ -24,25 +21,27 @@ function UserAvatar({ src, name = "", size = 32, showName = false, to = "/settin
     .slice(0, 2)
     .join("")
     .toUpperCase();
+  let handleMouseEnter, handleMouseLeave;
 
-  const handleMouseEnter = () => {
-    if (!containerRef.current) return;
-    gsap.to(containerRef.current, {
-      scale: 1.08,
-      duration: 0.25,
-      ease: "back.out(2)",
-    });
-  };
+  if (hover) {
+    handleMouseEnter = () => {
+      if (!containerRef.current) return;
+      gsap.to(containerRef.current, {
+        scale: 1.08,
+        duration: 0.25,
+        ease: "back.out(2)",
+      });
+    };
 
-  const handleMouseLeave = () => {
-    if (!containerRef.current) return;
-    gsap.to(containerRef.current, {
-      scale: 1,
-      duration: 0.2,
-      ease: "power2.out",
-    });
-  };
-
+    handleMouseLeave = () => {
+      if (!containerRef.current) return;
+      gsap.to(containerRef.current, {
+        scale: 1,
+        duration: 0.2,
+        ease: "power2.out",
+      });
+    };
+  }
   const showImage = src && !imgError;
 
   const avatarStyle = {
@@ -77,7 +76,12 @@ function UserAvatar({ src, name = "", size = 32, showName = false, to = "/settin
             src={src}
             alt={name}
             onError={() => setImgError(true)}
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: "block",
+            }}
           />
         ) : (
           <span>{initials || "?"}</span>
