@@ -6,6 +6,9 @@ import dice1 from '../../assets/dice1.svg'
 import dice2 from '../../assets/dice2.svg'
 import dice3 from '../../assets/dice3.svg'
 
+
+
+
 function PostCard()   {
 
 const postContent = "Cupidatat aute laborum aliqua consectetur voluptate laborum ipsum pariatur est deserunt enim eiusmod adipisicing duis. "
@@ -16,7 +19,8 @@ const postContent = "Cupidatat aute laborum aliqua consectetur voluptate laborum
         
         <PostBar />
         <img src={placeholder_dice} alt="dice_picture" className='aspect-square object-cover w-[110%] self-center rounded-3xl shadow-lg' />
-            <a href="" className="absolute top-35 aspect-square w-5 -right-3.5 flex justify-center items-center bg-white rounded-full p-1.25"><img src={arrow} alt="arrow" className="rotate-270 h-1.5" /></a>
+            <a href="" className="absolute top-35 md:top-45 md:-right-5 aspect-square w-5 md:w-10 -right-3.5 flex justify-center items-center bg-white rounded-full p-1.25 md:p-2">
+                <img src={arrow} alt="arrow" className="rotate-270 h-1.5  " /></a>
             <div className='flex justify-center absolute top-66.25 md:top-90 gap-1.25 ml-1.25'>
             <img src={dice1} alt="dice1" className="w-5 odd:rotate-15 even:rotate--15" />
             <img src={dice2} alt="dice2" className="w-5 odd:rotate-15 even:rotate--15" />
