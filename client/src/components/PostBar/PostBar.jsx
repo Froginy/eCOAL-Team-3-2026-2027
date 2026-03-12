@@ -2,9 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import add from "../../assets/add.svg";
 import like from "../../assets/like.svg";
-import placeholder from "../../assets/placeholder_pp.jpg";
 import UserAvatar from "../UserAvatar/UserAvatar";
-import { Link } from "react-router-dom";
 
 function PostBar({ user_id, dice_id }) {
   const serverURL = import.meta.env.VITE_API_URL;
