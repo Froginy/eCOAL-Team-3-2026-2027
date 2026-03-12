@@ -16,11 +16,7 @@ class LikeController extends Controller
         $dice = Dice::with('collection')->findOrFail($id);
         $user = $request->user();
 
-        if ($dice->collection->user_id === $user->id) {
-            return response()->json([
-                'message' => 'You cannot like your own dice.'
-            ], 403);
-        }
+        // Users can like their own dice, similar to other social platforms.
 
         $user->likedDices()->syncWithoutDetaching([$dice->id]);
 
