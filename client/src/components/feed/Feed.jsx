@@ -14,7 +14,7 @@ const [formData, setFormData] = useState({
   });
 
   const colors = ["Red", "Blue", "Green", "Yellow"]; //a remplacer par le json de théo
-  const faces = ["😀 Happy", "😢 Sad", "😠 Angry", "😎 Cool"];
+
 
   
 
