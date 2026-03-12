@@ -1,512 +1,473 @@
-import axios from "axios";
-import { useState } from "react";
-import { useRef, useEffect, useCallback } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Link } from "react-router-dom";
-import Navbar from "../Navbar/Navbar";
-import hero from "../../assets/hero.svg";
-import ThreeModel from "../ThreeModel/ThreeModel";
-import DiceCard from "../DiceCard/DiceCard";
-import heroVideo from "../../assets/hero_video.mp4";
-import "./Home.css";
+  import axios from "axios";
+  import { useState } from "react";
+  import { useRef, useEffect, useCallback } from "react";
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+  import { Link } from "react-router-dom";
+  import Navbar from "../Navbar/Navbar";
+  import hero from "../../assets/hero.svg";
+  import ThreeModel from "../ThreeModel/ThreeModel";
+  import DiceCard from "../DiceCard/DiceCard";
+  import heroVideo from "../../assets/hero_video.mp4";
+  import "./Home.css";
 
-const api_url = import.meta.env.VITE_API_URL;
+  const api_url = import.meta.env.VITE_API_URL;
 
-gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(ScrollTrigger);
 
-const BASE_CARDS = [
-  {
-    id: 1,
-    title: "Dice 20",
-    user: "John Doe",
-    glow: "#00e5ff",
-    image: new URL("../../assets/dice20.png", import.meta.url).href,
-  },
-  {
-    id: 2,
-    title: "Dice 12",
-    user: "Jane Smith",
-    glow: "#a78bfa",
-    image: new URL("../../assets/dice12.png", import.meta.url).href,
-  },
-  {
-    id: 3,
-    title: "Dice 8",
-    user: "Alice Johnson",
-    glow: "#f9a825",
-    image: new URL("../../assets/dice8.png", import.meta.url).href,
-  },
-  {
-    id: 4,
-    title: "Dice 4",
-    user: "Bob Brown",
-    glow: "#ff5722",
-    image: new URL("../../assets/dice4.png", import.meta.url).href,
-  },
-  {
-    id: 5,
-    title: "Dice 6",
-    user: "Clara Moon",
-    glow: "#34d399",
-    image: new URL("../../assets/dice20.png", import.meta.url).href,
-  },
-  {
-    id: 6,
-    title: "Dice 10",
-    user: "Sam Rivers",
-    glow: "#f43f5e",
-    image: new URL("../../assets/dice12.png", import.meta.url).href,
-  },
-  {
-    id: 7,
-    title: "Dice 100",
-    user: "Leo Vance",
-    glow: "#818cf8",
-    image: new URL("../../assets/dice8.png", import.meta.url).href,
-  },
-  {
-    id: 8,
-    title: "Dice 2",
-    user: "Mia Chen",
-    glow: "#fb923c",
-    image: new URL("../../assets/dice4.png", import.meta.url).href,
-  },
-  {
-    id: 9,
-    title: "Dice 30",
-    user: "Kai Park",
-    glow: "#38bdf8",
-    image: new URL("../../assets/dice20.png", import.meta.url).href,
-  },
-  {
-    id: 10,
-    title: "Dice 16",
-    user: "Zoe Hart",
-    glow: "#e879f9",
-    image: new URL("../../assets/dice12.png", import.meta.url).href,
-  },
-];
 
-const CARDS = [...BASE_CARDS, ...BASE_CARDS, ...BASE_CARDS];
 
-const CARD_W = 300;
-const CARD_GAP = 24;
-const CARD_STRIDE = CARD_W + CARD_GAP;
-const SET_W = BASE_CARDS.length * CARD_STRIDE;
+  const CARD_W = 300;
+  const CARD_GAP = 24;
+  const CARD_STRIDE = CARD_W + CARD_GAP;
 
-function Home() {
-  const heroRef = useRef(null);
-  const textRef = useRef(null);
-  const buttonsRef = useRef(null);
-  const modelRef = useRef(null);
-  const ctaGRef = useRef(null);
-  const trackRef = useRef(null);
-  const offsetRef = useRef(0);
-  const dragging = useRef(false);
-  const dragStart = useRef(0);
-  const velRef = useRef(0);
-  const lastX = useRef(0);
-  const rafRef = useRef(null);
 
-  const [user, setUser] = useState(null);
-  const [userLoading, setUserLoading] = useState(true);
+  function Home() {
 
+    const [Cards, setCards] = useState([]);
+const [loading, setLoading] = useState(true);
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await axios.get(api_url + "/user", {
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setUser(response.data);
-      } catch (error) {
-        setUser(null);
-      } finally {
-        setUserLoading(false);
-      }
-    };
-    fetchUser();
+      const getProtectedCards = async () => {
+          try {
+              const response = await axios.get(api_url + "/dices");
+              const dataToSet = response.data.data; 
+              
+              if (Array.isArray(dataToSet)) {
+                  setCards(dataToSet);
+              } else {
+                  console.error("Server did not return an array:", response.data);
+              }
+          } catch (error) {
+              console.error("API Error:", error.response?.status);
+              if (error.response?.status === 401) {
+                  alert("Session expired, please reconnect.");
+              }
+          }finally {
+      setLoading(false);   
+    }
+      };
+
+      getProtectedCards(); 
   }, []);
 
-  useEffect(() => {
-    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-    tl.fromTo(
-      heroRef.current,
-      { opacity: 0, scale: 0.8 },
-      {
-        opacity: 1,
-        scale: 1,
-        duration: 0.8,
-        ease: "elastic.out(1, 0.6)",
-        delay: 0.1,
-      },
-    )
-      .fromTo(
-        textRef.current,
-        { opacity: 0, y: 20, scale: 0.95 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.6 },
-        "-=0.4",
-      )
-      .fromTo(
-        buttonsRef.current,
-        { opacity: 0, y: 20, scale: 0.95 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.6 },
-        "-=0.3",
-      )
-      .fromTo(
-        modelRef.current,
-        { opacity: 0, y: 30, scale: 0.9 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.7 },
-        "-=0.3",
-      );
-    return () => tl.kill();
-  }, []);
+  const SET_W = Cards.length * CARD_STRIDE;
 
-  useEffect(() => {
-    if (!ctaGRef.current) return;
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        ctaGRef.current,
-        { opacity: 0, y: 30, scale: 0.9 },
+
+    const heroRef = useRef(null);
+    const textRef = useRef(null);
+    const buttonsRef = useRef(null);
+    const modelRef = useRef(null);
+    const ctaGRef = useRef(null);
+    const trackRef = useRef(null);
+    const offsetRef = useRef(0);
+    const dragging = useRef(false);
+    const dragStart = useRef(0);
+    const velRef = useRef(0);
+    const lastX = useRef(0);
+    const rafRef = useRef(null);
+
+    const [user, setUser] = useState(null);
+    const [userLoading, setUserLoading] = useState(true);
+
+    useEffect(() => {
+      const fetchUser = async () => {
+        try {
+          const response = await axios.get(api_url + "/users", {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          });
+          setUser(response.data);
+        } catch (error) {
+          setUser(null);
+        } finally {
+          setUserLoading(false);
+        }
+      };
+      fetchUser();
+    }, []);
+
+    useEffect(() => {
+      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+      tl.fromTo(
+        heroRef.current,
+        { opacity: 0, scale: 0.8 },
         {
           opacity: 1,
-          y: 0,
           scale: 1,
-          duration: 0.7,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: ctaGRef.current,
-            start: "top 85%",
-            toggleActions: "play none none none",
-          },
+          duration: 0.8,
+          ease: "elastic.out(1, 0.6)",
+          delay: 0.1,
         },
-      );
-    });
-    return () => ctx.revert();
-  }, []);
+      )
+        .fromTo(
+          textRef.current,
+          { opacity: 0, y: 20, scale: 0.95 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.6 },
+          "-=0.4",
+        )
+        .fromTo(
+          buttonsRef.current,
+          { opacity: 0, y: 20, scale: 0.95 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.6 },
+          "-=0.3",
+        )
+        .fromTo(
+          modelRef.current,
+          { opacity: 0, y: 30, scale: 0.9 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.7 },
+          "-=0.3",
+        );
+      return () => tl.kill();
+    }, []);
 
-  const applyOffset = useCallback((x) => {
-    const track = trackRef.current;
-    if (!track) return;
-    const wrapped = ((x % SET_W) + SET_W) % SET_W;
-    offsetRef.current = wrapped;
-    gsap.set(track, { x: -wrapped });
-  }, []);
-
-  const updateArc = useCallback(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    const vw = window.innerWidth;
-    const cards = track.querySelectorAll(".carousel-card");
-    cards.forEach((el) => {
-      const rect = el.getBoundingClientRect();
-      const cardCenter = rect.left + rect.width / 2;
-      const t = (cardCenter - vw / 2) / (vw / 2);
-      const rotate = t * 10;
-      const translateY = t * t * 60;
-      const scale = 1 - Math.abs(t) * 0.06;
-      gsap.set(el, {
-        rotation: rotate,
-        y: translateY,
-        scale,
-        transformOrigin: "bottom center",
+    useEffect(() => {
+      if (!ctaGRef.current) return;
+      const ctx = gsap.context(() => {
+        gsap.fromTo(
+          ctaGRef.current,
+          { opacity: 0, y: 30, scale: 0.9 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.7,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: ctaGRef.current,
+              start: "top 85%",
+              toggleActions: "play none none none",
+            },
+          },
+        );
       });
-    });
-  }, []);
+      return () => ctx.revert();
+    }, []);
 
-  useEffect(() => {
-    let pos = 0;
-    let raf;
-    const tick = () => {
-      pos += 0.6;
-      applyOffset(pos);
-      updateArc();
+    const applyOffset = useCallback((x) => {
+      const track = trackRef.current;
+      if (!track) return;
+      const wrapped = ((x % SET_W) + SET_W) % SET_W;
+      offsetRef.current = wrapped;
+      gsap.set(track, { x: -wrapped });
+    }, []);
+
+    const updateArc = useCallback(() => {
+      const track = trackRef.current;
+      if (!track) return;
+      const vw = window.innerWidth;
+      const Cards = track.querySelectorAll(".carousel-card");
+      Cards.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        const cardCenter = rect.left + rect.width / 2;
+        const t = (cardCenter - vw / 2) / (vw / 2);
+        const rotate = t * 10;
+        const translateY = t * t * 60;
+        const scale = 1 - Math.abs(t) * 0.06;
+        gsap.set(el, {
+          rotation: rotate,
+          y: translateY,
+          scale,
+          transformOrigin: "bottom center",
+        });
+      });
+    }, []);
+
+    useEffect(() => {
+      let pos = 0;
+      let raf;
+      const tick = () => {
+        pos += 0.6;
+        applyOffset(pos);
+        updateArc();
+        raf = requestAnimationFrame(tick);
+      };
       raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
 
-    const stopAuto = () => cancelAnimationFrame(raf);
+      const stopAuto = () => cancelAnimationFrame(raf);
 
-    const track = trackRef.current;
-    if (track) {
-      track.addEventListener("mousedown", stopAuto, { once: true });
-      track.addEventListener("touchstart", stopAuto, { once: true });
-    }
+      const track = trackRef.current;
+      if (track) {
+        track.addEventListener("mousedown", stopAuto, { once: true });
+        track.addEventListener("touchstart", stopAuto, { once: true });
+      }
 
-    return () => cancelAnimationFrame(raf);
-  }, [applyOffset, updateArc]);
+      return () => cancelAnimationFrame(raf);
+    }, [applyOffset, updateArc]);
 
-  const inertiaLoop = useCallback(() => {
-    if (Math.abs(velRef.current) < 0.1) return;
-    velRef.current *= 0.94;
-    applyOffset(offsetRef.current + velRef.current);
-    updateArc();
-    rafRef.current = requestAnimationFrame(inertiaLoop);
-  }, [applyOffset, updateArc]);
-
-  const onPointerDown = useCallback((e) => {
-    dragging.current = true;
-    dragStart.current = e.clientX ?? e.touches?.[0]?.clientX;
-    lastX.current = dragStart.current;
-    velRef.current = 0;
-    cancelAnimationFrame(rafRef.current);
-    e.currentTarget.setPointerCapture?.(e.pointerId);
-  }, []);
-
-  const onPointerMove = useCallback(
-    (e) => {
-      if (!dragging.current) return;
-      const x = e.clientX ?? e.touches?.[0]?.clientX;
-      const dx = lastX.current - x;
-      velRef.current = dx;
-      applyOffset(offsetRef.current + dx);
-      updateArc();
-      lastX.current = x;
-    },
-    [applyOffset, updateArc],
-  );
-
-  const onPointerUp = useCallback(() => {
-    if (!dragging.current) return;
-    dragging.current = false;
-    rafRef.current = requestAnimationFrame(inertiaLoop);
-  }, [inertiaLoop]);
-
-  const onWheel = useCallback(
-    (e) => {
-      e.preventDefault();
-      const delta =
-        Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      cancelAnimationFrame(rafRef.current);
-      velRef.current = delta * 0.8;
-      applyOffset(offsetRef.current + delta);
+    const inertiaLoop = useCallback(() => {
+      if (Math.abs(velRef.current) < 0.1) return;
+      velRef.current *= 0.94;
+      applyOffset(offsetRef.current + velRef.current);
       updateArc();
       rafRef.current = requestAnimationFrame(inertiaLoop);
-    },
-    [applyOffset, updateArc, inertiaLoop],
-  );
+    }, [applyOffset, updateArc]);
 
-  useEffect(() => {
-    const el = trackRef.current?.parentElement;
-    if (!el) return;
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, [onWheel]);
+    const onPointerDown = useCallback((e) => {
+      dragging.current = true;
+      dragStart.current = e.clientX ?? e.touches?.[0]?.clientX;
+      lastX.current = dragStart.current;
+      velRef.current = 0;
+      cancelAnimationFrame(rafRef.current);
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+    }, []);
 
-  return (
-    <div className="relative max-h-[300vh]">
-      <div className="relative h-screen w-screen z-0">
-        <div className="absolute top-4 md:top-1/2 left-1/2 -translate-x-1/2 translate-0 md:-translate-y-1/2 max-h-[90vh] max-w-[90vw] grid-dots-black rounded-4xl overflow-hidden">
-          <video
-            className="min-w-screen min-h-[80vh] md:min-h-screen object-cover"
-            id="video-field"
-            src={heroVideo}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-          />
-        </div>
+    const onPointerMove = useCallback(
+      (e) => {
+        if (!dragging.current) return;
+        const x = e.clientX ?? e.touches?.[0]?.clientX;
+        const dx = lastX.current - x;
+        velRef.current = dx;
+        applyOffset(offsetRef.current + dx);
+        updateArc();
+        lastX.current = x;
+      },
+      [applyOffset, updateArc],
+    );
 
-        <div className="flex justify-center items-center mb-10 h-[10vh]">
-          <svg
-            className="mix-blend-difference mt-25"
-            width="66"
-            height="28"
-            viewBox="0 0 66 28"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              fill-rule="evenodd"
-              clip-rule="evenodd"
-              d="M9.52637 0.123004C12.1558 0.123004 14.3984 1.07037 16.2529 2.96578C17.9989 4.72603 18.9276 6.83034 19.041 9.27828L14.8467 10.9482L14.7041 11.0097C13.2981 11.6568 12.6293 13.2982 13.208 14.7529L14.5186 18.0478C14.8789 18.9541 15.1368 19.602 14.8789 18.9541L16.9482 24.1533L17.0098 24.2968C17.3236 24.9778 17.8867 25.5127 18.583 25.791C19.2793 26.0691 20.0562 26.0692 20.7529 25.792L30.1533 22.0527L30.2959 21.9912C31.7019 21.3441 32.3707 19.7027 31.792 18.248L29.2549 11.8711V0.670856H34.9707V23.0771C34.9707 25.2862 33.1798 27.0771 30.9707 27.0771H29.2549L22.02 27.1386L14.7852 27.2002L7.93652 20.248C7.11711 19.4162 5.71582 20.0053 5.71582 21.1816V27.2002H0V9.79293C7.25328e-05 7.12402 0.927749 4.84822 2.78223 2.96578C4.64933 1.07065 6.89728 0.123108 9.52637 0.123004ZM9.52637 5.92476C8.47225 5.92487 7.57063 6.30573 6.82129 7.06636C6.08465 7.81413 5.71589 8.72289 5.71582 9.79293C5.71582 11.9291 7.42196 13.6609 9.52637 13.6611C10.5805 13.6611 11.4762 13.2876 12.2129 12.54C12.9623 11.7793 13.3379 10.8631 13.3379 9.79293C13.3378 8.72287 12.9623 7.81414 12.2129 7.06636C11.4762 6.30571 10.5806 5.92476 9.52637 5.92476Z"
-              fill="white"
-            />
-            <path
-              d="M35.7559 0.670856C38.9125 0.67112 41.4717 3.22994 41.4717 6.38668V27.0771H35.7559V0.670856Z"
-              fill="white"
-            />
-            <path
-              d="M53.7701 7.94218C53.8381 8.02754 53.8804 8.13423 53.8804 8.25175V27.0926H48.1637V8.25175C48.1637 8.15731 48.1904 8.06929 48.2359 7.99394L51.7486 9.50273L51.8092 9.52714C52.1077 9.63695 52.4379 9.62749 52.7301 9.50175C53.022 9.37598 53.255 9.14343 53.3804 8.85136L53.7701 7.94218Z"
-              fill="white"
-            />
-            <path
-              d="M61.6895 7.73633H65.5V13.5391H61.6895V17.4072C61.6896 18.4772 62.0574 19.3927 62.7939 20.1533C63.5434 20.9012 64.4457 21.2754 65.5 21.2754V27.0771C62.8707 27.0771 60.6221 26.1363 58.7549 24.2539C56.9004 22.3586 55.9737 20.0761 55.9736 17.4072V0H61.6895V7.73633Z"
-              fill="white"
-            />
-            <path
-              fill-rule="evenodd"
-              clip-rule="evenodd"
-              d="M24.0635 8.18648C25.365 7.66866 26.8342 8.26632 27.4131 9.52437L27.4678 9.6523L30.8135 18.0644C31.3311 19.3659 30.7334 20.8341 29.4756 21.413L29.3477 21.4677L20.9365 24.8144C20.3131 25.0625 19.6182 25.0614 18.9951 24.8125C18.3723 24.5636 17.8687 24.0856 17.5879 23.4765L17.5322 23.3476L14.1865 14.9365C13.6688 13.635 14.2666 12.1669 15.5244 11.5878L15.6523 11.5322L24.0635 8.18648ZM26.1729 16.915C25.9118 16.8026 25.6166 16.7992 25.3525 16.9043C25.0886 17.0093 24.8771 17.2146 24.7646 17.4755C24.6522 17.7366 24.6479 18.0317 24.7529 18.2959C24.858 18.56 25.0641 18.7722 25.3252 18.8847C25.5862 18.997 25.8815 19.0015 26.1455 18.8964C26.4096 18.7913 26.6209 18.5852 26.7334 18.3242C26.8458 18.0631 26.8501 17.768 26.7451 17.5039C26.64 17.2397 26.434 17.0275 26.1729 16.915ZM22.9238 15.5156C22.6628 15.4032 22.3676 15.3988 22.1035 15.5039C21.8394 15.609 21.6281 15.8151 21.5156 16.0761C21.4032 16.3372 21.3989 16.6323 21.5039 16.8964C21.609 17.1606 21.8151 17.3728 22.0762 17.4853C22.3372 17.5976 22.6324 17.6011 22.8965 17.4961C23.1604 17.391 23.3719 17.1856 23.4844 16.9248C23.5968 16.6638 23.601 16.3685 23.4961 16.1045C23.391 15.8403 23.1849 15.6281 22.9238 15.5156ZM19.6748 14.1162C19.4138 14.0038 19.1185 13.9994 18.8545 14.1044C18.5905 14.2096 18.379 14.4157 18.2666 14.6767C18.1542 14.9378 18.1498 15.2329 18.2549 15.497C18.36 15.7612 18.566 15.9724 18.8271 16.0849C19.0883 16.1974 19.3833 16.2017 19.6475 16.0966C19.9116 15.9915 20.1229 15.7855 20.2354 15.5244C20.3477 15.2633 20.3521 14.9682 20.2471 14.7041C20.1419 14.44 19.9358 14.2286 19.6748 14.1162Z"
-              fill="white"
-            />
-            <path
-              d="M49.4569 3.04515C49.6683 2.55288 50.2269 2.31681 50.7239 2.49991L50.7735 2.51969L53.9547 3.8859C54.447 4.09731 54.6831 4.65593 54.5 5.15292L54.4803 5.20244L53.1142 8.38364C53.0129 8.61944 52.8251 8.80742 52.5894 8.90886C52.3537 9.0103 52.088 9.01746 51.8472 8.92888L51.7977 8.9091L48.6164 7.54289C48.1241 7.33147 47.888 6.77286 48.0711 6.27586L48.0908 6.22634L49.4569 3.04515ZM52.1654 5.05106C52.1225 5.15098 52.121 5.26385 52.1613 5.36484C52.2016 5.46584 52.2804 5.54669 52.3804 5.5896C52.4803 5.63251 52.5931 5.63397 52.6941 5.59366C52.7951 5.55335 52.876 5.47457 52.9189 5.37465C52.9618 5.27473 52.9632 5.16186 52.9229 5.06087C52.8826 4.95987 52.8038 4.87903 52.7039 4.83612C52.604 4.7932 52.4911 4.79174 52.3901 4.83205C52.2891 4.87236 52.2083 4.95114 52.1654 5.05106ZM50.9088 5.55259C50.8659 5.65251 50.8644 5.76538 50.9048 5.86638C50.9451 5.96737 51.0238 6.04822 51.1238 6.09113C51.2237 6.13405 51.3366 6.13551 51.4376 6.0952C51.5386 6.05489 51.6194 5.97611 51.6623 5.87619C51.7052 5.77627 51.7067 5.6634 51.6664 5.5624C51.626 5.46141 51.5473 5.38056 51.4473 5.33765C51.3474 5.29474 51.2345 5.29328 51.1336 5.33359C51.0326 5.3739 50.9517 5.45268 50.9088 5.55259ZM49.6522 6.05413C49.6093 6.15405 49.6079 6.26692 49.6482 6.36792C49.6885 6.46891 49.7673 6.54976 49.8672 6.59267C49.9671 6.63558 50.08 6.63704 50.181 6.59673C50.282 6.55642 50.3628 6.47764 50.4057 6.37772C50.4486 6.27781 50.4501 6.16493 50.4098 6.06394C50.3695 5.96294 50.2907 5.8821 50.1908 5.83919C50.0908 5.79628 49.978 5.79481 49.877 5.83512C49.776 5.87543 49.6951 5.95421 49.6522 6.05413Z"
-              fill="white"
-            />
-            <path
-              d="M51.617 4.88206C51.6431 4.35124 52.0945 3.94205 52.6254 3.96812C53.1562 3.99419 53.5654 4.44564 53.5393 4.97646L53.5321 5.12346C53.506 5.65428 53.0546 6.06346 52.5237 6.03739C51.9929 6.01133 51.5837 5.55988 51.6098 5.02905L51.617 4.88206Z"
-              fill="white"
-            />
-            <path
-              d="M48.6409 5.97646C48.667 5.44564 49.1185 5.03646 49.6493 5.06252C50.1801 5.08859 50.5893 5.54004 50.5632 6.07087L50.556 6.21786C50.5299 6.74868 50.0785 7.15787 49.5476 7.1318C49.0168 7.10573 48.6076 6.65428 48.6337 6.12346L48.6409 5.97646Z"
-              fill="white"
-            />
-          </svg>
-        </div>
+    const onPointerUp = useCallback(() => {
+      if (!dragging.current) return;
+      dragging.current = false;
+      rafRef.current = requestAnimationFrame(inertiaLoop);
+    }, [inertiaLoop]);
 
-        <section className="flex flex-col gap-2 justify-center items-center h-auto w-full">
-          <article className="h-[50vh] flex flex-col justify-center items-center pointer-events-none overflow-none mt-10">
-            <img
-              ref={heroRef}
-              src={hero}
-              alt="Hero"
-              className="mb-5 invert-100 mix-blend-difference"
-              style={{ opacity: 0 }}
+    const onWheel = useCallback(
+      (e) => {
+        e.preventDefault();
+        const delta =
+          Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+        cancelAnimationFrame(rafRef.current);
+        velRef.current = delta * 0.8;
+        applyOffset(offsetRef.current + delta);
+        updateArc();
+        rafRef.current = requestAnimationFrame(inertiaLoop);
+      },
+      [applyOffset, updateArc, inertiaLoop],
+    );
+
+    useEffect(() => {
+      const el = trackRef.current?.parentElement;
+      if (!el) return;
+      el.addEventListener("wheel", onWheel, { passive: false });
+      return () => el.removeEventListener("wheel", onWheel);
+    }, [onWheel]);
+
+    return (
+      <div className="relative max-h-[300vh]">
+        <div className="relative h-screen w-screen z-0">
+          <div className="absolute top-4 md:top-1/2 left-1/2 -translate-x-1/2 translate-0 md:-translate-y-1/2 max-h-[90vh] max-w-[90vw] grid-dots-black rounded-4xl overflow-hidden">
+            <video
+              className="min-w-screen min-h-[80vh] md:min-h-screen object-cover"
+              id="video-field"
+              src={heroVideo}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
             />
-            <p
-              ref={textRef}
-              className="text-xl md:text-2xl text-white mix-blend-difference"
-              style={{ opacity: 0 }}
-            >
-              We made this platform for you. 😊
-            </p>
-            <article
-              ref={buttonsRef}
-              className="flex justify-center items-center gap-2 w-full mt-7 pointer-events-auto"
-              style={{ opacity: 0 }}
-            >
-              <Link
-                className="text-center py-2 px-12 rounded-full border border-black bg-white text-black transition-transform duration-200 hover:scale-105 hover:-rotate-2"
-                to="/feed"
-              >
-                Discover
-              </Link>
-              {user && (
-                <Link
-                  className="text-center py-2 px-10 rounded-full shadow-sm shadow-gray-100/20 bg-black text-white transition-transform duration-200 hover:scale-105 hover:-rotate-2"
-                  to="/profile"
-                >
-                  Profile
-                </Link>
-              )}
-              {!user && (
-                <Link
-                  className="text-center py-2 px-10 rounded-full shadow-sm shadow-gray-100/20 bg-black text-white transition-transform duration-200 hover:scale-105 hover:-rotate-2"
-                  to="/login"
-                >
-                  Login
-                </Link>
-              )}
-            </article>
-          </article>
+          </div>
 
-          <article
-            ref={modelRef}
-            className="h-[80vh] relative mx-auto mt-20 w-full"
-            style={{ opacity: 0, overflow: "visible" }}
-          >
-            <div className="absolute left-1/2 -translate-x-1/2 z-1 pointer-events-none">
-              <ThreeModel />
-            </div>
-
-            <div
-              className="absolute mt-60 min-h-150 mb-10 z-10 w-full"
-              style={{
-                cursor: "grab",
-                userSelect: "none",
-                overflow: "hidden",
-              }}
-            >
-              ⁄
-              <div
-                ref={trackRef}
-                className="flex"
-                style={{ gap: CARD_GAP, width: CARD_STRIDE * CARDS.length }}
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
-                onPointerLeave={onPointerUp}
-              >
-                {CARDS.map((card, i) => (
-                  <div
-                    key={`${card.id}-${i}`}
-                    className="carousel-card"
-                    style={{ flexShrink: 0, width: CARD_W, cursor: "pointer" }}
-                    onMouseEnter={(e) => {
-                      const cur = gsap.getProperty(e.currentTarget, "y");
-                      gsap.to(e.currentTarget, {
-                        y: Number(cur) - 22,
-                        scale: 1.05,
-                        duration: 0.25,
-                        ease: "power2.out",
-                        overwrite: "auto",
-                      });
-                    }}
-                    onMouseLeave={(e) => {
-                      const vw = window.innerWidth;
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const t =
-                        (rect.left + rect.width / 2 - vw / 2) / (vw / 2);
-                      const ty = t * t * 60;
-                      const scale = 1 - Math.abs(t) * 0.06;
-                      gsap.to(e.currentTarget, {
-                        y: ty,
-                        scale,
-                        duration: 0.3,
-                        ease: "power2.out",
-                        overwrite: "auto",
-                      });
-                    }}
-                  >
-                    <DiceCard card={card} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </article>
-
-          <article
-            ref={ctaGRef}
-            className="mx-auto flex flex-col gap-12 justify-center items-center h-[50vh] relative z-20"
-            style={{ opacity: 0 }}
-          >
+          <div className="flex justify-center items-center mb-10 h-[10vh]">
             <svg
-              width="321"
-              height="54"
-              viewBox="0 0 321 54"
+              className="mix-blend-difference mt-25"
+              width="66"
+              height="28"
+              viewBox="0 0 66 28"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                d="M38.4015 28.15C37.8015 26.77 36.8815 25.69 35.6415 24.91C34.4215 24.11 32.9815 23.71 31.3215 23.71C29.7615 23.71 28.3615 24.07 27.1215 24.79C25.8815 25.51 24.9015 26.54 24.1815 27.88C23.4615 29.2 23.1015 30.74 23.1015 32.5C23.1015 34.26 23.4615 35.81 24.1815 37.15C24.9015 38.49 25.8815 39.52 27.1215 40.24C28.3615 40.96 29.7615 41.32 31.3215 41.32C32.7815 41.32 34.0915 41.01 35.2515 40.39C36.4315 39.75 37.3715 38.85 38.0715 37.69C38.7915 36.51 39.2015 35.14 39.3015 33.58H30.4815V31.87H41.5215V33.4C41.4215 35.24 40.9215 36.91 40.0215 38.41C39.1215 39.89 37.9115 41.06 36.3915 41.92C34.8915 42.78 33.2015 43.21 31.3215 43.21C29.3815 43.21 27.6215 42.76 26.0415 41.86C24.4615 40.94 23.2115 39.67 22.2915 38.05C21.3915 36.41 20.9415 34.56 20.9415 32.5C20.9415 30.44 21.3915 28.6 22.2915 26.98C23.2115 25.34 24.4615 24.07 26.0415 23.17C27.6215 22.25 29.3815 21.79 31.3215 21.79C33.5615 21.79 35.5215 22.35 37.2015 23.47C38.8815 24.59 40.1015 26.15 40.8615 28.15H38.4015ZM52.5383 43.24C50.9983 43.24 49.6083 42.9 48.3683 42.22C47.1483 41.52 46.1783 40.54 45.4583 39.28C44.7583 38 44.4083 36.51 44.4083 34.81C44.4083 33.11 44.7683 31.63 45.4883 30.37C46.2083 29.09 47.1883 28.11 48.4283 27.43C49.6683 26.73 51.0583 26.38 52.5983 26.38C54.1383 26.38 55.5283 26.73 56.7683 27.43C58.0283 28.11 59.0083 29.09 59.7083 30.37C60.4283 31.63 60.7883 33.11 60.7883 34.81C60.7883 36.49 60.4283 37.97 59.7083 39.25C58.9883 40.53 57.9983 41.52 56.7383 42.22C55.4783 42.9 54.0783 43.24 52.5383 43.24ZM52.5383 41.41C53.6183 41.41 54.6183 41.17 55.5383 40.69C56.4583 40.19 57.1983 39.45 57.7583 38.47C58.3383 37.47 58.6283 36.25 58.6283 34.81C58.6283 33.37 58.3483 32.16 57.7883 31.18C57.2283 30.18 56.4883 29.44 55.5683 28.96C54.6483 28.46 53.6483 28.21 52.5683 28.21C51.4883 28.21 50.4883 28.46 49.5683 28.96C48.6483 29.44 47.9083 30.18 47.3483 31.18C46.8083 32.16 46.5383 33.37 46.5383 34.81C46.5383 36.25 46.8083 37.47 47.3483 38.47C47.9083 39.45 48.6383 40.19 49.5383 40.69C50.4583 41.17 51.4583 41.41 52.5383 41.41ZM67.3463 28.39V38.56C67.3463 39.56 67.5363 40.25 67.9163 40.63C68.2963 41.01 68.9663 41.2 69.9263 41.2H71.8463V43H69.5963C68.1163 43 67.0163 42.66 66.2963 41.98C65.5763 41.28 65.2163 40.14 65.2163 38.56V28.39H62.9363V26.62H65.2163V22.51H67.3463V26.62H71.8463V28.39H67.3463ZM97.0421 26.62L87.3221 50.71H85.1321L88.3121 42.91L81.5921 26.62H83.9021L89.4821 40.6L94.8821 26.62H97.0421ZM107.06 43.24C105.52 43.24 104.13 42.9 102.89 42.22C101.67 41.52 100.7 40.54 99.9797 39.28C99.2797 38 98.9297 36.51 98.9297 34.81C98.9297 33.11 99.2897 31.63 100.01 30.37C100.73 29.09 101.71 28.11 102.95 27.43C104.19 26.73 105.58 26.38 107.12 26.38C108.66 26.38 110.05 26.73 111.29 27.43C112.55 28.11 113.53 29.09 114.23 30.37C114.95 31.63 115.31 33.11 115.31 34.81C115.31 36.49 114.95 37.97 114.23 39.25C113.51 40.53 112.52 41.52 111.26 42.22C110 42.9 108.6 43.24 107.06 43.24ZM107.06 41.41C108.14 41.41 109.14 41.17 110.06 40.69C110.98 40.19 111.72 39.45 112.28 38.47C112.86 37.47 113.15 36.25 113.15 34.81C113.15 33.37 112.87 32.16 112.31 31.18C111.75 30.18 111.01 29.44 110.09 28.96C109.17 28.46 108.17 28.21 107.09 28.21C106.01 28.21 105.01 28.46 104.09 28.96C103.17 29.44 102.43 30.18 101.87 31.18C101.33 32.16 101.06 33.37 101.06 34.81C101.06 36.25 101.33 37.47 101.87 38.47C102.43 39.45 103.16 40.19 104.06 40.69C104.98 41.17 105.98 41.41 107.06 41.41ZM133.328 26.62V43H131.228V40.12C130.748 41.14 130.008 41.92 129.008 42.46C128.008 43 126.888 43.27 125.648 43.27C123.688 43.27 122.088 42.67 120.848 41.47C119.608 40.25 118.988 38.49 118.988 36.19V26.62H121.058V35.95C121.058 37.73 121.498 39.09 122.378 40.03C123.278 40.97 124.498 41.44 126.038 41.44C127.618 41.44 128.878 40.94 129.818 39.94C130.758 38.94 131.228 37.47 131.228 35.53V26.62H133.328ZM140.222 29.53C140.682 28.51 141.382 27.72 142.322 27.16C143.282 26.6 144.452 26.32 145.832 26.32V28.51H145.262C143.742 28.51 142.522 28.92 141.602 29.74C140.682 30.56 140.222 31.93 140.222 33.85V43H138.122V26.62H140.222V29.53ZM162.429 42.325C162.039 42.325 161.724 42.25 161.484 42.1C161.274 41.95 161.004 41.74 160.674 41.47C160.104 40.87 159.699 40.3 159.459 39.76C159.219 39.19 159.144 38.65 159.234 38.14C159.324 37.9 159.354 37.675 159.324 37.465C159.324 37.225 159.324 37.105 159.324 37.105C159.174 36.955 159.129 36.865 159.189 36.835C159.249 36.775 159.309 36.685 159.369 36.565C159.549 36.565 159.609 36.4 159.549 36.07C159.489 35.83 159.609 35.305 159.909 34.495C160.209 33.685 160.584 32.92 161.034 32.2C161.214 31.9 161.484 31.51 161.844 31.03C162.204 30.52 162.594 30.025 163.014 29.545C163.464 29.035 163.869 28.63 164.229 28.33C164.979 27.7 165.639 27.235 166.209 26.935C166.779 26.635 167.394 26.41 168.054 26.26C168.714 26.11 169.164 26.035 169.404 26.035C169.674 26.035 170.034 26.275 170.484 26.755C171.174 27.055 171.669 27.415 171.969 27.835C172.299 28.255 172.509 28.87 172.599 29.68C172.689 30.58 172.614 31.615 172.374 32.785C172.164 33.925 171.459 35.35 170.259 37.06C169.509 38.14 168.819 38.95 168.189 39.49C167.559 40 166.809 40.51 165.939 41.02C165.309 41.44 164.739 41.755 164.229 41.965C163.719 42.145 163.119 42.265 162.429 42.325ZM166.749 37.555C167.469 36.745 168.039 35.98 168.459 35.26C168.909 34.54 169.329 33.625 169.719 32.515C169.839 32.185 169.914 31.78 169.944 31.3C169.974 30.79 169.959 30.325 169.899 29.905C169.869 29.455 169.764 29.2 169.584 29.14C169.224 28.93 168.789 28.87 168.279 28.96C167.769 29.02 167.214 29.305 166.614 29.815C165.684 30.595 164.874 31.57 164.184 32.74C163.494 33.88 162.819 35.185 162.159 36.655C161.709 37.735 161.604 38.605 161.844 39.265C162.114 39.895 162.669 40.12 163.509 39.94C164.379 39.73 165.459 38.935 166.749 37.555ZM178.214 40.975C177.764 40.975 177.344 40.705 176.954 40.165C176.594 39.595 176.324 38.875 176.144 38.005C175.994 37.105 175.949 36.175 176.009 35.215C176.009 34.255 176.054 33.49 176.144 32.92C176.264 32.32 176.384 31.735 176.504 31.165C176.594 30.985 176.639 30.835 176.639 30.715C176.669 30.595 176.699 30.4 176.729 30.13C176.789 29.86 176.894 29.41 177.044 28.78C177.164 28.27 177.284 27.85 177.404 27.52C177.524 27.19 177.644 26.965 177.764 26.845C177.914 26.665 178.109 26.56 178.349 26.53C178.589 26.47 178.829 26.485 179.069 26.575C179.309 26.665 179.504 26.83 179.654 27.07C179.834 27.22 179.924 27.565 179.924 28.105C179.954 28.615 179.924 29.155 179.834 29.725C179.744 30.265 179.609 30.655 179.429 30.895C179.369 31.045 179.294 31.435 179.204 32.065C179.144 32.695 179.069 33.355 178.979 34.045C178.919 34.735 178.844 35.29 178.754 35.71C178.664 36.25 178.709 36.685 178.889 37.015C179.099 37.345 179.474 37.36 180.014 37.06C180.584 36.73 181.334 35.89 182.264 34.54C182.894 33.64 183.374 32.905 183.704 32.335C184.034 31.765 184.289 31.24 184.469 30.76C184.679 30.25 184.889 29.71 185.099 29.14C185.249 28.66 185.384 28.27 185.504 27.97C185.654 27.64 185.789 27.43 185.909 27.34C186.119 27.19 186.359 27.13 186.629 27.16C186.929 27.19 187.259 27.325 187.619 27.565C187.979 27.925 188.159 28.36 188.159 28.87C188.159 29.35 187.979 29.95 187.619 30.67C187.379 31.15 187.139 31.765 186.899 32.515C186.689 33.265 186.509 34.03 186.359 34.81C186.239 35.56 186.179 36.175 186.179 36.655C186.179 37.255 186.254 37.615 186.404 37.735C186.584 37.825 186.794 37.87 187.034 37.87C187.394 37.87 187.829 37.735 188.339 37.465C188.849 37.195 189.419 36.73 190.049 36.07C190.319 35.8 190.649 35.41 191.039 34.9C191.429 34.36 191.804 33.805 192.164 33.235C192.554 32.635 192.869 32.11 193.109 31.66C193.379 31.21 193.514 30.925 193.514 30.805C193.514 30.625 193.649 30.37 193.919 30.04C194.099 29.8 194.234 29.62 194.324 29.5C194.444 29.35 194.654 29.2 194.954 29.05C195.194 28.93 195.404 28.915 195.584 29.005C195.764 29.065 195.959 29.215 196.169 29.455C196.319 29.575 196.394 29.755 196.394 29.995C196.424 30.235 196.439 30.535 196.439 30.895C196.349 31.225 196.199 31.66 195.989 32.2C195.809 32.71 195.599 33.205 195.359 33.685C195.149 34.135 194.969 34.45 194.819 34.63C194.699 34.75 194.489 34.975 194.189 35.305C193.889 35.605 193.619 35.935 193.379 36.295C192.629 37.195 192.089 37.78 191.759 38.05C191.429 38.32 191.144 38.575 190.904 38.815C190.274 39.445 189.614 39.925 188.924 40.255C188.234 40.555 187.574 40.705 186.944 40.705C186.344 40.705 185.834 40.555 185.414 40.255C184.484 39.775 184.019 38.965 184.019 37.825C184.019 37.585 183.974 37.375 183.884 37.195C183.824 36.985 183.794 36.88 183.794 36.88C183.674 36.88 183.509 36.91 183.299 36.97C183.119 37.03 182.924 37.24 182.714 37.6C182.444 38.11 182.009 38.635 181.409 39.175C180.839 39.685 180.254 40.12 179.654 40.48C179.054 40.81 178.574 40.975 178.214 40.975ZM211.946 42.46C211.646 42.46 211.331 42.295 211.001 41.965C210.701 41.635 210.431 41.23 210.191 40.75C209.981 40.24 209.876 39.76 209.876 39.31C209.876 38.86 209.981 38.02 210.191 36.79C210.431 35.56 210.716 34.315 211.046 33.055C211.286 32.275 211.361 31.825 211.271 31.705C211.181 31.585 210.776 31.75 210.056 32.2C209.636 32.41 209.261 32.635 208.931 32.875C208.601 33.085 208.316 33.325 208.076 33.595C207.926 33.715 207.701 33.91 207.401 34.18C207.101 34.45 206.786 34.705 206.456 34.945C206.066 35.245 205.571 35.665 204.971 36.205C204.371 36.745 203.771 37.285 203.171 37.825C202.601 38.365 202.166 38.785 201.866 39.085C201.806 39.205 201.716 39.31 201.596 39.4C201.476 39.49 201.341 39.55 201.191 39.58C201.041 39.58 200.876 39.55 200.696 39.49C200.366 39.4 200.051 39.205 199.751 38.905C199.481 38.605 199.346 38.26 199.346 37.87C199.346 37.57 199.466 37.06 199.706 36.34C199.946 35.59 200.261 34.69 200.651 33.64C201.071 32.59 201.551 31.48 202.091 30.31C202.181 30.16 202.256 29.98 202.316 29.77C202.376 29.53 202.421 29.275 202.451 29.005C202.511 28.735 202.541 28.48 202.541 28.24C202.541 28.09 202.556 27.94 202.586 27.79C202.646 27.61 202.706 27.445 202.766 27.295C202.856 27.115 202.931 26.995 202.991 26.935C203.111 26.695 203.321 26.635 203.621 26.755C203.921 26.845 204.176 27.055 204.386 27.385C204.836 27.805 205.061 28.33 205.061 28.96C205.091 29.59 204.941 30.37 204.611 31.3C204.491 31.51 204.386 31.72 204.296 31.93C204.236 32.11 204.176 32.275 204.116 32.425C204.056 32.545 204.011 32.65 203.981 32.74C203.951 32.8 203.936 32.83 203.936 32.83C204.056 32.83 204.326 32.695 204.746 32.425C205.166 32.155 205.661 31.855 206.231 31.525C206.681 31.195 207.071 30.895 207.401 30.625C207.761 30.325 208.061 30.1 208.301 29.95C208.541 29.77 208.691 29.68 208.751 29.68C208.871 29.68 209.021 29.635 209.201 29.545C209.381 29.455 209.531 29.35 209.651 29.23C209.771 29.11 209.861 29.05 209.921 29.05C210.011 29.02 210.056 29.005 210.056 29.005C210.056 29.005 210.116 29.005 210.236 29.005C210.356 28.975 210.476 28.9 210.596 28.78C210.836 28.6 211.151 28.555 211.541 28.645C211.931 28.705 212.291 28.855 212.621 29.095C212.951 29.335 213.116 29.605 213.116 29.905C213.116 30.025 213.146 30.13 213.206 30.22C213.296 30.28 213.341 30.31 213.341 30.31C213.581 30.31 213.731 30.685 213.791 31.435C213.881 32.185 213.806 32.905 213.566 33.595C213.566 34.045 213.476 34.585 213.296 35.215C213.146 35.845 213.011 36.445 212.891 37.015C212.651 37.765 212.486 38.425 212.396 38.995C212.306 39.565 212.291 40.045 212.351 40.435C212.411 40.825 212.516 41.14 212.666 41.38C212.786 41.59 212.786 41.83 212.666 42.1C212.546 42.34 212.306 42.46 211.946 42.46ZM223.427 34.78C223.427 33.1 223.767 31.63 224.447 30.37C225.127 29.09 226.057 28.11 227.237 27.43C228.437 26.73 229.787 26.38 231.287 26.38C232.727 26.38 234.027 26.73 235.187 27.43C236.347 28.13 237.197 29.04 237.737 30.16V20.8H239.837V43H237.737V39.34C237.237 40.48 236.417 41.42 235.277 42.16C234.137 42.88 232.797 43.24 231.257 43.24C229.757 43.24 228.407 42.89 227.207 42.19C226.027 41.49 225.097 40.5 224.417 39.22C223.757 37.94 223.427 36.46 223.427 34.78ZM237.737 34.81C237.737 33.49 237.467 32.33 236.927 31.33C236.387 30.33 235.647 29.56 234.707 29.02C233.787 28.48 232.767 28.21 231.647 28.21C230.487 28.21 229.447 28.47 228.527 28.99C227.607 29.51 226.877 30.27 226.337 31.27C225.817 32.25 225.557 33.42 225.557 34.78C225.557 36.12 225.817 37.3 226.337 38.32C226.877 39.32 227.607 40.09 228.527 40.63C229.447 41.15 230.487 41.41 231.647 41.41C232.767 41.41 233.787 41.14 234.707 40.6C235.647 40.06 236.387 39.29 236.927 38.29C237.467 37.29 237.737 36.13 237.737 34.81ZM245.681 23.53C245.261 23.53 244.901 23.38 244.601 23.08C244.301 22.78 244.151 22.41 244.151 21.97C244.151 21.53 244.301 21.17 244.601 20.89C244.901 20.59 245.261 20.44 245.681 20.44C246.101 20.44 246.461 20.59 246.761 20.89C247.061 21.17 247.211 21.53 247.211 21.97C247.211 22.41 247.061 22.78 246.761 23.08C246.461 23.38 246.101 23.53 245.681 23.53ZM246.731 26.62V43H244.631V26.62H246.731ZM250.526 34.81C250.526 33.11 250.866 31.63 251.546 30.37C252.226 29.09 253.166 28.11 254.366 27.43C255.566 26.73 256.936 26.38 258.476 26.38C260.496 26.38 262.156 26.88 263.456 27.88C264.776 28.88 265.626 30.24 266.006 31.96H263.756C263.476 30.78 262.866 29.86 261.926 29.2C261.006 28.52 259.856 28.18 258.476 28.18C257.376 28.18 256.386 28.43 255.506 28.93C254.626 29.43 253.926 30.18 253.406 31.18C252.906 32.16 252.656 33.37 252.656 34.81C252.656 36.25 252.906 37.47 253.406 38.47C253.926 39.47 254.626 40.22 255.506 40.72C256.386 41.22 257.376 41.47 258.476 41.47C259.856 41.47 261.006 41.14 261.926 40.48C262.866 39.8 263.476 38.86 263.756 37.66H266.006C265.626 39.34 264.776 40.69 263.456 41.71C262.136 42.73 260.476 43.24 258.476 43.24C256.936 43.24 255.566 42.9 254.366 42.22C253.166 41.52 252.226 40.54 251.546 39.28C250.866 38 250.526 36.51 250.526 34.81ZM284.705 33.97C284.705 34.69 284.685 35.24 284.645 35.62H271.055C271.115 36.86 271.415 37.92 271.955 38.8C272.495 39.68 273.205 40.35 274.085 40.81C274.965 41.25 275.925 41.47 276.965 41.47C278.325 41.47 279.465 41.14 280.385 40.48C281.325 39.82 281.945 38.93 282.245 37.81H284.465C284.065 39.41 283.205 40.72 281.885 41.74C280.585 42.74 278.945 43.24 276.965 43.24C275.425 43.24 274.045 42.9 272.825 42.22C271.605 41.52 270.645 40.54 269.945 39.28C269.265 38 268.925 36.51 268.925 34.81C268.925 33.11 269.265 31.62 269.945 30.34C270.625 29.06 271.575 28.08 272.795 27.4C274.015 26.72 275.405 26.38 276.965 26.38C278.525 26.38 279.885 26.72 281.045 27.4C282.225 28.08 283.125 29 283.745 30.16C284.385 31.3 284.705 32.57 284.705 33.97ZM282.575 33.91C282.595 32.69 282.345 31.65 281.825 30.79C281.325 29.93 280.635 29.28 279.755 28.84C278.875 28.4 277.915 28.18 276.875 28.18C275.315 28.18 273.985 28.68 272.885 29.68C271.785 30.68 271.175 32.09 271.055 33.91H282.575ZM293.617 21.76C294.897 21.76 296.027 22.01 297.007 22.51C298.007 23.01 298.777 23.73 299.317 24.67C299.877 25.59 300.157 26.66 300.157 27.88C300.157 30.04 299.487 31.63 298.147 32.65C296.827 33.65 295.017 34.15 292.717 34.15L292.627 37.45H290.827L290.707 32.65H291.487C293.547 32.65 295.167 32.33 296.347 31.69C297.547 31.03 298.147 29.76 298.147 27.88C298.147 26.56 297.727 25.51 296.887 24.73C296.067 23.95 294.977 23.56 293.617 23.56C292.257 23.56 291.177 23.93 290.377 24.67C289.577 25.41 289.177 26.42 289.177 27.7H287.167C287.167 26.5 287.437 25.46 287.977 24.58C288.537 23.68 289.297 22.99 290.257 22.51C291.237 22.01 292.357 21.76 293.617 21.76ZM291.727 43.15C291.287 43.15 290.917 43 290.617 42.7C290.337 42.4 290.197 42.03 290.197 41.59C290.197 41.15 290.337 40.79 290.617 40.51C290.917 40.21 291.287 40.06 291.727 40.06C292.147 40.06 292.497 40.21 292.777 40.51C293.077 40.79 293.227 41.15 293.227 41.59C293.227 42.03 293.077 42.4 292.777 42.7C292.497 43 292.147 43.15 291.727 43.15Z"
-                fill="black"
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M9.52637 0.123004C12.1558 0.123004 14.3984 1.07037 16.2529 2.96578C17.9989 4.72603 18.9276 6.83034 19.041 9.27828L14.8467 10.9482L14.7041 11.0097C13.2981 11.6568 12.6293 13.2982 13.208 14.7529L14.5186 18.0478C14.8789 18.9541 15.1368 19.602 14.8789 18.9541L16.9482 24.1533L17.0098 24.2968C17.3236 24.9778 17.8867 25.5127 18.583 25.791C19.2793 26.0691 20.0562 26.0692 20.7529 25.792L30.1533 22.0527L30.2959 21.9912C31.7019 21.3441 32.3707 19.7027 31.792 18.248L29.2549 11.8711V0.670856H34.9707V23.0771C34.9707 25.2862 33.1798 27.0771 30.9707 27.0771H29.2549L22.02 27.1386L14.7852 27.2002L7.93652 20.248C7.11711 19.4162 5.71582 20.0053 5.71582 21.1816V27.2002H0V9.79293C7.25328e-05 7.12402 0.927749 4.84822 2.78223 2.96578C4.64933 1.07065 6.89728 0.123108 9.52637 0.123004ZM9.52637 5.92476C8.47225 5.92487 7.57063 6.30573 6.82129 7.06636C6.08465 7.81413 5.71589 8.72289 5.71582 9.79293C5.71582 11.9291 7.42196 13.6609 9.52637 13.6611C10.5805 13.6611 11.4762 13.2876 12.2129 12.54C12.9623 11.7793 13.3379 10.8631 13.3379 9.79293C13.3378 8.72287 12.9623 7.81414 12.2129 7.06636C11.4762 6.30571 10.5806 5.92476 9.52637 5.92476Z"
+                fill="white"
               />
               <path
-                d="M162.694 49.5102C162.729 49.5102 163.219 49.465 165.942 48.9007C168.204 48.4319 172.209 47.3901 174.837 46.8235C177.466 46.2569 178.585 46.1453 178.083 47.1015C176.225 50.6402 173.087 52.3134 173.113 52.4648C173.137 52.6025 173.647 52.3571 177.323 50.9856C180.999 49.6142 187.943 46.9946 191.718 45.6118C195.493 44.2289 195.889 44.1621 194.877 45.0832C193.866 46.0043 191.435 47.9152 190.097 48.9872C188.57 50.2108 188.327 50.5748 188.321 50.785C188.319 50.88 188.654 50.7698 191.214 50.0875C193.775 49.4053 198.637 48.1079 201.696 47.3754C204.755 46.6428 205.863 46.5143 207.185 46.382"
-                stroke="#060606"
-                stroke-width="2"
-                stroke-linecap="round"
+                d="M35.7559 0.670856C38.9125 0.67112 41.4717 3.22994 41.4717 6.38668V27.0771H35.7559V0.670856Z"
+                fill="white"
+              />
+              <path
+                d="M53.7701 7.94218C53.8381 8.02754 53.8804 8.13423 53.8804 8.25175V27.0926H48.1637V8.25175C48.1637 8.15731 48.1904 8.06929 48.2359 7.99394L51.7486 9.50273L51.8092 9.52714C52.1077 9.63695 52.4379 9.62749 52.7301 9.50175C53.022 9.37598 53.255 9.14343 53.3804 8.85136L53.7701 7.94218Z"
+                fill="white"
+              />
+              <path
+                d="M61.6895 7.73633H65.5V13.5391H61.6895V17.4072C61.6896 18.4772 62.0574 19.3927 62.7939 20.1533C63.5434 20.9012 64.4457 21.2754 65.5 21.2754V27.0771C62.8707 27.0771 60.6221 26.1363 58.7549 24.2539C56.9004 22.3586 55.9737 20.0761 55.9736 17.4072V0H61.6895V7.73633Z"
+                fill="white"
+              />
+              <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M24.0635 8.18648C25.365 7.66866 26.8342 8.26632 27.4131 9.52437L27.4678 9.6523L30.8135 18.0644C31.3311 19.3659 30.7334 20.8341 29.4756 21.413L29.3477 21.4677L20.9365 24.8144C20.3131 25.0625 19.6182 25.0614 18.9951 24.8125C18.3723 24.5636 17.8687 24.0856 17.5879 23.4765L17.5322 23.3476L14.1865 14.9365C13.6688 13.635 14.2666 12.1669 15.5244 11.5878L15.6523 11.5322L24.0635 8.18648ZM26.1729 16.915C25.9118 16.8026 25.6166 16.7992 25.3525 16.9043C25.0886 17.0093 24.8771 17.2146 24.7646 17.4755C24.6522 17.7366 24.6479 18.0317 24.7529 18.2959C24.858 18.56 25.0641 18.7722 25.3252 18.8847C25.5862 18.997 25.8815 19.0015 26.1455 18.8964C26.4096 18.7913 26.6209 18.5852 26.7334 18.3242C26.8458 18.0631 26.8501 17.768 26.7451 17.5039C26.64 17.2397 26.434 17.0275 26.1729 16.915ZM22.9238 15.5156C22.6628 15.4032 22.3676 15.3988 22.1035 15.5039C21.8394 15.609 21.6281 15.8151 21.5156 16.0761C21.4032 16.3372 21.3989 16.6323 21.5039 16.8964C21.609 17.1606 21.8151 17.3728 22.0762 17.4853C22.3372 17.5976 22.6324 17.6011 22.8965 17.4961C23.1604 17.391 23.3719 17.1856 23.4844 16.9248C23.5968 16.6638 23.601 16.3685 23.4961 16.1045C23.391 15.8403 23.1849 15.6281 22.9238 15.5156ZM19.6748 14.1162C19.4138 14.0038 19.1185 13.9994 18.8545 14.1044C18.5905 14.2096 18.379 14.4157 18.2666 14.6767C18.1542 14.9378 18.1498 15.2329 18.2549 15.497C18.36 15.7612 18.566 15.9724 18.8271 16.0849C19.0883 16.1974 19.3833 16.2017 19.6475 16.0966C19.9116 15.9915 20.1229 15.7855 20.2354 15.5244C20.3477 15.2633 20.3521 14.9682 20.2471 14.7041C20.1419 14.44 19.9358 14.2286 19.6748 14.1162Z"
+                fill="white"
+              />
+              <path
+                d="M49.4569 3.04515C49.6683 2.55288 50.2269 2.31681 50.7239 2.49991L50.7735 2.51969L53.9547 3.8859C54.447 4.09731 54.6831 4.65593 54.5 5.15292L54.4803 5.20244L53.1142 8.38364C53.0129 8.61944 52.8251 8.80742 52.5894 8.90886C52.3537 9.0103 52.088 9.01746 51.8472 8.92888L51.7977 8.9091L48.6164 7.54289C48.1241 7.33147 47.888 6.77286 48.0711 6.27586L48.0908 6.22634L49.4569 3.04515ZM52.1654 5.05106C52.1225 5.15098 52.121 5.26385 52.1613 5.36484C52.2016 5.46584 52.2804 5.54669 52.3804 5.5896C52.4803 5.63251 52.5931 5.63397 52.6941 5.59366C52.7951 5.55335 52.876 5.47457 52.9189 5.37465C52.9618 5.27473 52.9632 5.16186 52.9229 5.06087C52.8826 4.95987 52.8038 4.87903 52.7039 4.83612C52.604 4.7932 52.4911 4.79174 52.3901 4.83205C52.2891 4.87236 52.2083 4.95114 52.1654 5.05106ZM50.9088 5.55259C50.8659 5.65251 50.8644 5.76538 50.9048 5.86638C50.9451 5.96737 51.0238 6.04822 51.1238 6.09113C51.2237 6.13405 51.3366 6.13551 51.4376 6.0952C51.5386 6.05489 51.6194 5.97611 51.6623 5.87619C51.7052 5.77627 51.7067 5.6634 51.6664 5.5624C51.626 5.46141 51.5473 5.38056 51.4473 5.33765C51.3474 5.29474 51.2345 5.29328 51.1336 5.33359C51.0326 5.3739 50.9517 5.45268 50.9088 5.55259ZM49.6522 6.05413C49.6093 6.15405 49.6079 6.26692 49.6482 6.36792C49.6885 6.46891 49.7673 6.54976 49.8672 6.59267C49.9671 6.63558 50.08 6.63704 50.181 6.59673C50.282 6.55642 50.3628 6.47764 50.4057 6.37772C50.4486 6.27781 50.4501 6.16493 50.4098 6.06394C50.3695 5.96294 50.2907 5.8821 50.1908 5.83919C50.0908 5.79628 49.978 5.79481 49.877 5.83512C49.776 5.87543 49.6951 5.95421 49.6522 6.05413Z"
+                fill="white"
+              />
+              <path
+                d="M51.617 4.88206C51.6431 4.35124 52.0945 3.94205 52.6254 3.96812C53.1562 3.99419 53.5654 4.44564 53.5393 4.97646L53.5321 5.12346C53.506 5.65428 53.0546 6.06346 52.5237 6.03739C51.9929 6.01133 51.5837 5.55988 51.6098 5.02905L51.617 4.88206Z"
+                fill="white"
+              />
+              <path
+                d="M48.6409 5.97646C48.667 5.44564 49.1185 5.03646 49.6493 5.06252C50.1801 5.08859 50.5893 5.54004 50.5632 6.07087L50.556 6.21786C50.5299 6.74868 50.0785 7.15787 49.5476 7.1318C49.0168 7.10573 48.6076 6.65428 48.6337 6.12346L48.6409 5.97646Z"
+                fill="white"
               />
             </svg>
+          </div>
 
-            <a
-              className="px-12 py-2 bg-black text-white rounded-full text-lg"
-              href=""
+          <section className="flex flex-col gap-2 justify-center items-center h-auto w-full">
+            <article className="h-[50vh] flex flex-col justify-center items-center pointer-events-none overflow-none mt-10">
+              <img
+                ref={heroRef}
+                src={hero}
+                alt="Hero"
+                className="mb-5 invert-100 mix-blend-difference"
+                style={{ opacity: 0 }}
+              />
+              <p
+                ref={textRef}
+                className="text-xl md:text-2xl text-white mix-blend-difference"
+                style={{ opacity: 0 }}
+              >
+                We made this platform for you. 😊
+              </p>
+              <article
+                ref={buttonsRef}
+                className="flex justify-center items-center gap-2 w-full mt-7 pointer-events-auto"
+                style={{ opacity: 0 }}
+              >
+                <Link
+                  className="text-center py-2 px-12 rounded-full border border-black bg-white text-black transition-transform duration-200 hover:scale-105 hover:-rotate-2"
+                  to="/feed"
+                >
+                  Discover
+                </Link>
+                {user && (
+                  <Link
+                    className="text-center py-2 px-10 rounded-full shadow-sm shadow-gray-100/20 bg-black text-white transition-transform duration-200 hover:scale-105 hover:-rotate-2"
+                    to="/profile"
+                  >
+                    Profile
+                  </Link>
+                )}
+                {!user && (
+                  <Link
+                    className="text-center py-2 px-10 rounded-full shadow-sm shadow-gray-100/20 bg-black text-white transition-transform duration-200 hover:scale-105 hover:-rotate-2"
+                    to="/login"
+                  >
+                    Login
+                  </Link>
+                )}
+              </article>
+            </article>
+
+            <article
+              ref={modelRef}
+              className="h-[80vh] relative mx-auto mt-20 w-full"
+              style={{ opacity: 0, overflow: "visible" }}
             >
-              Gotcha !
-            </a>
-          </article>
-        </section>
-      </div>
-      <Navbar />
-    </div>
-  );
-}
+              <div className="absolute left-1/2 -translate-x-1/2 z-1 pointer-events-none">
+                <ThreeModel />
+              </div>
 
-export default Home;
+              <div
+                className="absolute mt-60 min-h-150 mb-10 z-10 w-full"
+                style={{
+                  cursor: "grab",
+                  userSelect: "none",
+                  overflow: "hidden",
+                }}
+              >
+                ⁄
+                <div
+                  ref={trackRef}
+                  className="flex"
+                  style={{ gap: CARD_GAP, width: CARD_STRIDE * Cards.length }}
+                  onPointerDown={onPointerDown}
+                  onPointerMove={onPointerMove}
+                  onPointerUp={onPointerUp}
+                  onPointerLeave={onPointerUp}
+                >{loading ? (
+      <p>Loading Cards...</p>
+  ) : (
+      Cards.map((card,i) => (
+                    <div
+                      key={`${card.id}-${i}`}
+                      className="carousel-card"
+                      style={{ flexShrink: 0, width: CARD_W, cursor: "pointer" }}
+                      onMouseEnter={(e) => {
+                        const cur = gsap.getProperty(e.currentTarget, "y");
+                        gsap.to(e.currentTarget, {
+                          y: Number(cur) - 22,
+                          scale: 1.05,
+                          duration: 0.25,
+                          ease: "power2.out",
+                          overwrite: "auto",
+                        });
+                      }}
+                      onMouseLeave={(e) => {
+                        const vw = window.innerWidth;
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const t =
+                          (rect.left + rect.width / 2 - vw / 2) / (vw / 2);
+                        const ty = t * t * 60;
+                        const scale = 1 - Math.abs(t) * 0.06;
+                        gsap.to(e.currentTarget, {
+                          y: ty,
+                          scale,
+                          duration: 0.3,
+                          ease: "power2.out",
+                          overwrite: "auto",
+                        });
+                      }}
+                    >
+    <DiceCard {...card} />
+  </div>
+))
+                  )}
+
+                </div>
+              </div>
+            </article>
+
+            <article
+              ref={ctaGRef}
+              className="mx-auto flex flex-col gap-12 justify-center items-center h-[50vh] relative z-20"
+              style={{ opacity: 0 }}
+            >
+              <svg
+                width="321"
+                height="54"
+                viewBox="0 0 321 54"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M38.4015 28.15C37.8015 26.77 36.8815 25.69 35.6415 24.91C34.4215 24.11 32.9815 23.71 31.3215 23.71C29.7615 23.71 28.3615 24.07 27.1215 24.79C25.8815 25.51 24.9015 26.54 24.1815 27.88C23.4615 29.2 23.1015 30.74 23.1015 32.5C23.1015 34.26 23.4615 35.81 24.1815 37.15C24.9015 38.49 25.8815 39.52 27.1215 40.24C28.3615 40.96 29.7615 41.32 31.3215 41.32C32.7815 41.32 34.0915 41.01 35.2515 40.39C36.4315 39.75 37.3715 38.85 38.0715 37.69C38.7915 36.51 39.2015 35.14 39.3015 33.58H30.4815V31.87H41.5215V33.4C41.4215 35.24 40.9215 36.91 40.0215 38.41C39.1215 39.89 37.9115 41.06 36.3915 41.92C34.8915 42.78 33.2015 43.21 31.3215 43.21C29.3815 43.21 27.6215 42.76 26.0415 41.86C24.4615 40.94 23.2115 39.67 22.2915 38.05C21.3915 36.41 20.9415 34.56 20.9415 32.5C20.9415 30.44 21.3915 28.6 22.2915 26.98C23.2115 25.34 24.4615 24.07 26.0415 23.17C27.6215 22.25 29.3815 21.79 31.3215 21.79C33.5615 21.79 35.5215 22.35 37.2015 23.47C38.8815 24.59 40.1015 26.15 40.8615 28.15H38.4015ZM52.5383 43.24C50.9983 43.24 49.6083 42.9 48.3683 42.22C47.1483 41.52 46.1783 40.54 45.4583 39.28C44.7583 38 44.4083 36.51 44.4083 34.81C44.4083 33.11 44.7683 31.63 45.4883 30.37C46.2083 29.09 47.1883 28.11 48.4283 27.43C49.6683 26.73 51.0583 26.38 52.5983 26.38C54.1383 26.38 55.5283 26.73 56.7683 27.43C58.0283 28.11 59.0083 29.09 59.7083 30.37C60.4283 31.63 60.7883 33.11 60.7883 34.81C60.7883 36.49 60.4283 37.97 59.7083 39.25C58.9883 40.53 57.9983 41.52 56.7383 42.22C55.4783 42.9 54.0783 43.24 52.5383 43.24ZM52.5383 41.41C53.6183 41.41 54.6183 41.17 55.5383 40.69C56.4583 40.19 57.1983 39.45 57.7583 38.47C58.3383 37.47 58.6283 36.25 58.6283 34.81C58.6283 33.37 58.3483 32.16 57.7883 31.18C57.2283 30.18 56.4883 29.44 55.5683 28.96C54.6483 28.46 53.6483 28.21 52.5683 28.21C51.4883 28.21 50.4883 28.46 49.5683 28.96C48.6483 29.44 47.9083 30.18 47.3483 31.18C46.8083 32.16 46.5383 33.37 46.5383 34.81C46.5383 36.25 46.8083 37.47 47.3483 38.47C47.9083 39.45 48.6383 40.19 49.5383 40.69C50.4583 41.17 51.4583 41.41 52.5383 41.41ZM67.3463 28.39V38.56C67.3463 39.56 67.5363 40.25 67.9163 40.63C68.2963 41.01 68.9663 41.2 69.9263 41.2H71.8463V43H69.5963C68.1163 43 67.0163 42.66 66.2963 41.98C65.5763 41.28 65.2163 40.14 65.2163 38.56V28.39H62.9363V26.62H65.2163V22.51H67.3463V26.62H71.8463V28.39H67.3463ZM97.0421 26.62L87.3221 50.71H85.1321L88.3121 42.91L81.5921 26.62H83.9021L89.4821 40.6L94.8821 26.62H97.0421ZM107.06 43.24C105.52 43.24 104.13 42.9 102.89 42.22C101.67 41.52 100.7 40.54 99.9797 39.28C99.2797 38 98.9297 36.51 98.9297 34.81C98.9297 33.11 99.2897 31.63 100.01 30.37C100.73 29.09 101.71 28.11 102.95 27.43C104.19 26.73 105.58 26.38 107.12 26.38C108.66 26.38 110.05 26.73 111.29 27.43C112.55 28.11 113.53 29.09 114.23 30.37C114.95 31.63 115.31 33.11 115.31 34.81C115.31 36.49 114.95 37.97 114.23 39.25C113.51 40.53 112.52 41.52 111.26 42.22C110 42.9 108.6 43.24 107.06 43.24ZM107.06 41.41C108.14 41.41 109.14 41.17 110.06 40.69C110.98 40.19 111.72 39.45 112.28 38.47C112.86 37.47 113.15 36.25 113.15 34.81C113.15 33.37 112.87 32.16 112.31 31.18C111.75 30.18 111.01 29.44 110.09 28.96C109.17 28.46 108.17 28.21 107.09 28.21C106.01 28.21 105.01 28.46 104.09 28.96C103.17 29.44 102.43 30.18 101.87 31.18C101.33 32.16 101.06 33.37 101.06 34.81C101.06 36.25 101.33 37.47 101.87 38.47C102.43 39.45 103.16 40.19 104.06 40.69C104.98 41.17 105.98 41.41 107.06 41.41ZM133.328 26.62V43H131.228V40.12C130.748 41.14 130.008 41.92 129.008 42.46C128.008 43 126.888 43.27 125.648 43.27C123.688 43.27 122.088 42.67 120.848 41.47C119.608 40.25 118.988 38.49 118.988 36.19V26.62H121.058V35.95C121.058 37.73 121.498 39.09 122.378 40.03C123.278 40.97 124.498 41.44 126.038 41.44C127.618 41.44 128.878 40.94 129.818 39.94C130.758 38.94 131.228 37.47 131.228 35.53V26.62H133.328ZM140.222 29.53C140.682 28.51 141.382 27.72 142.322 27.16C143.282 26.6 144.452 26.32 145.832 26.32V28.51H145.262C143.742 28.51 142.522 28.92 141.602 29.74C140.682 30.56 140.222 31.93 140.222 33.85V43H138.122V26.62H140.222V29.53ZM162.429 42.325C162.039 42.325 161.724 42.25 161.484 42.1C161.274 41.95 161.004 41.74 160.674 41.47C160.104 40.87 159.699 40.3 159.459 39.76C159.219 39.19 159.144 38.65 159.234 38.14C159.324 37.9 159.354 37.675 159.324 37.465C159.324 37.225 159.324 37.105 159.324 37.105C159.174 36.955 159.129 36.865 159.189 36.835C159.249 36.775 159.309 36.685 159.369 36.565C159.549 36.565 159.609 36.4 159.549 36.07C159.489 35.83 159.609 35.305 159.909 34.495C160.209 33.685 160.584 32.92 161.034 32.2C161.214 31.9 161.484 31.51 161.844 31.03C162.204 30.52 162.594 30.025 163.014 29.545C163.464 29.035 163.869 28.63 164.229 28.33C164.979 27.7 165.639 27.235 166.209 26.935C166.779 26.635 167.394 26.41 168.054 26.26C168.714 26.11 169.164 26.035 169.404 26.035C169.674 26.035 170.034 26.275 170.484 26.755C171.174 27.055 171.669 27.415 171.969 27.835C172.299 28.255 172.509 28.87 172.599 29.68C172.689 30.58 172.614 31.615 172.374 32.785C172.164 33.925 171.459 35.35 170.259 37.06C169.509 38.14 168.819 38.95 168.189 39.49C167.559 40 166.809 40.51 165.939 41.02C165.309 41.44 164.739 41.755 164.229 41.965C163.719 42.145 163.119 42.265 162.429 42.325ZM166.749 37.555C167.469 36.745 168.039 35.98 168.459 35.26C168.909 34.54 169.329 33.625 169.719 32.515C169.839 32.185 169.914 31.78 169.944 31.3C169.974 30.79 169.959 30.325 169.899 29.905C169.869 29.455 169.764 29.2 169.584 29.14C169.224 28.93 168.789 28.87 168.279 28.96C167.769 29.02 167.214 29.305 166.614 29.815C165.684 30.595 164.874 31.57 164.184 32.74C163.494 33.88 162.819 35.185 162.159 36.655C161.709 37.735 161.604 38.605 161.844 39.265C162.114 39.895 162.669 40.12 163.509 39.94C164.379 39.73 165.459 38.935 166.749 37.555ZM178.214 40.975C177.764 40.975 177.344 40.705 176.954 40.165C176.594 39.595 176.324 38.875 176.144 38.005C175.994 37.105 175.949 36.175 176.009 35.215C176.009 34.255 176.054 33.49 176.144 32.92C176.264 32.32 176.384 31.735 176.504 31.165C176.594 30.985 176.639 30.835 176.639 30.715C176.669 30.595 176.699 30.4 176.729 30.13C176.789 29.86 176.894 29.41 177.044 28.78C177.164 28.27 177.284 27.85 177.404 27.52C177.524 27.19 177.644 26.965 177.764 26.845C177.914 26.665 178.109 26.56 178.349 26.53C178.589 26.47 178.829 26.485 179.069 26.575C179.309 26.665 179.504 26.83 179.654 27.07C179.834 27.22 179.924 27.565 179.924 28.105C179.954 28.615 179.924 29.155 179.834 29.725C179.744 30.265 179.609 30.655 179.429 30.895C179.369 31.045 179.294 31.435 179.204 32.065C179.144 32.695 179.069 33.355 178.979 34.045C178.919 34.735 178.844 35.29 178.754 35.71C178.664 36.25 178.709 36.685 178.889 37.015C179.099 37.345 179.474 37.36 180.014 37.06C180.584 36.73 181.334 35.89 182.264 34.54C182.894 33.64 183.374 32.905 183.704 32.335C184.034 31.765 184.289 31.24 184.469 30.76C184.679 30.25 184.889 29.71 185.099 29.14C185.249 28.66 185.384 28.27 185.504 27.97C185.654 27.64 185.789 27.43 185.909 27.34C186.119 27.19 186.359 27.13 186.629 27.16C186.929 27.19 187.259 27.325 187.619 27.565C187.979 27.925 188.159 28.36 188.159 28.87C188.159 29.35 187.979 29.95 187.619 30.67C187.379 31.15 187.139 31.765 186.899 32.515C186.689 33.265 186.509 34.03 186.359 34.81C186.239 35.56 186.179 36.175 186.179 36.655C186.179 37.255 186.254 37.615 186.404 37.735C186.584 37.825 186.794 37.87 187.034 37.87C187.394 37.87 187.829 37.735 188.339 37.465C188.849 37.195 189.419 36.73 190.049 36.07C190.319 35.8 190.649 35.41 191.039 34.9C191.429 34.36 191.804 33.805 192.164 33.235C192.554 32.635 192.869 32.11 193.109 31.66C193.379 31.21 193.514 30.925 193.514 30.805C193.514 30.625 193.649 30.37 193.919 30.04C194.099 29.8 194.234 29.62 194.324 29.5C194.444 29.35 194.654 29.2 194.954 29.05C195.194 28.93 195.404 28.915 195.584 29.005C195.764 29.065 195.959 29.215 196.169 29.455C196.319 29.575 196.394 29.755 196.394 29.995C196.424 30.235 196.439 30.535 196.439 30.895C196.349 31.225 196.199 31.66 195.989 32.2C195.809 32.71 195.599 33.205 195.359 33.685C195.149 34.135 194.969 34.45 194.819 34.63C194.699 34.75 194.489 34.975 194.189 35.305C193.889 35.605 193.619 35.935 193.379 36.295C192.629 37.195 192.089 37.78 191.759 38.05C191.429 38.32 191.144 38.575 190.904 38.815C190.274 39.445 189.614 39.925 188.924 40.255C188.234 40.555 187.574 40.705 186.944 40.705C186.344 40.705 185.834 40.555 185.414 40.255C184.484 39.775 184.019 38.965 184.019 37.825C184.019 37.585 183.974 37.375 183.884 37.195C183.824 36.985 183.794 36.88 183.794 36.88C183.674 36.88 183.509 36.91 183.299 36.97C183.119 37.03 182.924 37.24 182.714 37.6C182.444 38.11 182.009 38.635 181.409 39.175C180.839 39.685 180.254 40.12 179.654 40.48C179.054 40.81 178.574 40.975 178.214 40.975ZM211.946 42.46C211.646 42.46 211.331 42.295 211.001 41.965C210.701 41.635 210.431 41.23 210.191 40.75C209.981 40.24 209.876 39.76 209.876 39.31C209.876 38.86 209.981 38.02 210.191 36.79C210.431 35.56 210.716 34.315 211.046 33.055C211.286 32.275 211.361 31.825 211.271 31.705C211.181 31.585 210.776 31.75 210.056 32.2C209.636 32.41 209.261 32.635 208.931 32.875C208.601 33.085 208.316 33.325 208.076 33.595C207.926 33.715 207.701 33.91 207.401 34.18C207.101 34.45 206.786 34.705 206.456 34.945C206.066 35.245 205.571 35.665 204.971 36.205C204.371 36.745 203.771 37.285 203.171 37.825C202.601 38.365 202.166 38.785 201.866 39.085C201.806 39.205 201.716 39.31 201.596 39.4C201.476 39.49 201.341 39.55 201.191 39.58C201.041 39.58 200.876 39.55 200.696 39.49C200.366 39.4 200.051 39.205 199.751 38.905C199.481 38.605 199.346 38.26 199.346 37.87C199.346 37.57 199.466 37.06 199.706 36.34C199.946 35.59 200.261 34.69 200.651 33.64C201.071 32.59 201.551 31.48 202.091 30.31C202.181 30.16 202.256 29.98 202.316 29.77C202.376 29.53 202.421 29.275 202.451 29.005C202.511 28.735 202.541 28.48 202.541 28.24C202.541 28.09 202.556 27.94 202.586 27.79C202.646 27.61 202.706 27.445 202.766 27.295C202.856 27.115 202.931 26.995 202.991 26.935C203.111 26.695 203.321 26.635 203.621 26.755C203.921 26.845 204.176 27.055 204.386 27.385C204.836 27.805 205.061 28.33 205.061 28.96C205.091 29.59 204.941 30.37 204.611 31.3C204.491 31.51 204.386 31.72 204.296 31.93C204.236 32.11 204.176 32.275 204.116 32.425C204.056 32.545 204.011 32.65 203.981 32.74C203.951 32.8 203.936 32.83 203.936 32.83C204.056 32.83 204.326 32.695 204.746 32.425C205.166 32.155 205.661 31.855 206.231 31.525C206.681 31.195 207.071 30.895 207.401 30.625C207.761 30.325 208.061 30.1 208.301 29.95C208.541 29.77 208.691 29.68 208.751 29.68C208.871 29.68 209.021 29.635 209.201 29.545C209.381 29.455 209.531 29.35 209.651 29.23C209.771 29.11 209.861 29.05 209.921 29.05C210.011 29.02 210.056 29.005 210.056 29.005C210.056 29.005 210.116 29.005 210.236 29.005C210.356 28.975 210.476 28.9 210.596 28.78C210.836 28.6 211.151 28.555 211.541 28.645C211.931 28.705 212.291 28.855 212.621 29.095C212.951 29.335 213.116 29.605 213.116 29.905C213.116 30.025 213.146 30.13 213.206 30.22C213.296 30.28 213.341 30.31 213.341 30.31C213.581 30.31 213.731 30.685 213.791 31.435C213.881 32.185 213.806 32.905 213.566 33.595C213.566 34.045 213.476 34.585 213.296 35.215C213.146 35.845 213.011 36.445 212.891 37.015C212.651 37.765 212.486 38.425 212.396 38.995C212.306 39.565 212.291 40.045 212.351 40.435C212.411 40.825 212.516 41.14 212.666 41.38C212.786 41.59 212.786 41.83 212.666 42.1C212.546 42.34 212.306 42.46 211.946 42.46ZM223.427 34.78C223.427 33.1 223.767 31.63 224.447 30.37C225.127 29.09 226.057 28.11 227.237 27.43C228.437 26.73 229.787 26.38 231.287 26.38C232.727 26.38 234.027 26.73 235.187 27.43C236.347 28.13 237.197 29.04 237.737 30.16V20.8H239.837V43H237.737V39.34C237.237 40.48 236.417 41.42 235.277 42.16C234.137 42.88 232.797 43.24 231.257 43.24C229.757 43.24 228.407 42.89 227.207 42.19C226.027 41.49 225.097 40.5 224.417 39.22C223.757 37.94 223.427 36.46 223.427 34.78ZM237.737 34.81C237.737 33.49 237.467 32.33 236.927 31.33C236.387 30.33 235.647 29.56 234.707 29.02C233.787 28.48 232.767 28.21 231.647 28.21C230.487 28.21 229.447 28.47 228.527 28.99C227.607 29.51 226.877 30.27 226.337 31.27C225.817 32.25 225.557 33.42 225.557 34.78C225.557 36.12 225.817 37.3 226.337 38.32C226.877 39.32 227.607 40.09 228.527 40.63C229.447 41.15 230.487 41.41 231.647 41.41C232.767 41.41 233.787 41.14 234.707 40.6C235.647 40.06 236.387 39.29 236.927 38.29C237.467 37.29 237.737 36.13 237.737 34.81ZM245.681 23.53C245.261 23.53 244.901 23.38 244.601 23.08C244.301 22.78 244.151 22.41 244.151 21.97C244.151 21.53 244.301 21.17 244.601 20.89C244.901 20.59 245.261 20.44 245.681 20.44C246.101 20.44 246.461 20.59 246.761 20.89C247.061 21.17 247.211 21.53 247.211 21.97C247.211 22.41 247.061 22.78 246.761 23.08C246.461 23.38 246.101 23.53 245.681 23.53ZM246.731 26.62V43H244.631V26.62H246.731ZM250.526 34.81C250.526 33.11 250.866 31.63 251.546 30.37C252.226 29.09 253.166 28.11 254.366 27.43C255.566 26.73 256.936 26.38 258.476 26.38C260.496 26.38 262.156 26.88 263.456 27.88C264.776 28.88 265.626 30.24 266.006 31.96H263.756C263.476 30.78 262.866 29.86 261.926 29.2C261.006 28.52 259.856 28.18 258.476 28.18C257.376 28.18 256.386 28.43 255.506 28.93C254.626 29.43 253.926 30.18 253.406 31.18C252.906 32.16 252.656 33.37 252.656 34.81C252.656 36.25 252.906 37.47 253.406 38.47C253.926 39.47 254.626 40.22 255.506 40.72C256.386 41.22 257.376 41.47 258.476 41.47C259.856 41.47 261.006 41.14 261.926 40.48C262.866 39.8 263.476 38.86 263.756 37.66H266.006C265.626 39.34 264.776 40.69 263.456 41.71C262.136 42.73 260.476 43.24 258.476 43.24C256.936 43.24 255.566 42.9 254.366 42.22C253.166 41.52 252.226 40.54 251.546 39.28C250.866 38 250.526 36.51 250.526 34.81ZM284.705 33.97C284.705 34.69 284.685 35.24 284.645 35.62H271.055C271.115 36.86 271.415 37.92 271.955 38.8C272.495 39.68 273.205 40.35 274.085 40.81C274.965 41.25 275.925 41.47 276.965 41.47C278.325 41.47 279.465 41.14 280.385 40.48C281.325 39.82 281.945 38.93 282.245 37.81H284.465C284.065 39.41 283.205 40.72 281.885 41.74C280.585 42.74 278.945 43.24 276.965 43.24C275.425 43.24 274.045 42.9 272.825 42.22C271.605 41.52 270.645 40.54 269.945 39.28C269.265 38 268.925 36.51 268.925 34.81C268.925 33.11 269.265 31.62 269.945 30.34C270.625 29.06 271.575 28.08 272.795 27.4C274.015 26.72 275.405 26.38 276.965 26.38C278.525 26.38 279.885 26.72 281.045 27.4C282.225 28.08 283.125 29 283.745 30.16C284.385 31.3 284.705 32.57 284.705 33.97ZM282.575 33.91C282.595 32.69 282.345 31.65 281.825 30.79C281.325 29.93 280.635 29.28 279.755 28.84C278.875 28.4 277.915 28.18 276.875 28.18C275.315 28.18 273.985 28.68 272.885 29.68C271.785 30.68 271.175 32.09 271.055 33.91H282.575ZM293.617 21.76C294.897 21.76 296.027 22.01 297.007 22.51C298.007 23.01 298.777 23.73 299.317 24.67C299.877 25.59 300.157 26.66 300.157 27.88C300.157 30.04 299.487 31.63 298.147 32.65C296.827 33.65 295.017 34.15 292.717 34.15L292.627 37.45H290.827L290.707 32.65H291.487C293.547 32.65 295.167 32.33 296.347 31.69C297.547 31.03 298.147 29.76 298.147 27.88C298.147 26.56 297.727 25.51 296.887 24.73C296.067 23.95 294.977 23.56 293.617 23.56C292.257 23.56 291.177 23.93 290.377 24.67C289.577 25.41 289.177 26.42 289.177 27.7H287.167C287.167 26.5 287.437 25.46 287.977 24.58C288.537 23.68 289.297 22.99 290.257 22.51C291.237 22.01 292.357 21.76 293.617 21.76ZM291.727 43.15C291.287 43.15 290.917 43 290.617 42.7C290.337 42.4 290.197 42.03 290.197 41.59C290.197 41.15 290.337 40.79 290.617 40.51C290.917 40.21 291.287 40.06 291.727 40.06C292.147 40.06 292.497 40.21 292.777 40.51C293.077 40.79 293.227 41.15 293.227 41.59C293.227 42.03 293.077 42.4 292.777 42.7C292.497 43 292.147 43.15 291.727 43.15Z"
+                  fill="black"
+                />
+                <path
+                  d="M162.694 49.5102C162.729 49.5102 163.219 49.465 165.942 48.9007C168.204 48.4319 172.209 47.3901 174.837 46.8235C177.466 46.2569 178.585 46.1453 178.083 47.1015C176.225 50.6402 173.087 52.3134 173.113 52.4648C173.137 52.6025 173.647 52.3571 177.323 50.9856C180.999 49.6142 187.943 46.9946 191.718 45.6118C195.493 44.2289 195.889 44.1621 194.877 45.0832C193.866 46.0043 191.435 47.9152 190.097 48.9872C188.57 50.2108 188.327 50.5748 188.321 50.785C188.319 50.88 188.654 50.7698 191.214 50.0875C193.775 49.4053 198.637 48.1079 201.696 47.3754C204.755 46.6428 205.863 46.5143 207.185 46.382"
+                  stroke="#060606"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+
+              <a
+                className="px-12 py-2 bg-black text-white rounded-full text-lg"
+                href=""
+              >
+                Gotcha !
+              </a>
+            </article>
+          </section>
+        </div>
+        <Navbar />
+      </div>
+    );
+  }
+
+  export default Home;
