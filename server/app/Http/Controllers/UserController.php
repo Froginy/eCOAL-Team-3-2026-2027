@@ -53,6 +53,7 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'name'                => 'sometimes|string|max:255',
+            'email'               => 'sometimes|string|email|max:255|unique:users,email,' . $user->id,
             'description'         => 'nullable|string',
             'profile_picture_url' => 'nullable|string|max:255',
         ]);
