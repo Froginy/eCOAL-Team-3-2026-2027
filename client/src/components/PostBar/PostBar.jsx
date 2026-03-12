@@ -39,7 +39,6 @@ function PostBar({ user_id }) {
               name={user.name}
               size={32}
               showName
-              to="/settings"
             />
           )}
         </Link>

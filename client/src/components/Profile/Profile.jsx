@@ -11,9 +11,7 @@ export default function Profile() {
   const { id } = useParams();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-
-
-
+  const api_url = import.meta.env.VITE_API_URL;
 
   return (
     <div className="page-container">

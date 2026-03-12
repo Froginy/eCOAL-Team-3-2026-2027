@@ -67,7 +67,7 @@ export default function ProfileSection({ userId }) {
   const handleFollow = async () => {
     setLoading(true);
     try {
-      await axios.post(`/api/users/${userId}/subscribe`, {}, {
+      await axios.post(`${api_url}/users/${userId}/subscribe`, {}, {
         headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
       });
       setIsSubscribed(true);
@@ -78,7 +78,7 @@ export default function ProfileSection({ userId }) {
   const handleUnfollow = async () => {
     setLoading(true);
     try {
-      await axios.delete(`/api/users/${userId}/subscribe`, {
+      await axios.delete(`${api_url}/users/${userId}/subscribe`, {
         headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
       });
       setIsSubscribed(false);
