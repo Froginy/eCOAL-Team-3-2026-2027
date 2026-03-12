@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Dice;
 use Illuminate\Http\Request;
 use App\Http\Resources\UserResource;
+use App\Http\Resources\DiceResource;
 use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
@@ -25,6 +27,21 @@ class UserController extends Controller
     {
         $user = User::with(['collections', 'collections.dices'])->withCount(['followers', 'following'])->findOrFail($id);
         return new UserResource($user);
+    }
+
+    /**
+     * Liste tous les dés appartenant à un utilisateur spécifique.
+     */
+    public function dices(int $id)
+    {
+        $user = User::findOrFail($id);
+        
+        $dices = Dice::whereIn('collection_id', $user->collections()->pluck('id'))
+            ->with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers'])
+            ->withCount('likedByUsers')
+            ->get();
+
+        return DiceResource::collection($dices);
     }
 
     /**

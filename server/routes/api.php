@@ -18,6 +18,7 @@ Route::post('/login', [AuthController::class, 'login']);
 // Routes publiques pour les utilisateurs
 Route::get('/users', [UserController::class, 'index']);
 Route::get('/users/{id}', [UserController::class, 'show']);
+Route::get('/users/{id}/dices', [UserController::class, 'dices']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
