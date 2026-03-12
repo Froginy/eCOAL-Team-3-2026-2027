@@ -3,7 +3,6 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 export default function Header({ userId }) {
-  const navigate = useNavigate();
   const [user, setUser] = useState();
 
   useEffect(() => {
@@ -11,8 +10,11 @@ export default function Header({ userId }) {
       if (!userId) return;
 
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/users/${userId}`);
-        setUser(response.data.data); 
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/users/${userId}`,
+        );
+
+        setUser(response.data.data);
       } catch (error) {
         console.error("API Error:", error.response?.status);
       }
@@ -22,15 +24,26 @@ export default function Header({ userId }) {
   }, [userId]);
 
   return (
-    <div className="flex items-center justify-between bg-white text-black h-12 px-4 m-4 rounded-full shadow-md border border-black/5 sticky top-4 z-50">
-      <button 
-        type="button" 
-        onClick={() => navigate(-1)}
-        className="w-8 h-8 flex items-center justify-center bg-black/5 rounded-full hover:bg-black/10 transition-colors cursor-pointer border-none"
-        aria-label="Back"
+    <div className="header">
+      <button
+        className="icon-btn back-btn"
+        aria-label="Go back"
+        onClick={() => window.history.back()}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M20 12H4m0 0l6-6m-6 6l6 6"
+          />
         </svg>
       </button>
 
