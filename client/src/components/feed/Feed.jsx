@@ -10,6 +10,7 @@ function Feed()   {
                 <img src={logo} alt="Logo" className="h-5" />
                 <a href=""><img src={sort} alt="Sort" className="h-5" /></a>
             </div>
+            
             <PostCard />
             <PostCard />
             <PostCard />
