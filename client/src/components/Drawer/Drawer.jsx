@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import gsap from 'gsap';
+import axios from 'axios';
 
 const COLORS = [
   { name: 'Obsidian',  hex: '#1a1a2e' },
@@ -20,18 +21,51 @@ const COLORS = [
   { name: 'Slate',     hex: '#475569' },
 ];
 
-export default function NewDiceDrawer({ open, onClose }) {
+const SIZES = ['small', 'medium', 'large'];
+
+const SIZE_CONFIG = {
+  small:  { label: 'S', svgSize: 18 },
+  medium: { label: 'M', svgSize: 26 },
+  large:  { label: 'L', svgSize: 36 },
+};
+
+function DiceIcon({ sizeKey }) {
+  const { label, svgSize } = SIZE_CONFIG[sizeKey];
+  return (
+    <svg width={svgSize} height={svgSize} viewBox="0 0 100 100" fill="none">
+      <rect x="5" y="5" width="90" height="90" rx="20" stroke="currentColor" strokeWidth="8" />
+      <text
+        x="50" y="50"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill="currentColor"
+        fontSize="46"
+        fontWeight="700"
+        fontFamily="system-ui, sans-serif"
+      >{label}</text>
+    </svg>
+  );
+}
+
+
+const SIZE_MM = { small: 16, medium: 22, large: 32 };
+
+export default function NewDiceDrawer({ open, onClose, collectionId }) {
   const [color, setColor]         = useState(COLORS[0]);
   const [colorOpen, setColorOpen] = useState(false);
   const [faces, setFaces]         = useState(6);
   const [name, setName]           = useState('');
   const [desc, setDesc]           = useState('');
   const [images, setImages]       = useState([]);
+  const [size, setSize]           = useState('medium');
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState(null);
+  const [success, setSuccess]     = useState(false);
 
-  const drawerRef  = useRef(null);
+  const drawerRef   = useRef(null);
   const backdropRef = useRef(null);
-  const colorRef   = useRef(null);
-  const fileRef    = useRef(null);
+  const colorRef    = useRef(null);
+  const fileRef     = useRef(null);
   const isAnimating = useRef(false);
 
   useEffect(() => {
@@ -43,6 +77,8 @@ export default function NewDiceDrawer({ open, onClose }) {
     isAnimating.current = true;
 
     if (open) {
+      setError(null);
+      setSuccess(false);
       gsap.set(drawer, { y: '100%', display: 'flex' });
       gsap.set(backdrop, { display: 'block' });
       gsap.to(backdrop, { opacity: 1, duration: 0.3, ease: 'power2.out' });
@@ -84,16 +120,80 @@ export default function NewDiceDrawer({ open, onClose }) {
     const valid = Array.from(files).filter(f => f.type.startsWith('image/'));
     Promise.all(valid.map(f => new Promise(res => {
       const r = new FileReader();
-      r.onload = e => res({ url: e.target.result, name: f.name });
+      r.onload = e => res({ url: e.target.result, name: f.name, file: f });
       r.readAsDataURL(f);
     }))).then(imgs => setImages(prev => [...prev, ...imgs].slice(0, 6)));
   };
 
   const handleDrop = (e) => { e.preventDefault(); handleImages(e.dataTransfer.files); };
   const removeImage = (i) => setImages(prev => prev.filter((_, idx) => idx !== i));
-  const handleSubmit = (e) => { e.preventDefault(); console.log({ name, desc, color, faces, images }); onClose(); };
 
-  const fillPct = ((faces - 1) / 49) * 100;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    try {
+      const api_url = import.meta.env.VITE_API_URL;
+      const token   = localStorage.getItem('token');
+
+      let imageUrls = [];
+      if (images.length > 0) {
+        const imgForm = new FormData();
+        images.forEach((img) => {
+          if (img.file) {
+            imgForm.append('images[]', img.file);
+          } else {
+            const blob = dataURLtoBlob(img.url);
+            imgForm.append('images[]', blob, img.name || 'image.jpg');
+          }
+        });
+        const uploadRes = await axios.post(`${api_url}/dices`, imgForm, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        imageUrls = uploadRes.data?.urls ?? uploadRes.data ?? [];
+      }
+
+      const payload = {
+        name:          name || null,
+        description:   desc || null,
+        images:        imageUrls,
+        criterias: [
+          { criteria_id: 1, value: faces },
+          { criteria_id: 2, value: SIZE_MM[size] },
+          { criteria_id: 3, value: null },
+        ],
+      };
+
+      await axios.post(`${api_url}/dices`, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept':        'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      setSuccess(true);
+      setTimeout(() => {
+        onClose();
+        setName(''); setDesc(''); setColor(COLORS[0]); setFaces(6); setSize('medium'); setImages([]);
+        setSuccess(false);
+      }, 900);
+    } catch (err) {
+      const msg = err.response?.data?.message
+        || (err.response?.data?.errors ? Object.values(err.response.data.errors).flat().join(' ') : null)
+        || err.message
+        || 'An error happened.';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fillPct = ((faces - 1) / 499) * 100;
 
   const inputCls = "w-full bg-transparent border border-black/15 rounded-lg text-black text-sm px-3.5 py-2.5 outline-none placeholder:text-black/25 focus:border-black/50 transition-colors duration-150";
 
@@ -109,16 +209,15 @@ export default function NewDiceDrawer({ open, onClose }) {
       <div
         ref={drawerRef}
         style={{ display: 'none' }}
-          className="fixed bottom-0 left-0 right-0 mx-2 z-50 flex flex-col justify-center bg-white rounded-t-4xl border-t border-black/8 shadow-[0_-16px_60px_rgba(0,0,0,0.12)]"
-        >
-          
+        className="fixed bottom-0 left-0 right-0 mx-2 md:mx-[10vw] lg:mx-[10vw] z-50 flex flex-col justify-center bg-white rounded-t-4xl border-t border-black/8 shadow-[0_-16px_60px_rgba(0,0,0,0.12)]"
+      >
         <div className="flex justify-center pt-3 pb-1 shrink-0">
           <div className="w-10 h-1 bg-black/15 rounded-full" />
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="max-h-[70vh] w-[80vw] md:w-150 overflow-y-auto mx-auto px-6 py-5 flex flex-col gap-4"
+          className="max-h-[70vh] w-[70%] overflow-y-auto mx-auto px-6 py-5 flex flex-col gap-4 mt-10"
         >
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-semibold tracking-widest uppercase text-black/40 flex items-center gap-1.5">
@@ -154,6 +253,7 @@ export default function NewDiceDrawer({ open, onClose }) {
               </div>
             )}
           </div>
+
           <div className="flex flex-col gap-1.5">
             <input
               type="text"
@@ -176,7 +276,6 @@ export default function NewDiceDrawer({ open, onClose }) {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-semibold tracking-widest uppercase text-black/40">Color</label>
               <div className="relative" ref={colorRef}>
@@ -238,34 +337,94 @@ export default function NewDiceDrawer({ open, onClose }) {
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
                 </div>
-                <span className="text-[11px] text-black/30 w-4 text-center shrink-0">50</span>
+                <span className="text-[11px] text-black/30 w-4 text-center shrink-0">500</span>
               </div>
             </div>
           </div>
 
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-semibold tracking-widest uppercase text-black/40">Size</label>
+            <div className="flex gap-2">
+              {SIZES.map(s => {
+                const active = size === s;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setSize(s)}
+                    className={`
+                      flex items-center gap-2 px-3 py-2 rounded-xl border text-[11px] font-semibold tracking-widest uppercase
+                      transition-all duration-150 cursor-pointer
+                      ${active
+                        ? 'border-black bg-black text-white shadow-sm'
+                        : 'border-black/12 bg-transparent text-black/35 hover:border-black/30 hover:text-black/60'
+                      }
+                    `}
+                  >
+                    <DiceIcon sizeKey={s} />
+                    {s}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
+          {error && (
+            <div className="text-[12px] text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+              {error}
+            </div>
+          )}
 
           <div className="flex gap-2 pt-1 pb-3 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-full text-sm font-medium bg-black/5 text-black/50 hover:bg-black/10 hover:text-black transition-all duration-150 cursor-pointer border-none"
+              disabled={loading}
+              className="flex-1 py-2.5 rounded-full text-sm font-medium bg-black/5 text-black/50 hover:bg-black/10 hover:text-black transition-all duration-150 cursor-pointer border-none disabled:opacity-40"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 rounded-full text-sm font-semibold bg-black text-white flex items-center justify-center gap-1.5 hover:bg-black/85 transition-all duration-150 cursor-pointer border-none"
+              disabled={loading || success}
+              className="flex-1 py-2.5 rounded-full text-sm font-semibold bg-black text-white flex items-center justify-center gap-1.5 hover:bg-black/85 transition-all duration-150 cursor-pointer border-none disabled:opacity-60"
             >
-              <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-                <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              Create
+              {loading ? (
+                <>
+                  <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.25"/>
+                    <path d="M12 2a10 10 0 0110 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+                  </svg>
+                  Saving…
+                </>
+              ) : success ? (
+                <>
+                  <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                    <path d="M2 7l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Saved!
+                </>
+              ) : (
+                <>
+                  <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                    <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  Create
+                </>
+              )}
             </button>
           </div>
-
         </form>
       </div>
     </>
   );
+}
+
+function dataURLtoBlob(dataURL) {
+  const [header, data] = dataURL.split(',');
+  const mime = header.match(/:(.*?);/)[1];
+  const binary = atob(data);
+  const array = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
+  return new Blob([array], { type: mime });
 }

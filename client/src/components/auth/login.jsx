@@ -27,10 +27,6 @@ function Login() {
 
         localStorage.setItem('token', token);
 
-        localStorage.setItem('user', JSON.stringify({
-          name: user?.name ?? '',
-          avatar: user?.profile_picture_url ?? '',
-        }));
 
         window.dispatchEvent(new Event('storage'));
 
@@ -39,7 +35,11 @@ function Login() {
         setError('Invalid email or password.');
       }
     } catch (err) {
-      setError('An error occurred during login.');
+      if (err.response && err.response.status === 422) {
+        setError('Invalid email or password.');
+      } else {
+        setError('An error occurred during login.');
+      }
     }
   };
 
