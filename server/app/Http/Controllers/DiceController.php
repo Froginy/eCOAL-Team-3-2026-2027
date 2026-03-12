@@ -13,7 +13,7 @@ class DiceController extends Controller
      */
     public function index()
     {
-        $dices = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers'])->withCount('likedByUsers')->get();
+        $dices = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers', 'color'])->withCount('likedByUsers')->get();
 
         return DiceResource::collection($dices);
     }
@@ -23,7 +23,7 @@ class DiceController extends Controller
      */
     public function show(int $id)
     {
-        $dice = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers'])->withCount('likedByUsers')->findOrFail($id);
+        $dice = Dice::with(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers', 'color'])->withCount('likedByUsers')->findOrFail($id);
 
         return new DiceResource($dice);
     }
@@ -73,7 +73,7 @@ class DiceController extends Controller
             $dice->criterias()->attach($criteriaData);
         }
 
-        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers']);
+        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers', 'color']);
         $dice->loadCount('likedByUsers');
 
         return new DiceResource($dice);
@@ -127,7 +127,7 @@ class DiceController extends Controller
             $dice->criterias()->sync($criteriaData);
         }
 
-        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers']);
+        $dice->load(['collection', 'primaryCategory', 'secondaryCategory', 'criterias', 'images', 'likedByUsers', 'color']);
         $dice->loadCount('likedByUsers');
 
         return new DiceResource($dice);
