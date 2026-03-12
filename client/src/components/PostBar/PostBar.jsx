@@ -2,9 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import add from "../../assets/add.svg";
 import like from "../../assets/like.svg";
-import placeholder from "../../assets/placeholder_pp.jpg";
 import UserAvatar from "../UserAvatar/UserAvatar";
-import { Link } from "react-router-dom";
 
 function PostBar({ user_id, dice_id }) {
   const serverURL = import.meta.env.VITE_API_URL;
@@ -16,6 +14,7 @@ function PostBar({ user_id, dice_id }) {
   const [likesCount, setLikesCount] = useState(0);
   const [loadingLike, setLoadingLike] = useState(false);
 
+  // Fetch User Info
   useEffect(() => {
     if (!user_id) return;
     axios.get(`${serverURL}/users/${user_id}`)
@@ -54,16 +53,29 @@ function PostBar({ user_id, dice_id }) {
   return (
     <div className="flex flex-row justify-between items-center bg-white text-black w-56.25 md:w-75 h-10 mx-auto rounded-3xl absolute left-2.5 top-2.5 z-50 shadow-sm">
       <div className="flex justify-between w-full items-center relative text-black m-1.5">
-        <Link
-          to={user ? `/profile/${user.id}` : "#"}
-          className="flex items-center relative gap-2 text-black"
-        >
-          {user && (
-            <UserAvatar
-              src={user.avatar || user.profile_picture_url}
-              name={user.name}
-              size={32}
-              showName
+        {user && (
+          <UserAvatar
+            src={user.avatar || user.profile_picture_url}
+            name={user.name}
+            size={32}
+            showName
+            to={`/profile/${user.id}`}
+            className="flex items-center relative gap-2 text-black"
+          />
+        )}
+        
+        <div className="flex items-center gap-2 m-2.5">
+          <button
+            type="button"
+            onClick={handleLike}
+            disabled={loadingLike || !token}
+            className="flex items-center gap-1 border-none bg-transparent cursor-pointer p-0"
+          >
+            <img
+              src={like}
+              alt="like"
+              className="h-6"
+              style={{ opacity: isLiked ? 1 : 0.4, transition: "opacity 0.2s" }}
             />
           )}
         </Link>

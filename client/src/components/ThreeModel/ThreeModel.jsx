@@ -11,9 +11,12 @@ function Model(props) {
 
   const snapRef = useRef({ lastSnap: 0, current: 0, target: 0 });
 
-  useFrame((state) => {
+  const timeRef = useRef(0);
+
+  useFrame((state, delta) => {
     if (!ref.current) return;
-    const t = state.clock.elapsedTime;
+    timeRef.current += delta;
+    const t = timeRef.current;
     const snap = snapRef.current;
 
     if (t - snap.lastSnap > 2.2) {
