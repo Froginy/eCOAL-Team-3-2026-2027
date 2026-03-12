@@ -1,0 +1,105 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import gsap from "gsap";
+import { useRef } from "react";
+
+/**
+ * UserAvatar
+ *
+ * Props:
+ *  - src        {string}  URL de l'image de profil
+ *  - name       {string}  Nom affiché (utilisé pour les initiales en fallback)
+ *  - size       {number}  Taille en px (défaut: 32)
+ *  - showName   {boolean} Afficher le prénom à côté de l'avatar (défaut: false)
+ *  - to         {string}  Route React Router (défaut: "/settings")
+ *  - className  {string}  Classes CSS supplémentaires sur le wrapper
+ */
+function UserAvatar({ src, name = "", size = 32, showName = false, to = "/settings", className = "" }) {
+  const [imgError, setImgError] = useState(false);
+  const containerRef = useRef(null);
+
+  const initials = name
+    .split(" ")
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
+  const handleMouseEnter = () => {
+    if (!containerRef.current) return;
+    gsap.to(containerRef.current, {
+      scale: 1.08,
+      duration: 0.25,
+      ease: "back.out(2)",
+    });
+  };
+
+  const handleMouseLeave = () => {
+    if (!containerRef.current) return;
+    gsap.to(containerRef.current, {
+      scale: 1,
+      duration: 0.2,
+      ease: "power2.out",
+    });
+  };
+
+  const showImage = src && !imgError;
+
+  const avatarStyle = {
+    width: size,
+    height: size,
+    borderRadius: "50%",
+    flexShrink: 0,
+    overflow: "hidden",
+    background: showImage ? "transparent" : `black`,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: Math.max(10, size * 0.38),
+    fontWeight: 700,
+    color: "#fff",
+    letterSpacing: "-0.01em",
+    userSelect: "none",
+  };
+
+  return (
+    <Link
+      to={to}
+      ref={containerRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={`flex items-center gap-2 no-underline ${className}`}
+      style={{ textDecoration: "none", color: "inherit" }}
+    >
+      <div style={avatarStyle}>
+        {showImage ? (
+          <img
+            src={src}
+            alt={name}
+            onError={() => setImgError(true)}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        ) : (
+          <span>{initials || "?"}</span>
+        )}
+      </div>
+
+      {showName && name && (
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            maxWidth: 90,
+          }}
+        >
+          {name.split(" ")[0]}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+export default UserAvatar;
