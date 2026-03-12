@@ -85,7 +85,7 @@ function PostBar({ user_id, dice_id }) {
       .get(`${serverURL}/dices/${dice_id}`, { headers })
       .then((res) => {
         const dice = res.data.data ?? res.data;
-        console.log("is_liked:", dice.is_liked_by_current_user);
+        
         setIsLiked(dice.is_liked_by_current_user ?? false);
         setLikesCount(dice.likes_count ?? 0);
       })
