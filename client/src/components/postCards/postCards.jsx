@@ -7,7 +7,7 @@ import dice3 from '../../assets/dice3.svg'
 import { useState } from 'react'
 
 
-function PostCard({ name, description, images, collection }) {
+function PostCard({id, name, description, images, collection, is_liked_by_current_user }) {
     const serverURL = 'http://127.0.0.1:8000/'; 
     const [CurrentImage, setCurrentImage] = useState(0);
     const diceIcons = [dice1, dice2, dice3];
@@ -27,7 +27,7 @@ function PostCard({ name, description, images, collection }) {
         <div className='relative w-75 md:w-100 mb-7.5 bg-white shadow-lg rounded-2xl flex flex-col '>
             
             
-            <PostBar user_id={collection?.user_id} title={collection?.title} />
+            <PostBar user_id={collection?.user_id} liked={is_liked_by_current_user} dice_id={id} />
 
             
             <img 
