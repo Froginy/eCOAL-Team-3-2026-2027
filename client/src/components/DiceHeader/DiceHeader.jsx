@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function Header({ userId }) {
   const [user, setUser] = useState();
@@ -46,7 +47,9 @@ export default function Header({ userId }) {
         </svg>
       </button>
 
-      <h2 className="header-title text-black">{user?.name}</h2>
+      <h2 className="text-sm font-bold tracking-tight uppercase absolute left-1/2 -translate-x-1/2">{user?.name}</h2>
+      
+      <div className="w-8" />
     </div>
   );
 }

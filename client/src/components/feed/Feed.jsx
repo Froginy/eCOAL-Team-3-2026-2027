@@ -1,5 +1,6 @@
 import logo from "../../assets/logo.svg";
 import PostCard from "../postCards/postCards";
+import EditDrawer from "../EditDrawer/EditDrawer";
 import sort from "../../assets/sort.svg";
 import UserAvatar from "../UserAvatar/UserAvatar";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -454,7 +455,14 @@ function Feed() {
 
       <div className="flex flex-col items-center w-full gap-4">
         {filteredDices && filteredDices.length > 0 ? (
-          filteredDices.map((dice) => <PostCard key={dice.id} {...dice} />)
+          filteredDices.map((dice) => (
+            <PostCard 
+              key={dice.id} 
+              {...dice} 
+              onEdit={() => handleEdit(dice)} 
+              onDelete={handleDelete}
+            />
+          ))
         ) : (
           <div className="flex flex-col items-center mt-20 text-black/20 italic">
             <p className="text-lg">No dice found in this range.</p>
@@ -467,6 +475,13 @@ function Feed() {
           </div>
         )}
       </div>
+
+      <EditDrawer 
+        dice={editingDice}
+        open={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        onUpdated={handleUpdated}
+      />
     </div>
   );
 }

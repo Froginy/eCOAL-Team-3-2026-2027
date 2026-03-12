@@ -7,10 +7,13 @@ import { useEntranceAnimation } from "../../hooks/useEntranceAnimation";
 import { useState, useRef } from "react";
 import gsap from "gsap";
 
-function PostCard({ id, name, description, images, collection }) {
+function PostCard({ id, name, description, images, collection, onEdit, onDelete }) {
+  const { user: currentUser } = useAuth();
   const serverURL = import.meta.env.VITE_API_URL;
   const server_base = serverURL ? serverURL.replace("/api", "").replace(/\/$/, "") : "";
   const [CurrentImage, setCurrentImage] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
   const diceIcons = [dice1, dice2, dice3];
   const currentImageUrl = images && images.length > 0 ? images[CurrentImage].image_url : "";
 
@@ -66,6 +69,16 @@ function PostCard({ id, name, description, images, collection }) {
     isDragging.current = false;
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <div
       ref={cardRef}
@@ -92,12 +105,18 @@ function PostCard({ id, name, description, images, collection }) {
       </button>
       <div className="flex justify-center bg-black/80 rounded-full backdrop-blur-3xl p-2 absolute top-63 md:top-104 gap-1.25 ml-2.5">
         {images.map((_, index) => (
-          <img
+          <button
             key={index}
-            src={diceIcons[index % diceIcons.length]}
-            alt={`dice-${index}`}
-            className={`w-5 odd:rotate-15 even:rotate--15 transition-opacity ${CurrentImage === index ? "opacity-100" : "opacity-40"}`}
-          />
+            onClick={() => setCurrentImage(index)}
+            className="bg-transparent border-none p-0 flex items-center justify-center cursor-pointer transition-transform hover:scale-115 active:scale-95"
+            aria-label={`Go to image ${index + 1}`}
+          >
+            <img
+              src={diceIcons[index % diceIcons.length]}
+              alt={`dice-${index}`}
+              className={`w-5 odd:rotate-15 even:rotate--15 transition-opacity ${CurrentImage === index ? "opacity-100" : "opacity-40"}`}
+            />
+          </button>
         ))}
       </div>
       <div className="p-4">
