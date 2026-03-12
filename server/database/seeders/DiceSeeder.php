@@ -43,6 +43,7 @@ class DiceSeeder extends Seeder
         $dice1->images()->createMany([
             ['image_url' => 'storage/dices/dice_1.jpg'],
             ['image_url' => 'storage/dices/dice-2.jpg'],
+            ['image_url' => 'storage/dices/dice-3.jpg'],
         ]);
         if ($critFaces) $dice1->criterias()->attach($critFaces->id, ['value' => 20]);
         if ($critTaille) $dice1->criterias()->attach($critTaille->id, ['value' => 15]);
@@ -59,6 +60,7 @@ class DiceSeeder extends Seeder
         $dice2->images()->createMany([
             ['image_url' => 'storage/dices/dice-2.jpg'],
             ['image_url' => 'storage/dices/dice-3.jpg'],
+            ['image_url' => 'storage/dices/dice_1.jpg'],
         ]);
         if ($critFaces) $dice2->criterias()->attach($critFaces->id, ['value' => 6]);
         if ($critTaille) $dice2->criterias()->attach($critTaille->id, ['value' => 12]);
