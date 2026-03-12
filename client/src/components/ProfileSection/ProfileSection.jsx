@@ -49,13 +49,29 @@ export default function ProfileSection({ userId }) {
           ? `${api_url}/user`
           : `${api_url}/users/${userId}`;
         const res = await axios.get(endpoint, { headers });
-
-        setProfile(res.data.data);
+        setProfile(res.data);
       } catch {
         setProfile(null);
       }
     };
+
+    const fetchSubscription = async () => {
+      if (isOwnProfile || !token) return;
+      try {
+        const [followersRes, meRes] = await Promise.all([
+          axios.get(`${api_url}/users/${userId}/followers`, { headers }),
+          axios.get(`${api_url}/user`, { headers }),
+        ]);
+        const me = meRes.data;
+        const followers = followersRes.data?.data ?? followersRes.data ?? [];
+        setIsSubscribed(followers.some((f) => f.id === me.id));
+      } catch {
+        setIsSubscribed(false);
+      }
+    };
+
     fetchProfile();
+    fetchSubscription();
   }, [userId, isOwnProfile]);
 
   const handleFollow = async () => {
@@ -83,6 +99,7 @@ export default function ProfileSection({ userId }) {
     } catch {}
     setLoading(false);
   };
+
   return (
     <div className="profile">
       <div className="profile-left">

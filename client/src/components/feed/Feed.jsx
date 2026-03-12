@@ -1,5 +1,5 @@
 import logo from "../../assets/logo.svg";
-import PostCard from "../postCards/postCards.jsx";
+import PostCard from "../postCards/postCards";
 import sort from "../../assets/sort.svg";
 import { useState, useEffect } from "react";
 import axios from "axios";
