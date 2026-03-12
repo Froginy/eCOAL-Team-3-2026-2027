@@ -11,12 +11,14 @@ export default function Profile() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
+
   useEffect(() => {
     if (!localStorage.getItem("token")) {
       navigate("/login", { replace: true });
       return;
     }
   });
+
   return (
     <div className="page-container">
       <Header userId={id} />
