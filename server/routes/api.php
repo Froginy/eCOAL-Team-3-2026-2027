@@ -10,14 +10,20 @@ use App\Http\Controllers\CriteriaController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+// Routes publiques pour les utilisateurs
+Route::get('/users', [UserController::class, 'index']);
+Route::get('/users/{id}', [UserController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+    Route::put('/user', [UserController::class, 'update']);
     Route::get('/logout', [AuthController::class, 'logout']);
 });
 
