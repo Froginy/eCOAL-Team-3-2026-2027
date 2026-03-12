@@ -4,6 +4,9 @@ import axios from 'axios';
 
 import './login.css';
 
+const api_url = import.meta.env.VITE_API_URL;
+console.log(api_url)
+
 function Register() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -32,7 +35,7 @@ function Register() {
         }
 
         try {
-            const response = await axios.post('/api/register', { name, email, password });
+            const response = await axios.post(api_url + '/register', { name, email, password });
 
             alert('Account created successfully! Please sign in.');
             navigate('/login');
