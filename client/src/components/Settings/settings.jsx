@@ -401,7 +401,7 @@ function Settings() {
                   className="close-modal-btn"
                   onClick={() => setIsDescOpen(false)}
                 >
-                  ×
+                  x
                 </button>
               </div>
 
