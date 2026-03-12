@@ -1,14 +1,20 @@
+import axios from "axios";
+import { useState } from "react";
 import { useRef, useEffect, useCallback } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Link } from "react-router-dom";
 import Navbar from "../Navbar/Navbar";
 import hero from "../../assets/hero.svg";
 import ThreeModel from "../ThreeModel/ThreeModel";
 import DiceCard from "../DiceCard/DiceCard";
-import { useEntranceAnimation } from "../../hooks/useEntranceAnimation";
 import heroVideo from "../../assets/hero_video.mp4";
 
 import "./Home.css";
 
-const CARDS = [
+gsap.registerPlugin(ScrollTrigger);
+
+const BASE_CARDS = [
   {
     id: 1,
     title: "Dice 20",
@@ -39,88 +45,262 @@ const CARDS = [
   },
   {
     id: 5,
-    title: "Dice 41",
-    user: "dfnqslk",
-    glow: "#ff2013",
-    image: new URL("../../assets/dice4.png", import.meta.url).href,
+    title: "Dice 6",
+    user: "Clara Moon",
+    glow: "#34d399",
+    image: new URL("../../assets/dice20.png", import.meta.url).href,
   },
   {
     id: 6,
-    title: "Dice 41",
-    user: "dfnqslk",
-    glow: "#ff2013",
-    image: new URL("../../assets/dice4.png", import.meta.url).href,
+    title: "Dice 10",
+    user: "Sam Rivers",
+    glow: "#f43f5e",
+    image: new URL("../../assets/dice12.png", import.meta.url).href,
   },
   {
     id: 7,
-    title: "Dice 41",
-    user: "dfnqslk",
-    glow: "#ff2013",
-    image: new URL("../../assets/dice4.png", import.meta.url).href,
+    title: "Dice 100",
+    user: "Leo Vance",
+    glow: "#818cf8",
+    image: new URL("../../assets/dice8.png", import.meta.url).href,
   },
   {
     id: 8,
-    title: "Dice 41",
-    user: "dfnqslk",
-    glow: "#ff2013",
+    title: "Dice 2",
+    user: "Mia Chen",
+    glow: "#fb923c",
     image: new URL("../../assets/dice4.png", import.meta.url).href,
   },
   {
     id: 9,
-    title: "Dice 41",
-    user: "dfnqslk",
-    glow: "#ff2013",
-    image: new URL("../../assets/dice4.png", import.meta.url).href,
+    title: "Dice 30",
+    user: "Kai Park",
+    glow: "#38bdf8",
+    image: new URL("../../assets/dice20.png", import.meta.url).href,
+  },
+  {
+    id: 10,
+    title: "Dice 16",
+    user: "Zoe Hart",
+    glow: "#e879f9",
+    image: new URL("../../assets/dice12.png", import.meta.url).href,
   },
 ];
 
+const CARDS = [...BASE_CARDS, ...BASE_CARDS, ...BASE_CARDS];
+
+const CARD_W = 300;
+const CARD_GAP = 24;
+const CARD_STRIDE = CARD_W + CARD_GAP;
+const SET_W = BASE_CARDS.length * CARD_STRIDE;
+
 function Home() {
-  const heroRef = useEntranceAnimation({
-    delay: 0.1,
-    duration: 0.8,
-    ease: "elastic.out(1, 0.6)",
-  });
-  const textRef = useEntranceAnimation({ delay: 0.2, y: 20, scale: 0.95 });
-  const buttonsRef = useEntranceAnimation({ delay: 0.3, y: 20, scale: 0.95 });
-  const modelRef = useEntranceAnimation({ delay: 0.4, y: 30, scale: 0.9 });
-  const ctaGRef = useEntranceAnimation({ delay: 0.4, y: 30, scale: 0.9 });
+  const heroRef = useRef(null);
+  const textRef = useRef(null);
+  const buttonsRef = useRef(null);
+  const modelRef = useRef(null);
+  const ctaGRef = useRef(null);
+  const trackRef = useRef(null);
+  const offsetRef = useRef(0);
+  const dragging = useRef(false);
+  const dragStart = useRef(0);
+  const velRef = useRef(0);
+  const lastX = useRef(0);
+  const rafRef = useRef(null);
 
-  const cardsRef = useRef(null);
-  const triggerRef = useRef(null);
+  const [user, setUser] = useState(null);
+  const [userLoading, setUserLoading] = useState(true);
 
-  const handleWheel = useCallback((e) => {
-    const cards = cardsRef.current;
-    const trigger = triggerRef.current;
-    if (!cards || !trigger) return;
-
-    const triggerRect = trigger.getBoundingClientRect();
-    const inZone =
-      triggerRect.top < window.innerHeight && triggerRect.bottom > 0;
-    if (!inZone) return;
-
-    const maxScrollLeft = cards.scrollWidth - cards.clientWidth;
-    const atStart = cards.scrollLeft <= 0;
-    const atEnd = cards.scrollLeft >= maxScrollLeft - 1;
-    const scrollingDown = e.deltaY > 0;
-    const scrollingUp = e.deltaY < 0;
-
-    if ((scrollingDown && !atEnd) || (scrollingUp && !atStart)) {
-      e.preventDefault();
-      cards.scrollLeft += e.deltaY;
-    }
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await axios.get("/api/user", {
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setUser(response.data);
+      } catch (error) {
+        setUser(null);
+      } finally {
+        setUserLoading(false);
+      }
+    };
+    fetchUser();
   }, []);
 
   useEffect(() => {
-    window.addEventListener("wheel", handleWheel, { passive: false });
-    return () => window.removeEventListener("wheel", handleWheel);
-  }, [handleWheel]);
+    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+    tl.fromTo(
+      heroRef.current,
+      { opacity: 0, scale: 0.8 },
+      {
+        opacity: 1,
+        scale: 1,
+        duration: 0.8,
+        ease: "elastic.out(1, 0.6)",
+        delay: 0.1,
+      },
+    )
+      .fromTo(
+        textRef.current,
+        { opacity: 0, y: 20, scale: 0.95 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.6 },
+        "-=0.4",
+      )
+      .fromTo(
+        buttonsRef.current,
+        { opacity: 0, y: 20, scale: 0.95 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.6 },
+        "-=0.3",
+      )
+      .fromTo(
+        modelRef.current,
+        { opacity: 0, y: 30, scale: 0.9 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.7 },
+        "-=0.3",
+      );
+    return () => tl.kill();
+  }, []);
+
+  useEffect(() => {
+    if (!ctaGRef.current) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        ctaGRef.current,
+        { opacity: 0, y: 30, scale: 0.9 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.7,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: ctaGRef.current,
+            start: "top 85%",
+            toggleActions: "play none none none",
+          },
+        },
+      );
+    });
+    return () => ctx.revert();
+  }, []);
+
+  const applyOffset = useCallback((x) => {
+    const track = trackRef.current;
+    if (!track) return;
+    const wrapped = ((x % SET_W) + SET_W) % SET_W;
+    offsetRef.current = wrapped;
+    gsap.set(track, { x: -wrapped });
+  }, []);
+
+  const updateArc = useCallback(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const vw = window.innerWidth;
+    const cards = track.querySelectorAll(".carousel-card");
+    cards.forEach((el) => {
+      const rect = el.getBoundingClientRect();
+      const cardCenter = rect.left + rect.width / 2;
+      const t = (cardCenter - vw / 2) / (vw / 2);
+      const rotate = t * 10;
+      const translateY = t * t * 60;
+      const scale = 1 - Math.abs(t) * 0.06;
+      gsap.set(el, {
+        rotation: rotate,
+        y: translateY,
+        scale,
+        transformOrigin: "bottom center",
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    let pos = 0;
+    let raf;
+    const tick = () => {
+      pos += 0.6;
+      applyOffset(pos);
+      updateArc();
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+
+    const stopAuto = () => cancelAnimationFrame(raf);
+
+    const track = trackRef.current;
+    if (track) {
+      track.addEventListener("mousedown", stopAuto, { once: true });
+      track.addEventListener("touchstart", stopAuto, { once: true });
+    }
+
+    return () => cancelAnimationFrame(raf);
+  }, [applyOffset, updateArc]);
+
+  const inertiaLoop = useCallback(() => {
+    if (Math.abs(velRef.current) < 0.1) return;
+    velRef.current *= 0.94;
+    applyOffset(offsetRef.current + velRef.current);
+    updateArc();
+    rafRef.current = requestAnimationFrame(inertiaLoop);
+  }, [applyOffset, updateArc]);
+
+  const onPointerDown = useCallback((e) => {
+    dragging.current = true;
+    dragStart.current = e.clientX ?? e.touches?.[0]?.clientX;
+    lastX.current = dragStart.current;
+    velRef.current = 0;
+    cancelAnimationFrame(rafRef.current);
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+  }, []);
+
+  const onPointerMove = useCallback(
+    (e) => {
+      if (!dragging.current) return;
+      const x = e.clientX ?? e.touches?.[0]?.clientX;
+      const dx = lastX.current - x;
+      velRef.current = dx;
+      applyOffset(offsetRef.current + dx);
+      updateArc();
+      lastX.current = x;
+    },
+    [applyOffset, updateArc],
+  );
+
+  const onPointerUp = useCallback(() => {
+    if (!dragging.current) return;
+    dragging.current = false;
+    rafRef.current = requestAnimationFrame(inertiaLoop);
+  }, [inertiaLoop]);
+
+  const onWheel = useCallback(
+    (e) => {
+      e.preventDefault();
+      const delta =
+        Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      cancelAnimationFrame(rafRef.current);
+      velRef.current = delta * 0.8;
+      applyOffset(offsetRef.current + delta);
+      updateArc();
+      rafRef.current = requestAnimationFrame(inertiaLoop);
+    },
+    [applyOffset, updateArc, inertiaLoop],
+  );
+
+  useEffect(() => {
+    const el = trackRef.current?.parentElement;
+    if (!el) return;
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [onWheel]);
 
   return (
-    <div className="relative">
+    <div className="relative max-h-[300vh]">
       <div className="relative h-screen w-screen z-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[90vh] max-w-[90vw] grid-dots-black rounded-4xl overflow-hidden">
+        <div className="absolute top-4 md:top-1/2 left-1/2 -translate-x-1/2 translate-0 md:-translate-y-1/2 max-h-[90vh] max-w-[90vw] grid-dots-black rounded-4xl overflow-hidden">
           <video
-            className="min-w-screen min-h-screen object-cover"
+            className="min-w-screen min-h-[80vh] md:min-h-screen object-cover"
             id="video-field"
             src={heroVideo}
             autoPlay
@@ -128,8 +308,9 @@ function Home() {
             muted
             playsInline
             preload="auto"
-          ></video>
+          />
         </div>
+
         <div className="flex justify-center items-center mb-10 h-[10vh]">
           <svg
             className="mix-blend-difference mt-25"
@@ -142,7 +323,7 @@ function Home() {
             <path
               fill-rule="evenodd"
               clip-rule="evenodd"
-              d="M9.52637 0.123004C12.1558 0.123004 14.3984 1.07037 16.2529 2.96578C17.9989 4.72603 18.9276 6.83034 19.041 9.27828L14.8467 10.9482L14.7041 11.0097C13.2981 11.6568 12.6293 13.2982 13.208 14.7529L14.5186 18.0478C14.8789 18.9541 15.1368 19.602 14.8789 18.9541L16.9482 24.1533L17.0098 24.2968C17.3236 24.9778 17.8867 25.5127 18.583 25.791C19.2793 26.0691 20.0562 26.0692 20.7529 25.792L30.1533 22.0527L30.2959 21.9912C31.7019 21.3441 32.3707 19.7027 31.792 18.248L29.2549 11.8711V0.670856H34.9707V23.0771C34.9707 25.2862 33.1798 27.0771 30.9707 27.0771H29.2549L14.7852 27.2002L7.93652 20.248C7.11711 19.4162 5.71582 20.0053 5.71582 21.1816V27.2002H0V9.79293C7.25328e-05 7.12402 0.927749 4.84822 2.78223 2.96578C4.64933 1.07065 6.89728 0.123108 9.52637 0.123004ZM9.52637 5.92476C8.47225 5.92487 7.57063 6.30573 6.82129 7.06636C6.08465 7.81413 5.71589 8.72289 5.71582 9.79293C5.71582 11.9291 7.42196 13.6609 9.52637 13.6611C10.5805 13.6611 11.4762 13.2876 12.2129 12.54C12.9623 11.7793 13.3379 10.8631 13.3379 9.79293C13.3378 8.72287 12.9623 7.81414 12.2129 7.06636C11.4762 6.30571 10.5806 5.92476 9.52637 5.92476Z"
+              d="M9.52637 0.123004C12.1558 0.123004 14.3984 1.07037 16.2529 2.96578C17.9989 4.72603 18.9276 6.83034 19.041 9.27828L14.8467 10.9482L14.7041 11.0097C13.2981 11.6568 12.6293 13.2982 13.208 14.7529L14.5186 18.0478C14.8789 18.9541 15.1368 19.602 14.8789 18.9541L16.9482 24.1533L17.0098 24.2968C17.3236 24.9778 17.8867 25.5127 18.583 25.791C19.2793 26.0691 20.0562 26.0692 20.7529 25.792L30.1533 22.0527L30.2959 21.9912C31.7019 21.3441 32.3707 19.7027 31.792 18.248L29.2549 11.8711V0.670856H34.9707V23.0771C34.9707 25.2862 33.1798 27.0771 30.9707 27.0771H29.2549L22.02 27.1386L14.7852 27.2002L7.93652 20.248C7.11711 19.4162 5.71582 20.0053 5.71582 21.1816V27.2002H0V9.79293C7.25328e-05 7.12402 0.927749 4.84822 2.78223 2.96578C4.64933 1.07065 6.89728 0.123108 9.52637 0.123004ZM9.52637 5.92476C8.47225 5.92487 7.57063 6.30573 6.82129 7.06636C6.08465 7.81413 5.71589 8.72289 5.71582 9.79293C5.71582 11.9291 7.42196 13.6609 9.52637 13.6611C10.5805 13.6611 11.4762 13.2876 12.2129 12.54C12.9623 11.7793 13.3379 10.8631 13.3379 9.79293C13.3378 8.72287 12.9623 7.81414 12.2129 7.06636C11.4762 6.30571 10.5806 5.92476 9.52637 5.92476Z"
               fill="white"
             />
             <path
@@ -150,7 +331,7 @@ function Home() {
               fill="white"
             />
             <path
-              d="M53.7701 7.94218C53.8381 8.02755 53.8804 8.13423 53.8804 8.25175V27.0926H48.1637V8.25175C48.1637 8.15731 48.1904 8.06929 48.2359 7.99394L51.7486 9.50273L51.8092 9.52714C52.1077 9.63695 52.4379 9.62749 52.7301 9.50175C53.022 9.37598 53.255 9.14343 53.3804 8.85136L53.7701 7.94218Z"
+              d="M53.7701 7.94218C53.8381 8.02754 53.8804 8.13423 53.8804 8.25175V27.0926H48.1637V8.25175C48.1637 8.15731 48.1904 8.06929 48.2359 7.99394L51.7486 9.50273L51.8092 9.52714C52.1077 9.63695 52.4379 9.62749 52.7301 9.50175C53.022 9.37598 53.255 9.14343 53.3804 8.85136L53.7701 7.94218Z"
               fill="white"
             />
             <path
@@ -164,7 +345,7 @@ function Home() {
               fill="white"
             />
             <path
-              d="M49.4569 3.04515C49.6683 2.55288 50.2269 2.31681 50.7239 2.49991L50.7735 2.51969L53.9547 3.8859C54.447 4.09731 54.6831 4.65593 54.5 5.15292L54.4803 5.20244L53.1142 8.38364C53.0129 8.61944 52.8251 8.80742 52.5894 8.90886C52.3537 9.0103 52.088 9.01746 51.8472 8.92888L51.7977 8.9091L48.6164 7.54289C48.1241 7.33147 47.888 6.77286 48.0711 6.27586L48.0908 6.22634L49.4569 3.04515ZM52.1654 5.05106C52.1225 5.15098 52.121 5.26385 52.1613 5.36484C52.2016 5.46584 52.2804 5.54669 52.3804 5.5896C52.4803 5.63251 52.5931 5.63397 52.6941 5.59366C52.7951 5.55335 52.876 5.47457 52.9189 5.37465C52.9618 5.27474 52.9632 5.16186 52.9229 5.06087C52.8826 4.95987 52.8038 4.87903 52.7039 4.83612C52.604 4.7932 52.4911 4.79174 52.3901 4.83205C52.2891 4.87236 52.2083 4.95114 52.1654 5.05106ZM50.9088 5.55259C50.8659 5.65251 50.8644 5.76538 50.9048 5.86638C50.9451 5.96738 51.0239 6.04822 51.1238 6.09113C51.2237 6.13405 51.3366 6.13551 51.4376 6.0952C51.5386 6.05489 51.6194 5.97611 51.6623 5.87619C51.7052 5.77627 51.7067 5.6634 51.6664 5.5624C51.626 5.46141 51.5473 5.38056 51.4473 5.33765C51.3474 5.29474 51.2345 5.29328 51.1336 5.33359C51.0326 5.3739 50.9517 5.45268 50.9088 5.55259ZM49.6522 6.05413C49.6093 6.15405 49.6079 6.26692 49.6482 6.36792C49.6885 6.46891 49.7673 6.54976 49.8672 6.59267C49.9671 6.63558 50.08 6.63704 50.181 6.59673C50.282 6.55642 50.3628 6.47764 50.4057 6.37772C50.4486 6.27781 50.4501 6.16493 50.4098 6.06394C50.3695 5.96294 50.2907 5.8821 50.1908 5.83919C50.0908 5.79628 49.978 5.79481 49.877 5.83512C49.776 5.87543 49.6951 5.95421 49.6522 6.05413Z"
+              d="M49.4569 3.04515C49.6683 2.55288 50.2269 2.31681 50.7239 2.49991L50.7735 2.51969L53.9547 3.8859C54.447 4.09731 54.6831 4.65593 54.5 5.15292L54.4803 5.20244L53.1142 8.38364C53.0129 8.61944 52.8251 8.80742 52.5894 8.90886C52.3537 9.0103 52.088 9.01746 51.8472 8.92888L51.7977 8.9091L48.6164 7.54289C48.1241 7.33147 47.888 6.77286 48.0711 6.27586L48.0908 6.22634L49.4569 3.04515ZM52.1654 5.05106C52.1225 5.15098 52.121 5.26385 52.1613 5.36484C52.2016 5.46584 52.2804 5.54669 52.3804 5.5896C52.4803 5.63251 52.5931 5.63397 52.6941 5.59366C52.7951 5.55335 52.876 5.47457 52.9189 5.37465C52.9618 5.27473 52.9632 5.16186 52.9229 5.06087C52.8826 4.95987 52.8038 4.87903 52.7039 4.83612C52.604 4.7932 52.4911 4.79174 52.3901 4.83205C52.2891 4.87236 52.2083 4.95114 52.1654 5.05106ZM50.9088 5.55259C50.8659 5.65251 50.8644 5.76538 50.9048 5.86638C50.9451 5.96737 51.0238 6.04822 51.1238 6.09113C51.2237 6.13405 51.3366 6.13551 51.4376 6.0952C51.5386 6.05489 51.6194 5.97611 51.6623 5.87619C51.7052 5.77627 51.7067 5.6634 51.6664 5.5624C51.626 5.46141 51.5473 5.38056 51.4473 5.33765C51.3474 5.29474 51.2345 5.29328 51.1336 5.33359C51.0326 5.3739 50.9517 5.45268 50.9088 5.55259ZM49.6522 6.05413C49.6093 6.15405 49.6079 6.26692 49.6482 6.36792C49.6885 6.46891 49.7673 6.54976 49.8672 6.59267C49.9671 6.63558 50.08 6.63704 50.181 6.59673C50.282 6.55642 50.3628 6.47764 50.4057 6.37772C50.4486 6.27781 50.4501 6.16493 50.4098 6.06394C50.3695 5.96294 50.2907 5.8821 50.1908 5.83919C50.0908 5.79628 49.978 5.79481 49.877 5.83512C49.776 5.87543 49.6951 5.95421 49.6522 6.05413Z"
               fill="white"
             />
             <path
@@ -172,7 +353,7 @@ function Home() {
               fill="white"
             />
             <path
-              d="M48.6409 5.97646C48.667 5.44564 49.1184 5.03646 49.6493 5.06252C50.1801 5.08859 50.5893 5.54004 50.5632 6.07087L50.556 6.21786C50.5299 6.74868 50.0785 7.15787 49.5476 7.1318C49.0168 7.10573 48.6076 6.65428 48.6337 6.12346L48.6409 5.97646Z"
+              d="M48.6409 5.97646C48.667 5.44564 49.1185 5.03646 49.6493 5.06252C50.1801 5.08859 50.5893 5.54004 50.5632 6.07087L50.556 6.21786C50.5299 6.74868 50.0785 7.15787 49.5476 7.1318C49.0168 7.10573 48.6076 6.65428 48.6337 6.12346L48.6409 5.97646Z"
               fill="white"
             />
           </svg>
@@ -185,62 +366,114 @@ function Home() {
               src={hero}
               alt="Hero"
               className="mb-5 invert-100 mix-blend-difference"
+              style={{ opacity: 0 }}
             />
             <p
               ref={textRef}
-              className="text-2xl text-white mix-blend-difference"
+              className="text-xl md:text-2xl text-white mix-blend-difference"
+              style={{ opacity: 0 }}
             >
               We made this platform for you. 😊
             </p>
             <article
               ref={buttonsRef}
-              className="flex justify-center items-center gap-2 w-full mt-7"
+              className="flex justify-center items-center gap-2 w-full mt-7 pointer-events-auto"
+              style={{ opacity: 0 }}
             >
-              <a
+              <Link
                 className="text-center py-2 px-15 rounded-full border border-black bg-white text-black transition-transform duration-200 hover:scale-105 hover:-rotate-2"
-                href="/feed"
+                to="/feed"
               >
                 Discover
-              </a>
-              <a
-                className="text-center py-2 px-6 rounded-full border bg-black text-white transition-transform duration-200 hover:scale-105 hover:rotate-2"
-                href="/feed"
-              >
-                Login
-              </a>
+              </Link>
+              {user && (
+                <Link
+                  className="text-center py-2 px-15 rounded-full border border-black bg-white text-black transition-transform duration-200 hover:scale-105 hover:-rotate-2"
+                  to="/profile"
+                >
+                  Profile
+                </Link>
+              )}
+              {!user && (
+                <Link
+                  className="text-center py-2 px-15 rounded-full shadow-sm shadow-gray-100/20 bg-black text-white transition-transform duration-200 hover:scale-105 hover:-rotate-2"
+                  to="/login"
+                >
+                  Login
+                </Link>
+              )}
             </article>
           </article>
-          <article ref={modelRef} className="h-[80vh] relative mx-auto mt-20">
-            <div
-              ref={triggerRef}
-              className="absolute inset-0 pointer-events-none"
-            />
-            <div className="absolute left-1/2 -translate-x-1/2 z-1">
+
+          <article
+            ref={modelRef}
+            className="h-[80vh] relative mx-auto mt-20 w-full"
+            style={{ opacity: 0, overflow: "visible" }}
+          >
+            <div className="absolute left-1/2 -translate-x-1/2 z-1 pointer-events-none">
               <ThreeModel />
             </div>
-            <section
-              ref={cardsRef}
-              className="absolute mt-60 z-10 flex flex-row gap-10 overflow-x-scroll py-5"
+
+            <div
+              className="absolute mt-60 min-h-125 mb-10 z-10 w-full"
               style={{
-                left: "50%",
-                transform: "translateX(-50vw)",
-                width: "100vw",
-                paddingLeft: "2rem",
-                paddingRight: "2rem",
-                boxSizing: "border-box",
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-                mixBlendMode: "difference",
+                cursor: "grab",
+                userSelect: "none",
+                overflow: "hidden",
               }}
             >
-              {CARDS.map((card) => (
-                <DiceCard key={card.id} card={card} />
-              ))}
-            </section>
+              ⁄
+              <div
+                ref={trackRef}
+                className="flex"
+                style={{ gap: CARD_GAP, width: CARD_STRIDE * CARDS.length }}
+                onPointerDown={onPointerDown}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerUp}
+                onPointerLeave={onPointerUp}
+              >
+                {CARDS.map((card, i) => (
+                  <div
+                    key={`${card.id}-${i}`}
+                    className="carousel-card"
+                    style={{ flexShrink: 0, width: CARD_W, cursor: "pointer" }}
+                    onMouseEnter={(e) => {
+                      const cur = gsap.getProperty(e.currentTarget, "y");
+                      gsap.to(e.currentTarget, {
+                        y: Number(cur) - 22,
+                        scale: 1.05,
+                        duration: 0.25,
+                        ease: "power2.out",
+                        overwrite: "auto",
+                      });
+                    }}
+                    onMouseLeave={(e) => {
+                      const vw = window.innerWidth;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const t =
+                        (rect.left + rect.width / 2 - vw / 2) / (vw / 2);
+                      const ty = t * t * 60;
+                      const scale = 1 - Math.abs(t) * 0.06;
+                      gsap.to(e.currentTarget, {
+                        y: ty,
+                        scale,
+                        duration: 0.3,
+                        ease: "power2.out",
+                        overwrite: "auto",
+                      });
+                    }}
+                  >
+                    <DiceCard card={card} />
+                  </div>
+                ))}
+              </div>
+            </div>
           </article>
+
           <article
             ref={ctaGRef}
-            className="mx-auto flex flex-col gap-12 justify-center items-center h-[50vh]"
+            className="mx-auto flex flex-col gap-12 justify-center items-center h-[50vh] relative z-20"
+            style={{ opacity: 0 }}
           >
             <svg
               width="321"

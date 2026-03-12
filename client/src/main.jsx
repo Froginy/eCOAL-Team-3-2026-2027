@@ -1,6 +1,5 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import ProfilePage from './Profile Page/profilePage.jsx'
 import './css/index.css'
 import App from './App.jsx'
 
