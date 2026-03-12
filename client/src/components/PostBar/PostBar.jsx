@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import add from "../../assets/add.svg";
 import like from "../../assets/like.svg";
+import { Link } from "react-router-dom";
 import UserAvatar from "../UserAvatar/UserAvatar";
 
 function PostBar({ user_id, dice_id }) {
