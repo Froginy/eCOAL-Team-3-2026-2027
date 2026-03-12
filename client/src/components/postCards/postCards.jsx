@@ -40,7 +40,7 @@ function PostCard({ name, description, images, collection }) {
         <img src={arrow} alt="arrow" className="rotate-270 h-1.5" />
       </button>
 
-      <div className="flex justify-center absolute top-66.25 md:top-90 gap-1.25 ml-4">
+      <div className="flex justify-center bg-black/80 rounded-full backdrop-blur-3xl p-2 absolute top-63 md:top-88 gap-1.25 ml-2.5">
         {images.map((_, index) => (
           <img
             key={index}
@@ -51,12 +51,9 @@ function PostCard({ name, description, images, collection }) {
         ))}
       </div>
 
-      <a
-        href=""
-        className="absolute aspect-square w-5 right-5 top-66.25 md:top-90 flex justify-center items-center"
-      >
-        <img src={dots} alt="dots" className="h-6.5" />
-      </a>
+      <div className="flex flex-col">
+        <p className="text-left leading-5 w-75 p-4">{name}</p>
+      </div>
 
       <div className="flex flex-col">
         <p className="text-left leading-5 w-75 p-4">{description}</p>
