@@ -10,9 +10,13 @@ export default function Profile() {
   const { id } = useParams();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+
+
+
+
   return (
     <div className="page-container">
-      <Header />
+      <Header userId={id} />
       <ProfileSection userId={id} />
       <button
         className="dice-button"
