@@ -40,12 +40,6 @@ Route::prefix('collections')->group(function () {
     Route::get('/{id}', [CollectionController::class, 'show']);
     Route::put('/{id}', [CollectionController::class, 'update']);
     Route::delete('/{id}', [CollectionController::class, 'destroy']);
-    
-    // Auth routes for collections
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/{id}/like', [LikeController::class, 'like']);
-        Route::delete('/{id}/like', [LikeController::class, 'unlike']);
-    });
 });
 
 // --- DICES ---
