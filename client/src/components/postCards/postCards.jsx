@@ -47,7 +47,7 @@ function PostCard({ name, description, images, collection }) {
     {images.map((_, index) => (
       <img 
         key={index}
-        src={diceIcons[index % diceIcons.length]} // Alterne entre dice1, 2, 3 si plus de 3 images
+        src={diceIcons[index % diceIcons.length]}
         alt={`dice-${index}`}
         className={`w-5 odd:rotate-15 even:rotate--15 transition-opacity ${CurrentImage === index ? 'opacity-100' : 'opacity-40'}`} 
       />
