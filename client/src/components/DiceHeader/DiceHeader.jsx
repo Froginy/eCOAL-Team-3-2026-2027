@@ -6,33 +6,37 @@ export default function Header({ userId }) {
   const navigate = useNavigate();
   const [user, setUser] = useState();
 
-useEffect(() => {
-  const getProtectedUser = async () => {
-    if (!userId) return;
+  useEffect(() => {
+    const getProtectedUser = async () => {
+      if (!userId) return;
 
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/users/${userId}`);
-      setUser(response.data.data); 
-    } catch (error) {
-      console.error("API Error:", error.response?.status);
-    }
-  };
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/users/${userId}`);
+        setUser(response.data.data); 
+      } catch (error) {
+        console.error("API Error:", error.response?.status);
+      }
+    };
 
-  getProtectedUser();
-}, [userId]);
+    getProtectedUser();
+  }, [userId]);
 
   return (
-    <div className="header">
+    <div className="flex items-center justify-between bg-white text-black h-12 px-4 m-4 rounded-full shadow-md border border-black/5 sticky top-4 z-50">
       <button 
-        className="icon-button" 
         type="button" 
         onClick={() => navigate(-1)}
+        className="w-8 h-8 flex items-center justify-center bg-black/5 rounded-full hover:bg-black/10 transition-colors cursor-pointer border-none"
         aria-label="Back"
       >
-        ←
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
       </button>
 
-      <h2 className="header-title text-black">{user?.name}</h2>
+      <h2 className="text-sm font-bold tracking-tight uppercase absolute left-1/2 -translate-x-1/2">{user?.name}</h2>
+      
+      <div className="w-8" />
     </div>
   );
 }
