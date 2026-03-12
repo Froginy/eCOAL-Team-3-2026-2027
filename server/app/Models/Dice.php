@@ -25,6 +25,11 @@ class Dice extends Model
         return $this->hasMany(DiceImage::class);
     }
 
+    public function color(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(DiceColor::class);
+    }
+
     public function collection(): BelongsTo
     {
         return $this->belongsTo(Collection::class);
