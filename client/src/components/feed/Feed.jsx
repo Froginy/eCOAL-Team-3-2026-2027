@@ -83,7 +83,6 @@ function Feed() {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((r) => {
-        console.log("users response", r.data);
         setAllUsers(r.data?.data ?? r.data);
       })
       .catch((e) =>
