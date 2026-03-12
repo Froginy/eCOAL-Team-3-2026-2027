@@ -6,7 +6,13 @@ import axios from 'axios';
 
 function Feed()   {
 const [dices, setdices] = useState([]);
+const [isModalOpen, setIsModalOpen] = useState(false);
 
+
+function modalHandler() {
+    console.log("Modal handler called");
+    setIsModalOpen(!isModalOpen);
+}
 useEffect(() => {
     const getProtecteddices = async () => {
         try {
@@ -34,7 +40,7 @@ useEffect(() => {
         <div className="flex flex-col w-full items-center m-0 mb-15 p-0">
             <div className="w-11/12 m-6  flex flex-row justify-between">
                 <img src={logo} alt="Logo" className="h-5" />
-                <a href=""><img src={sort} alt="Sort" className="h-5" /></a>
+                <button onClick={modalHandler}><img src={sort} alt="Sort" className="h-5" /></button>
             </div>
             
 {dices && dices.length > 0 ? (
