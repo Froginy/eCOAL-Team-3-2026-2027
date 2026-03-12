@@ -26,7 +26,7 @@ function PostBar({ user_id }) {
     return (
         <div className='flex flex-row justify-between items-center bg-white text-black w-56.25 md:w-75 h-10 mx-auto rounded-3xl absolute left-2.5 top-2.5 z-50 shadow-sm'>
             <div className='flex items-center relative text-black m-2.5'>
-                <a href={`/profil/${user?.id}`} className="flex items-center relative gap-2 text-black ">
+                <a href={`/profile/${user?.id}`} className="flex items-center relative gap-2 text-black ">
                     
                     <img 
                         src={user?.profile_image ? `${serverURL}${user.profile_image}` : placeholder} 
