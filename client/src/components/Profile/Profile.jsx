@@ -5,25 +5,30 @@ import ProfileSection from "../ProfileSection/ProfileSection";
 import DiceGrid from "../DiceGrid/DiceGrid";
 import NewDiceDrawer from "../Drawer/Drawer";
 import Navbar from "../Navbar/Navbar";
+import { useAuth } from "../../context/AuthContext";
 import "./Profile.css";
 
 export default function Profile() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { user, token } = useAuth();
 
   useEffect(() => {
-    if (!localStorage.getItem("token")) {
+    if (!token) {
       navigate("/login", { replace: true });
       return;
     }
-  });
+  }, [token, navigate]);
+
+  const isOwnProfile = !id;
+  const userId = isOwnProfile ? user?.id : id;
 
   return (
     <div className="page-container">
-      <Header userId={id} />
-      <ProfileSection userId={id} />
-      {!id && (
+      <Header userId={userId} />
+      <ProfileSection userId={userId} />
+      {isOwnProfile && (
         <button
           className="dice-button flex justify-center items-center gap-2"
           type="button"
@@ -44,7 +49,7 @@ export default function Profile() {
           New dice
         </button>
       )}
-      <DiceGrid userId={id} isOwnProfile={!id} />
+      <DiceGrid userId={userId} isOwnProfile={isOwnProfile} />
 
       <NewDiceDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 

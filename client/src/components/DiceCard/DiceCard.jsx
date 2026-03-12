@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 import UserAvatar from "../UserAvatar/UserAvatar";
 
 function DiceCard({ name, images, color, collection, id, user_id }) {
@@ -20,7 +21,7 @@ function DiceCard({ name, images, color, collection, id, user_id }) {
   }, [user_id]);
 
   return (
-    <div className="bg-white/80 rounded-[3rem] border border-black/80 relative shrink-0" style={{ width: 300 }}>
+    <div href={`/profile/${user_id}`} className="bg-white/80 rounded-[3rem] border border-black/80 relative shrink-0" style={{ width: 300 }}>
       <div
         className="inverted bg-black/80 w-full h-full p-3.5"
         style={{

@@ -30,7 +30,7 @@ export default function DiceGrid({ userId, isOwnProfile }) {
         let targetId = userId;
         if (!targetId) {
           const userRes = await axios.get(`${api_url}/user`, { headers });
-          targetId = userRes.data.id;
+          targetId = userRes.data.data.id;
         }
         const res = await axios.get(`${api_url}/users/${targetId}/dices`, { headers });
         setDices(res.data.data);
