@@ -24,25 +24,25 @@ export default function Header({ userId }) {
   }, [userId]);
 
   return (
-    <div className="header">
+    <div className="flex items-center justify-between bg-white text-black h-12 px-4 m-4 rounded-full shadow-md border border-black/5 sticky top-4 z-50">
       <button
-        className="icon-btn back-btn"
+        className="w-8 h-8 flex items-center justify-center bg-black/5 rounded-full hover:bg-black/10 transition-colors cursor-pointer border-none"
         aria-label="Go back"
         onClick={() => window.history.back()}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
+          width="18"
+          height="18"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
-          strokeWidth={2}
+          strokeWidth={2.5}
         >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            d="M20 12H4m0 0l6-6m-6 6l6 6"
+            d="M19 12H5M12 19l-7-7 7-7"
           />
         </svg>
       </button>

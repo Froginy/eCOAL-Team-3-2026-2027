@@ -4,7 +4,8 @@ import dice1 from "../../assets/dice1.svg";
 import dice2 from "../../assets/dice2.svg";
 import dice3 from "../../assets/dice3.svg";
 import { useEntranceAnimation } from "../../hooks/useEntranceAnimation";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useAuth } from "../../context/AuthContext";
 import gsap from "gsap";
 
 function PostCard({ id, name, description, images, collection, onEdit, onDelete }) {
