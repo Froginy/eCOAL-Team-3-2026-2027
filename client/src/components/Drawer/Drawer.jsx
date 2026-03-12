@@ -227,7 +227,7 @@ export default function NewDiceDrawer({ open, onClose, collectionId }) {
               onClick={() => fileRef.current?.click()}
               onDrop={handleDrop}
               onDragOver={e => e.preventDefault()}
-              className="border border-dashed border-black/20 rounded-xl py-6 px-4 flex flex-col items-center gap-1 cursor-pointer text-black/30 hover:border-black/40 hover:bg-black/[0.02] hover:text-black/50 transition-all duration-200 text-center"
+              className="border border-dashed border-black/20 rounded-xl py-6 px-4 flex flex-col items-center gap-1 cursor-pointer text-black/30 hover:border-black/40 hover:bg-black/2 hover:text-black/50 transition-all duration-200 text-center"
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                 <path d="M12 15V7M12 7l-3 3M12 7l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
