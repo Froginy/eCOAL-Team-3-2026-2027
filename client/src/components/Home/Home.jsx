@@ -9,8 +9,9 @@ import hero from "../../assets/hero.svg";
 import ThreeModel from "../ThreeModel/ThreeModel";
 import DiceCard from "../DiceCard/DiceCard";
 import heroVideo from "../../assets/hero_video.mp4";
-
 import "./Home.css";
+
+const api_url = import.meta.env.VITE_API_URL;
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -114,7 +115,7 @@ function Home() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get("/api/user", {
+        const response = await axios.get(api_url + "/user", {
           headers: {
             Accept: "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -381,14 +382,14 @@ function Home() {
               style={{ opacity: 0 }}
             >
               <Link
-                className="text-center py-2 px-15 rounded-full border border-black bg-white text-black transition-transform duration-200 hover:scale-105 hover:-rotate-2"
+                className="text-center py-2 px-12 rounded-full border border-black bg-white text-black transition-transform duration-200 hover:scale-105 hover:-rotate-2"
                 to="/feed"
               >
                 Discover
               </Link>
               {user && (
                 <Link
-                  className="text-center py-2 px-15 rounded-full border border-black bg-white text-black transition-transform duration-200 hover:scale-105 hover:-rotate-2"
+                  className="text-center py-2 px-10 rounded-full shadow-sm shadow-gray-100/20 bg-black text-white transition-transform duration-200 hover:scale-105 hover:-rotate-2"
                   to="/profile"
                 >
                   Profile
@@ -396,7 +397,7 @@ function Home() {
               )}
               {!user && (
                 <Link
-                  className="text-center py-2 px-15 rounded-full shadow-sm shadow-gray-100/20 bg-black text-white transition-transform duration-200 hover:scale-105 hover:-rotate-2"
+                  className="text-center py-2 px-10 rounded-full shadow-sm shadow-gray-100/20 bg-black text-white transition-transform duration-200 hover:scale-105 hover:-rotate-2"
                   to="/login"
                 >
                   Login
@@ -415,7 +416,7 @@ function Home() {
             </div>
 
             <div
-              className="absolute mt-60 min-h-125 mb-10 z-10 w-full"
+              className="absolute mt-60 min-h-150 mb-10 z-10 w-full"
               style={{
                 cursor: "grab",
                 userSelect: "none",
