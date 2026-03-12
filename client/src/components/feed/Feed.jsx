@@ -31,7 +31,7 @@ useEffect(() => {
 
 
     return(
-        <div className="flex flex-col w-full items-center m-0 p-0">
+        <div className="flex flex-col w-full items-center m-0 mb-15 p-0">
             <div className="w-11/12 m-6  flex flex-row justify-between">
                 <img src={logo} alt="Logo" className="h-5" />
                 <a href=""><img src={sort} alt="Sort" className="h-5" /></a>
