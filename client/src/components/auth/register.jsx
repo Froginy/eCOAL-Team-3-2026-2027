@@ -5,7 +5,6 @@ import axios from 'axios';
 import './login.css';
 
 const api_url = import.meta.env.VITE_API_URL;
-console.log(api_url)
 
 function Register() {
     const [name, setName] = useState('');
