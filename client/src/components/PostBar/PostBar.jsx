@@ -38,6 +38,39 @@ function PostBar({ user_id, dice_id }) {
       )}
     </svg>
   );
+  const [isFollowing, setIsFollowing] = useState(false);
+
+  useEffect(() => {
+    if (!user_id || !token) return;
+    Promise.all([
+      axios.get(`${serverURL}/users/${user_id}/followers`, { headers }),
+      axios.get(`${serverURL}/user`, { headers }),
+    ])
+      .then(([followersRes, meRes]) => {
+        const me = meRes.data?.data ?? meRes.data;
+        const followers = followersRes.data?.data ?? followersRes.data ?? [];
+        setIsFollowing(followers.some((f) => f.id === me.id));
+      })
+      .catch(() => {});
+  }, [user_id]);
+
+  const handleFollow = async () => {
+    try {
+      if (isFollowing) {
+        await axios.delete(`${serverURL}/users/${user_id}/subscribe`, {
+          headers,
+        });
+        setIsFollowing(false);
+      } else {
+        await axios.post(
+          `${serverURL}/users/${user_id}/subscribe`,
+          {},
+          { headers },
+        );
+        setIsFollowing(true);
+      }
+    } catch {}
+  };
   useEffect(() => {
     if (!user_id) return;
     axios
@@ -46,17 +79,18 @@ function PostBar({ user_id, dice_id }) {
       .catch(() => {});
   }, [user_id]);
 
-useEffect(() => {
-  if (!dice_id) return;
-  axios.get(`${serverURL}/dices/${dice_id}`, { headers })
-    .then(res => {
-      const dice = res.data.data ?? res.data;
-      console.log("is_liked:", dice.is_liked_by_current_user);
-      setIsLiked(dice.is_liked_by_current_user ?? false);
-      setLikesCount(dice.likes_count ?? 0);
-    })
-    .catch(() => {});
-}, [dice_id]);
+  useEffect(() => {
+    if (!dice_id) return;
+    axios
+      .get(`${serverURL}/dices/${dice_id}`, { headers })
+      .then((res) => {
+        const dice = res.data.data ?? res.data;
+        console.log("is_liked:", dice.is_liked_by_current_user);
+        setIsLiked(dice.is_liked_by_current_user ?? false);
+        setLikesCount(dice.likes_count ?? 0);
+      })
+      .catch(() => {});
+  }, [dice_id]);
 
   const handleLike = async () => {
     if (!token || loadingLike) return;
@@ -79,7 +113,7 @@ useEffect(() => {
     <div className="flex flex-row justify-between items-center bg-white text-black w-56.25 md:w-75 h-10 mx-auto rounded-3xl absolute left-2.5 top-2.5 z-50 shadow-sm">
       <div className="flex justify-between w-full items-center relative text-black m-1.5">
         <Link
-          to={user ? `/profile/${user.id}` : "#"}
+          to={`/profile/${user_id}`}
           className="flex items-center relative gap-2 text-black"
         >
           {user && (
@@ -87,6 +121,7 @@ useEffect(() => {
               src={user.avatar || user.profile_picture_url}
               name={user.name}
               size={32}
+              to={false}
               showName
             />
           )}
@@ -107,9 +142,28 @@ useEffect(() => {
               <span className="text-xs text-black/60">{likesCount}</span>
             )}
           </button>
-          <Link to={`/profile/${user_id}`}>
-            <img src={add} alt="add" className="h-6" />
-          </Link>
+          <button
+            type="button"
+            onClick={handleFollow}
+            className="flex items-center border-none bg-transparent cursor-pointer p-0"
+          >
+            {isFollowing ? (
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M9.59 16.58L5.42 12.41L4 13.82L9.59 19.41L21.59 7.41L20.18 6L9.59 16.58Z"
+                  fill="black"
+                />
+              </svg>
+            ) : (
+              <img src={add} alt="add" className="h-6" />
+            )}
+          </button>
         </div>
       </div>
     </div>

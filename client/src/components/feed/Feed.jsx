@@ -22,34 +22,51 @@ function Feed() {
     sizeMax: "",
   });
 
-  const colors = ["Red", "Blue", "Green", "Yellow", "Azure", "Crimson", "Obsidian"];
+  const colors = [
+    "Red",
+    "Blue",
+    "Green",
+    "Yellow",
+    "Azure",
+    "Crimson",
+    "Obsidian",
+  ];
 
   const filteredDices = useMemo(() => {
     return dices.filter((dice) => {
-      // Filter by color
       if (appliedFilters.color && dice.color?.name !== appliedFilters.color) {
         return false;
       }
-      
-      // Filter by faces range
-      const faceCrit = dice.criterias?.find(c => c.title === "Faces");
+
+      const faceCrit = dice.criterias?.find((c) => c.title === "Faces");
       const faceValue = faceCrit ? parseInt(faceCrit.value) : null;
 
-      if (appliedFilters.facesMin && (faceValue === null || faceValue < parseInt(appliedFilters.facesMin))) {
+      if (
+        appliedFilters.facesMin &&
+        (faceValue === null || faceValue < parseInt(appliedFilters.facesMin))
+      ) {
         return false;
       }
-      if (appliedFilters.facesMax && (faceValue === null || faceValue > parseInt(appliedFilters.facesMax))) {
+      if (
+        appliedFilters.facesMax &&
+        (faceValue === null || faceValue > parseInt(appliedFilters.facesMax))
+      ) {
         return false;
       }
 
-      // Filter by size range
-      const sizeCrit = dice.criterias?.find(c => c.title === "Size");
+      const sizeCrit = dice.criterias?.find((c) => c.title === "Size");
       const sizeValue = sizeCrit ? parseInt(sizeCrit.value) : null;
 
-      if (appliedFilters.sizeMin && (sizeValue === null || sizeValue < parseInt(appliedFilters.sizeMin))) {
+      if (
+        appliedFilters.sizeMin &&
+        (sizeValue === null || sizeValue < parseInt(appliedFilters.sizeMin))
+      ) {
         return false;
       }
-      if (appliedFilters.sizeMax && (sizeValue === null || sizeValue > parseInt(appliedFilters.sizeMax))) {
+      if (
+        appliedFilters.sizeMax &&
+        (sizeValue === null || sizeValue > parseInt(appliedFilters.sizeMax))
+      ) {
         return false;
       }
 
@@ -64,12 +81,12 @@ function Feed() {
   };
 
   const handleReset = () => {
-    const emptyFilters = { 
-      color: "", 
-      facesMin: "", 
-      facesMax: "", 
-      sizeMin: "", 
-      sizeMax: "" 
+    const emptyFilters = {
+      color: "",
+      facesMin: "",
+      facesMax: "",
+      sizeMin: "",
+      sizeMax: "",
     };
     setFormData(emptyFilters);
     setAppliedFilters(emptyFilters);
@@ -105,37 +122,70 @@ function Feed() {
     getProtecteddices();
   }, []);
 
-  const hasActiveFilters = appliedFilters.color || appliedFilters.facesMin || appliedFilters.facesMax || appliedFilters.sizeMin || appliedFilters.sizeMax;
+  const hasActiveFilters =
+    appliedFilters.color ||
+    appliedFilters.facesMin ||
+    appliedFilters.facesMax ||
+    appliedFilters.sizeMin ||
+    appliedFilters.sizeMax;
 
-  const inputCls = "w-full bg-transparent border border-black/15 rounded-xl text-black text-sm px-3.5 py-2.5 outline-none placeholder:text-black/25 focus:border-black/50 transition-colors duration-150";
-  const labelCls = "text-[11px] font-semibold tracking-widest uppercase text-black/40 mb-1.5 block";
+  const inputCls =
+    "w-full bg-transparent border border-black/15 rounded-xl text-black text-sm px-3.5 py-2.5 outline-none placeholder:text-black/25 focus:border-black/50 transition-colors duration-150";
+  const labelCls =
+    "text-[11px] font-semibold tracking-widest uppercase text-black/40 mb-1.5 block";
 
   return (
     <div className="flex flex-col w-full items-center m-0 mb-15 p-0">
       <div className="w-11/12 m-6 flex flex-row justify-between items-center relative z-50">
+        <button
+          className="icon-btn back-btn"
+          aria-label="Go back"
+          onClick={() => window.history.back()}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M20 12H4m0 0l6-6m-6 6l6 6"
+            />
+          </svg>
+        </button>
         <img src={logo} alt="Logo" className="h-5" />
-        <button onClick={modalHandler} className="cursor-pointer relative p-2 hover:bg-black/5 rounded-full transition-all">
+        <button
+          onClick={modalHandler}
+          className="cursor-pointer relative p-2 hover:bg-black/5 rounded-full transition-all"
+        >
           <img src={sort} alt="Sort" className="h-5" />
           {hasActiveFilters && (
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
           )}
         </button>
-        
+
         {isOpen && (
           <div className="fixed right-5 top-20 z-100 transition-all transform origin-top-right">
             <div className="bg-white rounded-3xl text-black p-6 shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-black/5 w-80 flex flex-col gap-4">
-              {/* Drawer-like Handle */}
               <div className="flex justify-center -mt-2 mb-2">
                 <div className="w-10 h-1 bg-black/10 rounded-full" />
               </div>
 
               <div className="flex justify-between items-center mb-1">
                 <h2 className="text-xl font-bold tracking-tight">Filters</h2>
-                <button onClick={handleReset} className="text-[10px] font-bold uppercase tracking-wider text-black/30 hover:text-black underline cursor-pointer">
+                <button
+                  onClick={handleReset}
+                  className="text-[10px] font-bold uppercase tracking-wider text-black/30 hover:text-black underline cursor-pointer"
+                >
                   Reset
                 </button>
               </div>
-              
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className={labelCls}>Color</label>
@@ -148,12 +198,25 @@ function Feed() {
                     >
                       <option value="">Any color</option>
                       {colors.map((c) => (
-                        <option key={c} value={c}>{c}</option>
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
                       ))}
                     </select>
                     <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-black/20">
-                      <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                        <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <svg
+                        width="10"
+                        height="10"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                      >
+                        <path
+                          d="M2 4l4 4 4-4"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                     </div>
                   </div>
@@ -236,7 +299,10 @@ function Feed() {
         ) : (
           <div className="flex flex-col items-center mt-20 text-black/20 italic">
             <p className="text-lg">No dice found in this range.</p>
-            <button onClick={handleReset} className="mt-2 text-sm text-black/40 hover:text-black underline cursor-pointer not-italic">
+            <button
+              onClick={handleReset}
+              className="mt-2 text-sm text-black/40 hover:text-black underline cursor-pointer not-italic"
+            >
               Clear filters
             </button>
           </div>
