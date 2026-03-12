@@ -6,7 +6,7 @@ import axios from 'axios';
 
 function Feed()   {
 const [dices, setdices] = useState([]);
-// Dans ton useEffect de CharacterList.jsx
+
 useEffect(() => {
     const getProtecteddices = async () => {
         try {
