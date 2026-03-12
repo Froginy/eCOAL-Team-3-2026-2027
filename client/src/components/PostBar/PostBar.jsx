@@ -25,7 +25,7 @@ const HeartIcon = ({ filled }) => (
   </svg>
 );
 
-function PostBar({ user_id, dice_id }) {
+function PostBar({ user_id, dice_id, title }) {
   const serverURL = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
   const headers = { 
