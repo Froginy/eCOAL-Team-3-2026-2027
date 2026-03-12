@@ -21,20 +21,21 @@ const COLORS = [
   { name: 'Slate',     hex: '#475569' },
 ];
 
-function DiceIcon({ sizeMm }) {
+function DiceIcon({ sizeMm, className }) {
   let label = 'M';
   let svgSize = 26;
   
+  // Refined scaling logic: S (22px), M (26px), L (30px)
   if (sizeMm < 18) {
     label = 'S';
-    svgSize = 18;
+    svgSize = 22;
   } else if (sizeMm > 28) {
     label = 'L';
-    svgSize = 36;
+    svgSize = 30;
   }
 
   return (
-    <svg width={svgSize} height={svgSize} viewBox="0 0 100 100" fill="none">
+    <svg width={svgSize} height={svgSize} viewBox="0 0 100 100" fill="none" className={className}>
       <rect x="5" y="5" width="90" height="90" rx="20" stroke="currentColor" strokeWidth="8" />
       <text
         x="50" y="50"
@@ -272,7 +273,7 @@ export default function NewDiceDrawer({ open, onClose }) {
     }
   };
 
-  const fillPctFaces = ((faces - 1) / 499) * 100;
+  const fillPctFaces = ((faces - 1) / 99) * 100;
   const fillPctSize = ((sizeMm - 5) / 45) * 100;
 
   const inputCls = "w-full bg-transparent border border-black/15 rounded-lg text-black text-sm px-3.5 py-2.5 outline-none placeholder:text-black/25 focus:border-black/50 transition-colors duration-150";
@@ -445,19 +446,31 @@ export default function NewDiceDrawer({ open, onClose }) {
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 ">
               <label className="text-[11px] font-semibold tracking-widest uppercase text-black/40 flex items-center gap-2">
                 Faces
-                <span className="bg-black text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">{faces}</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={faces}
+                  onChange={e => setFaces(Math.max(1, Math.min(100, Number(e.target.value))))}
+                  className="bg-black text-white text-[10px] font-bold px-1 py-0.5 rounded-md w-8 text-center border-none outline-none focus:ring-1 focus:ring-black/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
               </label>
               <div className="flex items-center gap-2 h-10.5">
                 <div className="relative flex-1 h-0.75">
                   <div className="absolute inset-0 bg-black/10 rounded-full" />
                   <div className="absolute top-0 left-0 h-full bg-black rounded-full pointer-events-none" style={{ width: `${fillPctFaces}%` }} />
                   <input
-                    type="range" min={1} max={500} value={faces}
+                    type="range" min={1} max={100} value={faces}
                     onChange={e => setFaces(Number(e.target.value))}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  {/* Custom Dot Handle */}
+                  <div 
+                    className="absolute top-1/2 -translate-y-1/2 w-2 h-2 bg-black rounded-full border border-white pointer-events-none shadow-sm"
+                    style={{ left: `calc(${fillPctFaces}% - 4px)` }}
                   />
                 </div>
               </div>
@@ -469,19 +482,32 @@ export default function NewDiceDrawer({ open, onClose }) {
               Size (Millimeters)
               <span className="flex items-center gap-2">
                 <span className="text-black/30 font-normal lowercase tracking-normal italic">avg. is 22mm</span>
-                <span className="bg-black text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">{sizeMm}mm</span>
+                <input
+                  type="number"
+                  min={5}
+                  max={50}
+                  value={sizeMm}
+                  onChange={e => setSizeMm(Math.max(5, Math.min(50, Number(e.target.value))))}
+                  className="bg-black text-white text-[10px] font-bold px-1 py-0.5 rounded-md w-10 text-center border-none outline-none focus:ring-1 focus:ring-black/20 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
               </span>
             </label>
             <div className="flex items-center gap-4 h-12">
-               <DiceIcon sizeMm={sizeMm} />
                <div className="relative flex-1 h-0.75">
                   <div className="absolute inset-0 bg-black/10 rounded-full" />
                   <div className="absolute top-0 left-0 h-full bg-black rounded-full pointer-events-none" style={{ width: `${fillPctSize}%` }} />
                   <input
                     type="range" min={5} max={50} value={sizeMm}
                     onChange={e => setSizeMm(Number(e.target.value))}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   />
+                  {/* Dice Icon as Handle */}
+                  <div 
+                    className="absolute top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center"
+                    style={{ left: `calc(${fillPctSize}% - 15px)` }} // Center the icon roughly
+                  >
+                    <DiceIcon sizeMm={sizeMm} className="text-black bg-white rounded-md p-0.5 shadow-sm border border-black/10" />
+                  </div>
                 </div>
                 <span className="text-[10px] font-bold text-black/30 w-8">50mm</span>
             </div>
