@@ -10,6 +10,7 @@ function Settings() {
   const [avatar, setAvatar] = useState();
   const [loading, setLoading] = useState(true);
 
+  const [isDescOpen, setIsDescOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tempName, setTempName] = useState("");
   const [tempAvatar, setTempAvatar] = useState("");
@@ -328,32 +329,18 @@ function Settings() {
             <div className="description-row">
               <div className="description-info">
                 <span className="description-label">Description</span>
-                <form
-                  className="description-form"
-                  onSubmit={handleSaveDescription}
-                >
-                  <input
-                    type="text"
-                    className="description-input"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Enter your description"
-                    maxLength={150}
-                  />
-                </form>
-                <span className="description-counter">
-                  {(description || "").length} / 150
+                <span className="description-preview">
+                  {description ? description : "Add a description"}
                 </span>
               </div>
               <button
                 className="dark-btn change-description-btn"
                 type="button"
-                onClick={handleSaveDescription}
+                onClick={() => setIsDescOpen(true)}
               >
                 Change
               </button>
             </div>
-
             <div className="email-row">
               <div className="email-info">
                 <span className="email-label">Email</span>
@@ -401,6 +388,59 @@ function Settings() {
             Delete account
           </button>
         </footer>
+
+        {isDescOpen && (
+          <div className="modal-overlay" onClick={() => setIsDescOpen(false)}>
+            <div
+              className="modal-content description-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modal-header">
+                <h3 className="modal-title">Edit Description</h3>
+                <button
+                  className="close-modal-btn"
+                  onClick={() => setIsDescOpen(false)}
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="modal-body">
+                <textarea
+                  className="description-modal-input"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  maxLength={150}
+                  rows={6}
+                />
+
+                <div className="description-counter">
+                  {(description || "").length} / 150
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  className="dark-btn cancel-btn"
+                  onClick={() => setIsDescOpen(false)}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  className="dark-btn"
+                  onClick={(e) => {
+                    handleSaveDescription(e);
+                    setIsDescOpen(false);
+                  }}
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {isModalOpen && (
           <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
