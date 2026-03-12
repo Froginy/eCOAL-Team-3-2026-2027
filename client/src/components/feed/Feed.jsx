@@ -1,7 +1,7 @@
 import logo from "../../assets/logo.svg";
 import PostCard from "../postCards/postCards.jsx";
 import sort from "../../assets/sort.svg";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 
 function Feed() {
@@ -9,15 +9,70 @@ function Feed() {
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
     color: "",
-    face: "",
-    height: "",
+    facesMin: "",
+    facesMax: "",
+    sizeMin: "",
+    sizeMax: "",
+  });
+  const [appliedFilters, setAppliedFilters] = useState({
+    color: "",
+    facesMin: "",
+    facesMax: "",
+    sizeMin: "",
+    sizeMax: "",
   });
 
-  const colors = ["Red", "Blue", "Green", "Yellow"];
+  const colors = ["Red", "Blue", "Green", "Yellow", "Azure", "Crimson", "Obsidian"];
+
+  const filteredDices = useMemo(() => {
+    return dices.filter((dice) => {
+      // Filter by color
+      if (appliedFilters.color && dice.color?.name !== appliedFilters.color) {
+        return false;
+      }
+      
+      // Filter by faces range
+      const faceCrit = dice.criterias?.find(c => c.title === "Faces");
+      const faceValue = faceCrit ? parseInt(faceCrit.value) : null;
+
+      if (appliedFilters.facesMin && (faceValue === null || faceValue < parseInt(appliedFilters.facesMin))) {
+        return false;
+      }
+      if (appliedFilters.facesMax && (faceValue === null || faceValue > parseInt(appliedFilters.facesMax))) {
+        return false;
+      }
+
+      // Filter by size range
+      const sizeCrit = dice.criterias?.find(c => c.title === "Size");
+      const sizeValue = sizeCrit ? parseInt(sizeCrit.value) : null;
+
+      if (appliedFilters.sizeMin && (sizeValue === null || sizeValue < parseInt(appliedFilters.sizeMin))) {
+        return false;
+      }
+      if (appliedFilters.sizeMax && (sizeValue === null || sizeValue > parseInt(appliedFilters.sizeMax))) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [dices, appliedFilters]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Form Data:", formData);
+    setAppliedFilters({ ...formData });
+    setIsOpen(false);
+  };
+
+  const handleReset = () => {
+    const emptyFilters = { 
+      color: "", 
+      facesMin: "", 
+      facesMax: "", 
+      sizeMin: "", 
+      sizeMax: "" 
+    };
+    setFormData(emptyFilters);
+    setAppliedFilters(emptyFilters);
     setIsOpen(false);
   };
 
@@ -29,6 +84,7 @@ function Feed() {
   function modalHandler() {
     setIsOpen(!isOpen);
   }
+
   useEffect(() => {
     const api_url = import.meta.env.VITE_API_URL;
     const getProtecteddices = async () => {
@@ -42,81 +98,130 @@ function Feed() {
           console.error("Server did not return an array:", response.data);
         }
       } catch (error) {
-        console.error("API Error:", error.response?.status);
-        if (error.response?.status === 401) {
-          alert("Session expired, please reconnect.");
-        }
+        console.error("API Error fetching dices:", error.response?.status);
       }
     };
 
     getProtecteddices();
   }, []);
 
+  const hasActiveFilters = appliedFilters.color || appliedFilters.facesMin || appliedFilters.facesMax || appliedFilters.sizeMin || appliedFilters.sizeMax;
+
+  const inputCls = "w-full bg-transparent border border-black/15 rounded-xl text-black text-sm px-3.5 py-2.5 outline-none placeholder:text-black/25 focus:border-black/50 transition-colors duration-150";
+  const labelCls = "text-[11px] font-semibold tracking-widest uppercase text-black/40 mb-1.5 block";
+
   return (
     <div className="flex flex-col w-full items-center m-0 mb-15 p-0">
-      <div className="w-11/12 m-6  flex flex-row justify-between">
+      <div className="w-11/12 m-6 flex flex-row justify-between items-center relative z-50">
         <img src={logo} alt="Logo" className="h-5" />
-        <button onClick={modalHandler}>
+        <button onClick={modalHandler} className="cursor-pointer relative p-2 hover:bg-black/5 rounded-full transition-all">
           <img src={sort} alt="Sort" className="h-5" />
+          {hasActiveFilters && (
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+          )}
         </button>
-                {isOpen && (
-        <div className="fixed right-5 flex items-center justify-center z-100 bg-opacity-50">
-          <div className="bg-gray-600 opacity-85 rounded-2xl text-white p-6 shadow-lg w-80">
-            <h2 className="text-xl font-bold mb-4">Select Options</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-         
-              <div>
-                <label className="block mb-1 font-semibold">Colors:</label>
-                <select
-                  name="color"
-                  value={formData.color}
-                  onChange={handleChange}
-                  className="border p-2 w-full rounded"
-                >
-                  <option value="">Select a color</option>
-                  {colors.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+        
+        {isOpen && (
+          <div className="fixed right-5 top-20 z-100 transition-all transform origin-top-right">
+            <div className="bg-white rounded-3xl text-black p-6 shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-black/5 w-80 flex flex-col gap-4">
+              {/* Drawer-like Handle */}
+              <div className="flex justify-center -mt-2 mb-2">
+                <div className="w-10 h-1 bg-black/10 rounded-full" />
               </div>
 
+              <div className="flex justify-between items-center mb-1">
+                <h2 className="text-xl font-bold tracking-tight">Filters</h2>
+                <button onClick={handleReset} className="text-[10px] font-bold uppercase tracking-wider text-black/30 hover:text-black underline cursor-pointer">
+                  Reset
+                </button>
+              </div>
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block mb-1 font-semibold">Height:</label>
-                  <input
-                    type="number"
-                    name="faces"
-                    value={formData.height}
-                    onChange={handleChange}
-                    placeholder="Enter the number of faces"
-                    className="border p-2 w-full rounded"
-                  />
+                  <label className={labelCls}>Color</label>
+                  <div className="relative">
+                    <select
+                      name="color"
+                      value={formData.color}
+                      onChange={handleChange}
+                      className={inputCls + " appearance-none cursor-pointer"}
+                    >
+                      <option value="">Any color</option>
+                      {colors.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                    <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-black/20">
+                      <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                        <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block mb-1 font-semibold">Height:</label>
-                  <input
-                    type="number"
-                    name="height"
-                    value={formData.height}
-                    onChange={handleChange}
-                    placeholder="Enter height in cm"
-                    className="border p-2 w-full rounded"
-                  />
+                  <label className={labelCls}>Faces Range</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      name="facesMin"
+                      value={formData.facesMin}
+                      onChange={handleChange}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Min"
+                      className={inputCls}
+                    />
+                    <span className="text-black/20 font-bold">—</span>
+                    <input
+                      type="number"
+                      name="facesMax"
+                      value={formData.facesMax}
+                      onChange={handleChange}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Max"
+                      className={inputCls}
+                    />
+                  </div>
                 </div>
 
-                <div className="flex justify-end gap-2">
+                <div>
+                  <label className={labelCls}>Size Range (mm)</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      name="sizeMin"
+                      value={formData.sizeMin}
+                      onChange={handleChange}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Min"
+                      className={inputCls}
+                    />
+                    <span className="text-black/20 font-bold">—</span>
+                    <input
+                      type="number"
+                      name="sizeMax"
+                      value={formData.sizeMax}
+                      onChange={handleChange}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      placeholder="Max"
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2 pt-2">
+                  <button
+                    type="submit"
+                    className="w-full py-3 bg-black text-white rounded-full text-sm font-bold hover:bg-black/90 transition-all cursor-pointer shadow-md active:scale-95"
+                  >
+                    Apply Filters
+                  </button>
                   <button
                     type="button"
                     onClick={() => setIsOpen(false)}
-                    className="px-4 py-2 bg-gray-800 rounded"
+                    className="w-full py-2 text-black/40 hover:text-black text-xs font-semibold transition-colors cursor-pointer"
                   >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 opacity-100 py-2 bg-black text-white rounded"
-                  >
-                    Submit
+                    Dismiss
                   </button>
                 </div>
               </form>
@@ -125,11 +230,18 @@ function Feed() {
         )}
       </div>
 
-      {dices && dices.length > 0 ? (
-        dices.map((dice) => <PostCard key={dice.id} {...dice} />)
-      ) : (
-        <p>Loading cards...</p>
-      )}
+      <div className="flex flex-col items-center w-full gap-4">
+        {filteredDices && filteredDices.length > 0 ? (
+          filteredDices.map((dice) => <PostCard key={dice.id} {...dice} />)
+        ) : (
+          <div className="flex flex-col items-center mt-20 text-black/20 italic">
+            <p className="text-lg">No dice found in this range.</p>
+            <button onClick={handleReset} className="mt-2 text-sm text-black/40 hover:text-black underline cursor-pointer not-italic">
+              Clear filters
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
