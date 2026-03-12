@@ -21,16 +21,18 @@ const COLORS = [
   { name: 'Slate',     hex: '#475569' },
 ];
 
-const SIZES = ['small', 'medium', 'large'];
+function DiceIcon({ sizeMm }) {
+  let label = 'M';
+  let svgSize = 26;
+  
+  if (sizeMm < 18) {
+    label = 'S';
+    svgSize = 18;
+  } else if (sizeMm > 28) {
+    label = 'L';
+    svgSize = 36;
+  }
 
-const SIZE_CONFIG = {
-  small:  { label: 'S', svgSize: 18 },
-  medium: { label: 'M', svgSize: 26 },
-  large:  { label: 'L', svgSize: 36 },
-};
-
-function DiceIcon({ sizeKey }) {
-  const { label, svgSize } = SIZE_CONFIG[sizeKey];
   return (
     <svg width={svgSize} height={svgSize} viewBox="0 0 100 100" fill="none">
       <rect x="5" y="5" width="90" height="90" rx="20" stroke="currentColor" strokeWidth="8" />
@@ -47,26 +49,95 @@ function DiceIcon({ sizeKey }) {
   );
 }
 
-
-const SIZE_MM = { small: 16, medium: 22, large: 32 };
-
-export default function NewDiceDrawer({ open, onClose, collectionId }) {
-  const [color, setColor]         = useState(COLORS[0]);
-  const [colorOpen, setColorOpen] = useState(false);
-  const [faces, setFaces]         = useState(6);
-  const [name, setName]           = useState('');
-  const [desc, setDesc]           = useState('');
-  const [images, setImages]       = useState([]);
-  const [size, setSize]           = useState('medium');
-  const [loading, setLoading]     = useState(false);
-  const [error, setError]         = useState(null);
-  const [success, setSuccess]     = useState(false);
+export default function NewDiceDrawer({ open, onClose }) {
+  const [color, setColor]               = useState(COLORS[0]);
+  const [colorOpen, setColorOpen]       = useState(false);
+  const [faces, setFaces]               = useState(6);
+  const [name, setName]                 = useState('');
+  const [desc, setDesc]                 = useState('');
+  const [images, setImages]             = useState([]);
+  const [sizeMm, setSizeMm]             = useState(22);
+  const [loading, setLoading]           = useState(false);
+  const [error, setError]               = useState(null);
+  const [success, setSuccess]           = useState(false);
+  
+  // Dynamic Data
+  const [categories, setCategories]     = useState([]);
+  const [criterias, setCriterias]       = useState([]);
+  const [userCollectionId, setUserCollectionId] = useState(null);
+  
+  // Category Selection
+  const [cat1, setCat1]                 = useState(null);
+  const [cat2, setCat2]                 = useState(null);
+  const [catOpen1, setCatOpen1]         = useState(false);
+  const [catOpen2, setCatOpen2]         = useState(false);
+  const [search1, setSearch1]           = useState('');
+  const [search2, setSearch2]           = useState('');
 
   const drawerRef   = useRef(null);
   const backdropRef = useRef(null);
   const colorRef    = useRef(null);
+  const catRef1     = useRef(null);
+  const catRef2     = useRef(null);
   const fileRef     = useRef(null);
   const isAnimating = useRef(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const api_url = import.meta.env.VITE_API_URL;
+      const token   = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+      // Reset errors on fetch
+      setError(null);
+
+      // Fetch Categories (Public)
+      axios.get(`${api_url}/categories`)
+        .then(res => {
+          const data = res.data.data || res.data;
+          setCategories(Array.isArray(data) ? data : []);
+        })
+        .catch(err => {
+          console.error("Categories fetch failed:", err);
+          // Don't overwrite error if already set by user fetch
+          setError(prev => prev || "Categories could not be loaded.");
+        });
+
+      // Fetch Criterias (Public)
+      axios.get(`${api_url}/criterias`)
+        .then(res => {
+          const data = res.data.data || res.data;
+          setCriterias(Array.isArray(data) ? data : []);
+        })
+        .catch(err => console.error("Criterias fetch failed:", err));
+
+      // Fetch User & Collection (Auth Protected)
+      if (token && token !== 'undefined') {
+        axios.get(`${api_url}/user`, { headers })
+          .then(res => {
+            const userData = res.data.data || res.data;
+            if (userData?.collections?.length > 0) {
+              setUserCollectionId(userData.collections[0].id);
+            } else {
+              setError("You don't have a collection. Please create one first.");
+            }
+          })
+          .catch(err => {
+            console.error("User fetch failed:", err);
+            if (err.response?.status === 401) {
+              setError("Session expired or unauthorized. Please log in again.");
+              localStorage.removeItem('token'); // Clear invalid token
+            } else {
+              setError("Failed to verify account permissions.");
+            }
+          });
+      } else {
+        setError("You must be logged in to create a dice.");
+      }
+    };
+
+    if (open) fetchData();
+  }, [open]);
 
   useEffect(() => {
     if (isAnimating.current) return;
@@ -111,25 +182,37 @@ export default function NewDiceDrawer({ open, onClose, collectionId }) {
   useEffect(() => {
     const handler = (e) => {
       if (colorRef.current && !colorRef.current.contains(e.target)) setColorOpen(false);
+      if (catRef1.current && !catRef1.current.contains(e.target)) setCatOpen1(false);
+      if (catRef2.current && !catRef2.current.contains(e.target)) setCatOpen2(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
   const handleImages = (files) => {
-    const valid = Array.from(files).filter(f => f.type.startsWith('image/'));
-    Promise.all(valid.map(f => new Promise(res => {
-      const r = new FileReader();
-      r.onload = e => res({ url: e.target.result, name: f.name, file: f });
-      r.readAsDataURL(f);
-    }))).then(imgs => setImages(prev => [...prev, ...imgs].slice(0, 6)));
+    const valid = Array.from(files).filter(f => f.type.startsWith('image/')).slice(0, 3 - images.length);
+    const newImgs = valid.map(f => ({
+      url: URL.createObjectURL(f),
+      name: f.name,
+      file: f
+    }));
+    setImages(prev => [...prev, ...newImgs]);
   };
 
   const handleDrop = (e) => { e.preventDefault(); handleImages(e.dataTransfer.files); };
-  const removeImage = (i) => setImages(prev => prev.filter((_, idx) => idx !== i));
+  const removeImage = (i) => {
+    const img = images[i];
+    URL.revokeObjectURL(img.url);
+    setImages(prev => prev.filter((_, idx) => idx !== i));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!userCollectionId) {
+      setError("Unable to find your collection. Please check your account.");
+      return;
+    }
+
     setError(null);
     setLoading(true);
 
@@ -137,41 +220,36 @@ export default function NewDiceDrawer({ open, onClose, collectionId }) {
       const api_url = import.meta.env.VITE_API_URL;
       const token   = localStorage.getItem('token');
 
-      let imageUrls = [];
-      if (images.length > 0) {
-        const imgForm = new FormData();
-        images.forEach((img) => {
-          if (img.file) {
-            imgForm.append('images[]', img.file);
-          } else {
-            const blob = dataURLtoBlob(img.url);
-            imgForm.append('images[]', blob, img.name || 'image.jpg');
-          }
-        });
-        const uploadRes = await axios.post(`${api_url}/dices`, imgForm, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-        imageUrls = uploadRes.data?.urls ?? uploadRes.data ?? [];
+      const formData = new FormData();
+      formData.append('collection_id', userCollectionId);
+      formData.append('name', name);
+      formData.append('description', desc);
+      
+      if (cat1) formData.append('category_1_id', cat1.id);
+      if (cat2) formData.append('category_2_id', cat2.id);
+
+      formData.append('color[name]', color.name);
+      formData.append('color[hex]', color.hex);
+
+      const facesCrit = criterias.find(c => c.title.toLowerCase().includes('face'));
+      const sizeCrit = criterias.find(c => c.title.toLowerCase().includes('size'));
+
+      if (facesCrit) {
+        formData.append('criterias[0][criteria_id]', facesCrit.id);
+        formData.append('criterias[0][value]', faces);
+      }
+      if (sizeCrit) {
+        formData.append('criterias[1][criteria_id]', sizeCrit.id);
+        formData.append('criterias[1][value]', sizeMm);
       }
 
-      const payload = {
-        name:          name || null,
-        description:   desc || null,
-        images:        imageUrls,
-        criterias: [
-          { criteria_id: 1, value: faces },
-          { criteria_id: 2, value: SIZE_MM[size] },
-          { criteria_id: 3, value: null },
-        ],
-      };
+      images.forEach((img) => {
+        formData.append('images[]', img.file);
+      });
 
-      await axios.post(`${api_url}/dices`, payload, {
+      await axios.post(`${api_url}/dices`, formData, {
         headers: {
-          'Content-Type': 'application/json',
-          'Accept':        'application/json',
+          'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`,
         },
       });
@@ -179,7 +257,8 @@ export default function NewDiceDrawer({ open, onClose, collectionId }) {
       setSuccess(true);
       setTimeout(() => {
         onClose();
-        setName(''); setDesc(''); setColor(COLORS[0]); setFaces(6); setSize('medium'); setImages([]);
+        setName(''); setDesc(''); setColor(COLORS[0]); setFaces(6); setSizeMm(22); setImages([]);
+        setCat1(null); setCat2(null);
         setSuccess(false);
       }, 900);
     } catch (err) {
@@ -193,9 +272,58 @@ export default function NewDiceDrawer({ open, onClose, collectionId }) {
     }
   };
 
-  const fillPct = ((faces - 1) / 499) * 100;
+  const fillPctFaces = ((faces - 1) / 499) * 100;
+  const fillPctSize = ((sizeMm - 5) / 45) * 100;
 
   const inputCls = "w-full bg-transparent border border-black/15 rounded-lg text-black text-sm px-3.5 py-2.5 outline-none placeholder:text-black/25 focus:border-black/50 transition-colors duration-150";
+
+  const renderCategorySelect = (selected, setSelected, open, setOpen, search, setSearch, label, ref) => {
+    const filtered = (categories || []).filter(c => c?.title?.toLowerCase().includes(search.toLowerCase()));
+    
+    return (
+      <div className="flex flex-col gap-1.5 flex-1">
+        <label className="text-[11px] font-semibold tracking-widest uppercase text-black/40">{label}</label>
+        <div className="relative" ref={ref}>
+          <button
+            type="button"
+            onClick={() => setOpen(v => !v)}
+            className="w-full flex items-center justify-between border border-black/15 rounded-lg px-3.5 py-2.5 text-black text-sm hover:border-black/40 transition-colors duration-150 cursor-pointer bg-transparent"
+          >
+            <span className="truncate">{selected ? selected.title : "Select..."}</span>
+            <svg className={`text-black/30 shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} width="11" height="11" viewBox="0 0 12 12" fill="none">
+              <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+
+          {open && (
+            <div className="absolute bottom-[calc(100%+6px)] left-0 right-0 bg-white border border-black/10 rounded-xl z-50 shadow-[0_-8px_40px_rgba(0,0,0,0.12)] p-2">
+              <input 
+                type="text" 
+                placeholder="Search..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full mb-2 p-2 text-xs border border-black/10 rounded-lg outline-none focus:border-black/30"
+              />
+              <ul className="max-h-40 overflow-y-auto list-none m-0 p-0">
+                {filtered.map(c => (
+                  <li key={c.id}>
+                    <button
+                      type="button"
+                      onClick={() => { setSelected(c); setOpen(false); setSearch(''); }}
+                      className={`w-full text-left px-2.5 py-2 rounded-lg text-[13px] transition-all hover:bg-black/4 ${selected?.id === c.id ? 'bg-black/5 font-semibold' : 'bg-transparent'}`}
+                    >
+                      {c.title}
+                    </button>
+                  </li>
+                ))}
+                {filtered.length === 0 && <li className="text-[11px] text-black/30 text-center py-2">No results</li>}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -217,26 +345,26 @@ export default function NewDiceDrawer({ open, onClose, collectionId }) {
 
         <form
           onSubmit={handleSubmit}
-          className="max-h-[70vh] w-[70%] overflow-y-auto mx-auto px-6 py-5 flex flex-col gap-4 mt-10"
+          className="max-h-[70vh] w-[70%] overflow-y-auto mx-auto px-6 py-5 flex flex-col gap-4 mt-6"
         >
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-semibold tracking-widest uppercase text-black/40 flex items-center gap-1.5">
-              Images <span className="text-black/25 font-normal normal-case tracking-normal">(up to 6)</span>
+              Images <span className="text-black/25 font-normal normal-case tracking-normal">(up to 3)</span>
             </label>
             <div
-              onClick={() => fileRef.current?.click()}
+              onClick={() => images.length < 3 && fileRef.current?.click()}
               onDrop={handleDrop}
               onDragOver={e => e.preventDefault()}
-              className="border border-dashed border-black/20 rounded-xl py-6 px-4 flex flex-col items-center gap-1 cursor-pointer text-black/30 hover:border-black/40 hover:bg-black/2 hover:text-black/50 transition-all duration-200 text-center"
+              className={`border border-dashed border-black/20 rounded-xl py-6 px-4 flex flex-col items-center gap-1 text-black/30 transition-all duration-200 text-center ${images.length < 3 ? 'cursor-pointer hover:border-black/40 hover:bg-black/2 hover:text-black/50' : 'opacity-50 cursor-not-allowed'}`}
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                 <path d="M12 15V7M12 7l-3 3M12 7l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M3 17v1a3 3 0 003 3h12a3 3 0 003-3v-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
               <p className="text-[13px] m-0">
-                Drop here or <span className="text-black/60 underline underline-offset-2">browse</span>
+                {images.length < 3 ? "Drop here or click browse" : "Upload limit reached"}
               </p>
-              <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={e => handleImages(e.target.files)} />
+              <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={e => handleImages(e.target.files)} disabled={images.length >= 3} />
             </div>
             {images.length > 0 && (
               <div className="grid grid-cols-4 gap-2 mt-1">
@@ -257,7 +385,7 @@ export default function NewDiceDrawer({ open, onClose, collectionId }) {
           <div className="flex flex-col gap-1.5">
             <input
               type="text"
-              placeholder="My favorite dice…"
+              placeholder="Dice Name (e.g. Blue Sparkle D20)"
               value={name}
               onChange={e => setName(e.target.value)}
               required
@@ -270,9 +398,14 @@ export default function NewDiceDrawer({ open, onClose, collectionId }) {
               placeholder="Tell the story of this dice…"
               value={desc}
               onChange={e => setDesc(e.target.value)}
-              rows={3}
+              rows={2}
               className={`${inputCls} resize-none leading-relaxed`}
             />
+          </div>
+
+          <div className="flex gap-3">
+            {renderCategorySelect(cat1, setCat1, catOpen1, setCatOpen1, search1, setSearch1, "Primary Category", catRef1)}
+            {renderCategorySelect(cat2, setCat2, catOpen2, setCatOpen2, search2, setSearch2, "Secondary", catRef2)}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -292,7 +425,7 @@ export default function NewDiceDrawer({ open, onClose, collectionId }) {
                 </button>
 
                 {colorOpen && (
-                  <ul className="absolute bottom-[calc(100%+6px)] left-0 right-0 bg-white border border-black/10 rounded-xl z-50 max-h-52 overflow-y-auto p-1.5 shadow-[0_-8px_40px_rgba(0,0,0,0.12)] list-none m-0">
+                  <ul className="absolute bottom-[calc(100%+6px)] left-0 right-0 bg-white border border-black/10 rounded-xl z-50 max-h-40 overflow-y-auto p-1.5 shadow-[0_-8px_40px_rgba(0,0,0,0.12)] list-none m-0">
                     {COLORS.map(c => (
                       <li key={c.hex}>
                         <button
@@ -304,11 +437,6 @@ export default function NewDiceDrawer({ open, onClose, collectionId }) {
                         >
                           <span className="shrink-0 rounded-sm border border-black/10" style={{ background: c.hex, width: 16, height: 16 }} />
                           <span className="flex-1 text-left">{c.name}</span>
-                          {color.hex === c.hex && (
-                            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" className="text-black/40 shrink-0">
-                              <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          )}
                         </button>
                       </li>
                     ))}
@@ -320,52 +448,42 @@ export default function NewDiceDrawer({ open, onClose, collectionId }) {
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-semibold tracking-widest uppercase text-black/40 flex items-center gap-2">
                 Faces
-                <span className="bg-black text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md tracking-normal normal-case">{faces}</span>
+                <span className="bg-black text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">{faces}</span>
               </label>
               <div className="flex items-center gap-2 h-10.5">
-                <span className="text-[11px] text-black/30 w-3 text-center shrink-0">1</span>
                 <div className="relative flex-1 h-0.75">
                   <div className="absolute inset-0 bg-black/10 rounded-full" />
-                  <div className="absolute top-0 left-0 h-full bg-black rounded-full pointer-events-none" style={{ width: `${fillPct}%` }} />
-                  <div
-                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-black rounded-full pointer-events-none shadow-sm border-2 border-white"
-                    style={{ left: `${fillPct}%` }}
-                  />
+                  <div className="absolute top-0 left-0 h-full bg-black rounded-full pointer-events-none" style={{ width: `${fillPctFaces}%` }} />
                   <input
                     type="range" min={1} max={500} value={faces}
                     onChange={e => setFaces(Number(e.target.value))}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
                 </div>
-                <span className="text-[11px] text-black/30 w-4 text-center shrink-0">500</span>
               </div>
             </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[11px] font-semibold tracking-widest uppercase text-black/40">Size</label>
-            <div className="flex gap-2">
-              {SIZES.map(s => {
-                const active = size === s;
-                return (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => setSize(s)}
-                    className={`
-                      flex items-center gap-2 px-3 py-2 rounded-xl border text-[11px] font-semibold tracking-widest uppercase
-                      transition-all duration-150 cursor-pointer
-                      ${active
-                        ? 'border-black bg-black text-white shadow-sm'
-                        : 'border-black/12 bg-transparent text-black/35 hover:border-black/30 hover:text-black/60'
-                      }
-                    `}
-                  >
-                    <DiceIcon sizeKey={s} />
-                    {s}
-                  </button>
-                );
-              })}
+            <label className="text-[11px] font-semibold tracking-widest uppercase text-black/40 flex items-center justify-between">
+              Size (Millimeters)
+              <span className="flex items-center gap-2">
+                <span className="text-black/30 font-normal lowercase tracking-normal italic">avg. is 22mm</span>
+                <span className="bg-black text-white text-[10px] font-bold px-1.5 py-0.5 rounded-md">{sizeMm}mm</span>
+              </span>
+            </label>
+            <div className="flex items-center gap-4 h-12">
+               <DiceIcon sizeMm={sizeMm} />
+               <div className="relative flex-1 h-0.75">
+                  <div className="absolute inset-0 bg-black/10 rounded-full" />
+                  <div className="absolute top-0 left-0 h-full bg-black rounded-full pointer-events-none" style={{ width: `${fillPctSize}%` }} />
+                  <input
+                    type="range" min={5} max={50} value={sizeMm}
+                    onChange={e => setSizeMm(Number(e.target.value))}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                </div>
+                <span className="text-[10px] font-bold text-black/30 w-8">50mm</span>
             </div>
           </div>
 
@@ -389,29 +507,7 @@ export default function NewDiceDrawer({ open, onClose, collectionId }) {
               disabled={loading || success}
               className="flex-1 py-2.5 rounded-full text-sm font-semibold bg-black text-white flex items-center justify-center gap-1.5 hover:bg-black/85 transition-all duration-150 cursor-pointer border-none disabled:opacity-60"
             >
-              {loading ? (
-                <>
-                  <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.25"/>
-                    <path d="M12 2a10 10 0 0110 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
-                  </svg>
-                  Saving…
-                </>
-              ) : success ? (
-                <>
-                  <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-                    <path d="M2 7l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  Saved!
-                </>
-              ) : (
-                <>
-                  <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-                    <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                  Create
-                </>
-              )}
+              {loading ? "Saving…" : success ? "Saved!" : "Create Dice"}
             </button>
           </div>
         </form>
@@ -419,12 +515,4 @@ export default function NewDiceDrawer({ open, onClose, collectionId }) {
     </>
   );
 }
-
-function dataURLtoBlob(dataURL) {
-  const [header, data] = dataURL.split(',');
-  const mime = header.match(/:(.*?);/)[1];
-  const binary = atob(data);
-  const array = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
-  return new Blob([array], { type: mime });
-}
+
