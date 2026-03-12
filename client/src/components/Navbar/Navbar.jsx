@@ -1,7 +1,8 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import gsap from "gsap";
 import { useEntranceAnimation } from "../../hooks/useEntranceAnimation";
+import UserAvatar from "../UserAvatar/UserAvatar";
 
 const HomeIcon = ({ active }) => (
   <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
@@ -34,6 +35,36 @@ function Navbar() {
   const itemRefs = useRef([]);
   const prevIndexRef = useRef(-1);
   const isFirstRender = useRef(true);
+  const userBlockRef = useRef(null);
+
+  const [user, setUser] = useState(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+    try {
+      const cached = localStorage.getItem("user");
+      return cached ? JSON.parse(cached) : { name: "", avatar: "" };
+    } catch {
+      return { name: "", avatar: "" };
+    }
+  });
+
+  useEffect(() => {
+    const onStorage = () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setUser(null);
+        return;
+      }
+      try {
+        const cached = localStorage.getItem("user");
+        setUser(cached ? JSON.parse(cached) : { name: "", avatar: "" });
+      } catch {
+        setUser({ name: "", avatar: "" });
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   const navRef = useEntranceAnimation({
     y: 60,
@@ -55,13 +86,10 @@ function Navbar() {
     if (!activeEl || !navEl || !indicator || currentIndex === -1) return null;
     const navRect = navEl.getBoundingClientRect();
     const itemRect = activeEl.getBoundingClientRect();
-    return {
-      left: itemRect.left - navRect.left,
-      width: itemRect.width,
-    };
+    return { left: itemRect.left - navRect.left, width: itemRect.width };
   };
 
-useEffect(() => {
+  useEffect(() => {
     const indicator = indicatorRef.current;
     if (!indicator) return;
 
@@ -72,10 +100,8 @@ useEffect(() => {
         requestAnimationFrame(() => {
           const pos = measure();
           if (!pos) return;
-
           gsap.set(indicator, { left: pos.left, width: pos.width, x: 0 });
           gsap.to(indicator, { opacity: 1, duration: 0.2, delay: 0.15 });
-
           prevIndexRef.current = currentIndex;
           isFirstRender.current = false;
         });
@@ -98,13 +124,7 @@ useEffect(() => {
 
     gsap.killTweensOf(indicator);
 
-    gsap.to(indicator, {
-      left: pos.left,
-      width: pos.width,
-      duration: 0.42,
-      ease: "power3.out",
-    });
-
+    gsap.to(indicator, { left: pos.left, width: pos.width, duration: 0.42, ease: "power3.out" });
     gsap.fromTo(navEl,
       { scale: 1 },
       { scale: 0.97, duration: 0.12, ease: "power2.out", yoyo: true, repeat: 1 }
@@ -141,6 +161,15 @@ useEffect(() => {
 
     prevIndexRef.current = currentIndex;
   }, [currentIndex]);
+
+  useEffect(() => {
+    if (!userBlockRef.current) return;
+    gsap.fromTo(
+      userBlockRef.current,
+      { opacity: 0, scale: 0.7, x: 10 },
+      { opacity: 1, scale: 1, x: 0, duration: 0.4, ease: "back.out(2)" }
+    );
+  }, [user]);
 
   if (currentIndex === -1) return null;
 
@@ -179,16 +208,13 @@ useEffect(() => {
                     textDecoration: "none",
                     color: isActive ? "white" : "black",
                     transition: "color 0.2s ease",
-                    padding: isActive ? "0 20px" : "0 20px",
+                    padding: "0 20px",
                     flexShrink: 0,
                   }}
                 >
                   <item.icon active={isActive} />
                   {isActive && (
-                    <span
-                      className="text-sm font-medium"
-                      style={{ whiteSpace: "nowrap" }}
-                    >
+                    <span className="text-sm font-medium" style={{ whiteSpace: "nowrap" }}>
                       {item.label}
                     </span>
                   )}
@@ -197,26 +223,38 @@ useEffect(() => {
             })}
           </div>
 
-          <Link
-            to="/login"
-            className="relative z-10 mr-2 flex items-center justify-center h-8 px-4 rounded-full text-sm font-medium text-black"
-            style={{
-              border: "1.5px solid black",
-              textDecoration: "none",
-              transition: "background 0.2s ease, color 0.2s ease",
-              whiteSpace: "nowrap",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "black";
-              e.currentTarget.style.color = "white";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.color = "black";
-            }}
-          >
-            Login
-          </Link>
+          <div ref={userBlockRef} className="relative z-10 mr-2">
+            {user ? (
+              <UserAvatar
+                src={user.avatar || user.profile_picture_url}
+                name={user.name}
+                size={32}
+                showName
+                to="/settings"
+              />
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center justify-center h-8 px-4 rounded-full text-sm font-medium text-black"
+                style={{
+                  border: "1.5px solid black",
+                  textDecoration: "none",
+                  transition: "background 0.2s ease, color 0.2s ease",
+                  whiteSpace: "nowrap",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "black";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "black";
+                }}
+              >
+                Login
+              </Link>
+            )}
+          </div>
         </div>
       </nav>
     </>
