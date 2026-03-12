@@ -44,9 +44,17 @@ class DiceController extends Controller
             'criterias'      => 'nullable|array',
             'criterias.*.criteria_id' => 'required|exists:criterias,id',
             'criterias.*.value'       => 'nullable|integer',
+            'color'          => 'nullable|array',
+            'color.name'     => 'required_with:color|string|max:50',
+            'color.hex'      => 'required_with:color|string|max:7',
         ]);
 
         $dice = Dice::create($validated);
+
+        // Attacher la couleur si fournie
+        if ($request->has('color')) {
+            $dice->color()->create($request->color);
+        }
 
         // Attacher les images si fournies
         if ($request->has('images') && is_array($request->images)) {
