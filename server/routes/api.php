@@ -10,14 +10,20 @@ use App\Http\Controllers\CriteriaController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+// Routes publiques pour les utilisateurs
+Route::get('/users', [UserController::class, 'index']);
+Route::get('/users/{id}', [UserController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+    Route::put('/user', [UserController::class, 'update']);
     Route::get('/logout', [AuthController::class, 'logout']);
 });
 
@@ -40,12 +46,6 @@ Route::prefix('collections')->group(function () {
     Route::get('/{id}', [CollectionController::class, 'show']);
     Route::put('/{id}', [CollectionController::class, 'update']);
     Route::delete('/{id}', [CollectionController::class, 'destroy']);
-    
-    // Auth routes for collections
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/{id}/like', [LikeController::class, 'like']);
-        Route::delete('/{id}/like', [LikeController::class, 'unlike']);
-    });
 });
 
 // --- DICES ---
