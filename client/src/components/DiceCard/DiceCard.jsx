@@ -15,8 +15,8 @@ function DiceCard({ name, images,color, collection,id }) {
       >
         <div className="mb-3.5 flex items-center justify-center bg-[#f0f0f0] h-[50%] rounded-4xl">
           <img
-            src={`http://127.0.0.1:8000/${images?.[0]?.image_url}`}
-alt={name}
+            src={`${import.meta.env.VITE_API_URL.replace("/api", "")}/${images?.[0]?.image_url}`}
+            alt={name}
             className="w-full h-full object-cover rounded-4xl"
           />
         </div>
