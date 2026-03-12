@@ -11,9 +11,12 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\DiceColorController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::apiResource('dice-colors', DiceColorController::class)->only(['index', 'show']);
 
 // Routes publiques pour les utilisateurs
 Route::get('/users', [UserController::class, 'index']);
