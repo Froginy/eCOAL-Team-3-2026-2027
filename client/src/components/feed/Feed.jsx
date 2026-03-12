@@ -183,8 +183,6 @@ function Feed() {
           </svg>
         </button>
 
-        <img src={logo} alt="Logo" className="hidden md:block h-5 shrink-0" />
-
         <div className="flex justify-end items-center gap-3">
           <div ref={searchRef} className="relative flex-1 max-w-48">
             <div
