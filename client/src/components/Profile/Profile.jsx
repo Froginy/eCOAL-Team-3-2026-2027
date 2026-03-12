@@ -13,7 +13,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user, token } = useAuth();
-
+  
   useEffect(() => {
     if (!token) {
       navigate("/login", { replace: true });

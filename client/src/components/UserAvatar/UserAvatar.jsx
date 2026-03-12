@@ -58,7 +58,8 @@ function UserAvatar({
     onMouseEnter: handleMouseEnter,
     onMouseLeave: handleMouseLeave,
     className: `flex items-center gap-2 no-underline ${className}`,
-    style: { textDecoration: "none", color: "inherit" },
+    style: { textDecoration: "none", color: "inherit",
+    cursor: hover ? "pointer" : "default" },
   };
 
   const content = (

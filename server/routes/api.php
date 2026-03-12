@@ -57,7 +57,7 @@ Route::prefix('collections')->group(function () {
 // --- DICES ---
 Route::prefix('dices')->group(function () {
     Route::get('/', [DiceController::class, 'index']);
-    Route::get('/{id}', [DiceController::class, 'show']);
+    Route::get('/{id}', [DiceController::class, 'show'])->middleware('auth:sanctum')->withoutMiddleware([]);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [DiceController::class, 'store']);

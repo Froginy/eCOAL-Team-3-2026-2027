@@ -306,6 +306,7 @@ function Settings() {
                   name={user?.name}
                   src={user?.avatar || user?.profile_picture_url}
                   size={48}
+                  hover={false}
                   showName
                   className="gap-4"
                 />

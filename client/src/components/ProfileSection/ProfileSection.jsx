@@ -28,41 +28,51 @@ function StackedNumber({ value }) {
 export default function ProfileSection({ userId }) {
   const api_url = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
-  const headers = {
-    Authorization: `Bearer ${token}`,
-    Accept: "application/json",
-  };
-  const isOwnProfile = !userId;
-
-  if (isOwnProfile && !token) {
-    return <Navigate to="/login" replace />;
-  }
+  const headers = { Authorization: `Bearer ${token}`, Accept: "application/json" };
 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  const isOwnProfile = !userId || (currentUserId && String(currentUserId) === String(userId));
+
+  if (!userId && !token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  useEffect(() => {
+    if (!token) return;
+    axios.get(`${api_url}/user`, { headers })
+      .then(res => {
+        const me = res.data?.data ?? res.data;
+        setCurrentUserId(me.id);
+      })
+      .catch(() => {});
+  }, [token]);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const endpoint = isOwnProfile
+        const endpoint = !userId
           ? `${api_url}/user`
           : `${api_url}/users/${userId}`;
         const res = await axios.get(endpoint, { headers });
-        setProfile(res.data);
+        const data = res.data?.data ?? res.data;
+        setProfile(data);
       } catch {
         setProfile(null);
       }
     };
 
     const fetchSubscription = async () => {
-      if (isOwnProfile || !token) return;
+      if (!userId || !token) return;
       try {
         const [followersRes, meRes] = await Promise.all([
           axios.get(`${api_url}/users/${userId}/followers`, { headers }),
           axios.get(`${api_url}/user`, { headers }),
         ]);
-        const me = meRes.data;
+        const me = meRes.data?.data ?? meRes.data;
         const followers = followersRes.data?.data ?? followersRes.data ?? [];
         setIsSubscribed(followers.some((f) => f.id === me.id));
       } catch {
@@ -72,17 +82,14 @@ export default function ProfileSection({ userId }) {
 
     fetchProfile();
     fetchSubscription();
-  }, [userId, isOwnProfile]);
+  }, [userId]);
 
   const handleFollow = async () => {
     setLoading(true);
     try {
       await axios.post(`${api_url}/users/${userId}/subscribe`, {}, { headers });
       setIsSubscribed(true);
-      setProfile((prev) => ({
-        ...prev,
-        followers_count: prev.followers_count + 1,
-      }));
+      setProfile((prev) => ({ ...prev, followers_count: (prev?.followers_count ?? 0) + 1 }));
     } catch {}
     setLoading(false);
   };
@@ -92,10 +99,7 @@ export default function ProfileSection({ userId }) {
     try {
       await axios.delete(`${api_url}/users/${userId}/subscribe`, { headers });
       setIsSubscribed(false);
-      setProfile((prev) => ({
-        ...prev,
-        followers_count: prev.followers_count - 1,
-      }));
+      setProfile((prev) => ({ ...prev, followers_count: Math.max(0, (prev?.followers_count ?? 0) - 1) }));
     } catch {}
     setLoading(false);
   };
@@ -132,25 +136,13 @@ export default function ProfileSection({ userId }) {
 
         <div className="mt-3 mx-auto">
           {isOwnProfile ? (
-            <Link to="/settings" className="follow-button">
-              Settings
-            </Link>
+            <Link to="/settings" className="follow-button">Settings</Link>
           ) : isSubscribed ? (
-            <button
-              className="follow-button"
-              type="button"
-              disabled={loading}
-              onClick={handleUnfollow}
-            >
+            <button className="follow-button" type="button" disabled={loading} onClick={handleUnfollow}>
               Unfollow
             </button>
           ) : (
-            <button
-              className="follow-button"
-              type="button"
-              disabled={loading}
-              onClick={handleFollow}
-            >
+            <button className="follow-button" type="button" disabled={loading} onClick={handleFollow}>
               + Follow
             </button>
           )}

@@ -210,7 +210,7 @@ function NavbarInner({ user, currentIndex, location }) {
                 name={user.name}
                 size={32}
                 showName
-                to="/settings"
+                to="/profile"
               />
             ) : (
               <Link
