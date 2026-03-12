@@ -4,10 +4,17 @@ import add from "../../assets/add.svg";
 import like from "../../assets/like.svg";
 import UserAvatar from "../UserAvatar/UserAvatar";
 
-function PostBar({ user_id }) {
+function PostBar({ user_id, dice_id }) {
   const serverURL = import.meta.env.VITE_API_URL;
-  const [user, setUser] = useState();
+  const token = localStorage.getItem("token");
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
+  const [user, setUser] = useState();
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
+  const [loadingLike, setLoadingLike] = useState(false);
+
+  // Fetch User Info
   useEffect(() => {
     const getProtectedUser = async () => {
       if (!user_id) return;
@@ -15,12 +22,43 @@ function PostBar({ user_id }) {
         const response = await axios.get(`${serverURL}/users/${user_id}`);
         setUser(response.data.data);
       } catch (error) {
-        console.error("API Error fetching post user:", error.response?.status);
+        console.error("API Error fetching user:", error.response?.status);
       }
     };
-
     getProtectedUser();
   }, [user_id, serverURL]);
+
+  // Fetch Like Status
+  useEffect(() => {
+    if (!dice_id) return;
+    axios.get(`${serverURL}/dices/${dice_id}`, { headers })
+      .then((res) => {
+        const dice = res.data.data ?? res.data;
+        setIsLiked(dice.is_liked_by_current_user ?? false);
+        setLikesCount(dice.likes_count ?? 0);
+      })
+      .catch(() => {});
+  }, [dice_id, serverURL]);
+
+  const handleLike = async () => {
+    if (!token || loadingLike || !dice_id) return;
+    setLoadingLike(true);
+    try {
+      if (isLiked) {
+        await axios.delete(`${serverURL}/dices/${dice_id}/like`, { headers });
+        setIsLiked(false);
+        setLikesCount((prev) => prev - 1);
+      } else {
+        await axios.post(`${serverURL}/dices/${dice_id}/like`, {}, { headers });
+        setIsLiked(true);
+        setLikesCount((prev) => prev + 1);
+      }
+    } catch (error) {
+      console.error("Like Error:", error.response?.status);
+    } finally {
+      setLoadingLike(false);
+    }
+  };
 
   return (
     <div className="flex flex-row justify-between items-center bg-white text-black w-56.25 md:w-75 h-10 mx-auto rounded-3xl absolute left-2.5 top-2.5 z-50 shadow-sm">
@@ -35,12 +73,27 @@ function PostBar({ user_id }) {
             className="flex items-center relative gap-2 text-black"
           />
         )}
-        <div className="flex gap-2 m-2.5">
+        
+        <div className="flex items-center gap-2 m-2.5">
+          <button
+            type="button"
+            onClick={handleLike}
+            disabled={loadingLike || !token}
+            className="flex items-center gap-1 border-none bg-transparent cursor-pointer p-0"
+          >
+            <img
+              src={like}
+              alt="like"
+              className="h-6"
+              style={{ opacity: isLiked ? 1 : 0.4, transition: "opacity 0.2s" }}
+            />
+            {likesCount > 0 && (
+              <span className="text-xs text-black/60">{likesCount}</span>
+            )}
+          </button>
+
           <a href="#">
             <img src={add} alt="add" className="h-6" />
-          </a>
-          <a href="#">
-            <img src={like} alt="like" className="h-6" />
           </a>
         </div>
       </div>
