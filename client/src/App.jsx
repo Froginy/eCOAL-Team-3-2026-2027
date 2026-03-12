@@ -18,6 +18,7 @@ function App() {
         <Route path="/feed" element={<Feed />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/profil" element={<Profil />} />
+        <Route path="/profil/:id" element={<Profil />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Routes>

@@ -1,4 +1,61 @@
-export default function ProfileSection() {
+
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+
+export default function ProfileSection({ userId }) {
+
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    const fetchSubscription = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`/api/users/${userId}/subscribe`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
+          },
+        });
+        setIsSubscribed(res.data.subscribed);
+      } catch (e) {
+        setIsSubscribed(false);
+      }
+    };
+    fetchSubscription();
+  }, [userId]);
+
+  const handleFollow = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`/api/users/${userId}/subscribe`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      });
+      setIsSubscribed(true);
+    } catch (e) {}
+    setLoading(false);
+  };
+
+  const handleUnfollow = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`/api/users/${userId}/subscribe`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+      });
+      setIsSubscribed(false);
+    } catch (e) {}
+    setLoading(false);
+  };
+
   return (
     <div className="profile">
       <div className="profile-left">
@@ -17,12 +74,21 @@ export default function ProfileSection() {
           </div>
         </div>
 
-        <button className="follow-button" type="button">+ Follow</button>
+        {isSubscribed ? (
+          <button className="follow-button" type="button" disabled={loading} onClick={handleUnfollow}>
+            Unfollow
+          </button>
+        ) : (
+          <button className="follow-button" type="button" disabled={loading} onClick={handleFollow}>
+            + Follow
+          </button>
+        )}
       </div>
 
       <div className="profile-bio">
-        Cupidatat aute laborum aliqua consectetur voluptate laborum ipsum pariatur est deserunt enim eiusmod adipisicing duis.
+        {userId ? `Profil de l'utilisateur #${userId}` : 'Cupidatat aute laborum aliqua consectetur voluptate laborum ipsum pariatur est deserunt enim eiusmod adipisicing duis.'}
       </div>
     </div>
-  )
+
+  );
 }

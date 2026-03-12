@@ -80,7 +80,7 @@ function Login() {
                             className="auth-input"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Entar your password"
+                            placeholder="Enter your password"
                         />
                     </div>
 

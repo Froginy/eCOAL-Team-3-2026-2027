@@ -1,12 +1,34 @@
-import { Canvas } from "@react-three/fiber";
+import { useRef } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import modelUrl from "../../assets/model.glb";
 
 function Model(props) {
   const { scene } = useGLTF(modelUrl);
-  scene.rotation.set(-0,0,-1);
+  const ref = useRef();
+
   scene.position.set(0, 0, 0);
-  return <primitive object={scene} {...props} />;
+
+  const snapRef = useRef({ lastSnap: 0, current: 0, target: 0 });
+
+  useFrame((state) => {
+    if (!ref.current) return;
+    const t = state.clock.elapsedTime;
+    const snap = snapRef.current;
+
+    if (t - snap.lastSnap > 2.2) {
+      snap.lastSnap = t;
+      const steps = [Math.PI / 2, Math.PI * 2 / 3, Math.PI];
+      snap.target += steps[Math.floor(Math.random() * steps.length)];
+    }
+
+    snap.current += (snap.target - snap.current) * 0.18;
+    ref.current.rotation.y = snap.current;
+    ref.current.rotation.x = Math.sin(t * 0.4) * 0.15;
+    ref.current.rotation.z = -1;
+  });
+
+  return <primitive ref={ref} object={scene} {...props} />;
 }
 
 export default function ThreeModel() {
