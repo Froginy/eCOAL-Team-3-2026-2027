@@ -34,7 +34,7 @@ function PostBar({ user_id }) {
           <img
             src={
               user?.profile_image
-                ? `${serverURL}${user.profile_image}`
+                ? `${serverURL.replace('api', '')}${user.profile_image}`
                 : placeholder
             }
             alt="profile_picture"
@@ -45,38 +45,6 @@ function PostBar({ user_id }) {
             {user ? user.name : "Chargement..."}
           </p>
         </Link>
-      </div>
-      return (
-      <div className="flex flex-row justify-between items-center bg-white text-black w-56.25 md:w-75 h-10 mx-auto rounded-3xl absolute left-2.5 top-2.5 z-50 shadow-sm">
-        <div className="flex items-center relative text-black m-2.5">
-          <a
-            href={`/profile/${user?.id}`}
-            className="flex items-center relative gap-2 text-black "
-          >
-            <img
-              src={
-                user?.profile_image
-                  ? `${serverURL}${user.profile_image}`
-                  : placeholder
-              }
-              alt="profile_picture"
-              className="rounded-full w-7 aspect-square object-cover"
-            />
-
-            <p className="text-black w-20 overflow-wrap-anywhere whitespace-normal text-xs font-bold leading-tight">
-              {user ? user.name : "Chargement..."}
-            </p>
-          </a>
-        </div>
-
-        <div className="flex gap-2 m-2.5">
-          <a href="#">
-            <img src={add} alt="add" className="h-6" />
-          </a>
-          <a href="#">
-            <img src={like} alt="like" className="h-6" />
-          </a>
-        </div>
       </div>
     </div>
   );

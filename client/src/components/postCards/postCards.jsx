@@ -27,7 +27,7 @@ function PostCard({ name, description, images, collection }) {
       <PostBar user_id={collection?.user_id} title={collection?.title} />
 
       <img
-        src={`${serverURL}${currentImageUrl}`}
+        src={`${serverURL.replace('api','')}${currentImageUrl}`}
         alt={`${name} - ${CurrentImage}`}
         className="aspect-square object-cover w-[110%] self-center rounded-3xl shadow-lg"
       />
@@ -39,7 +39,7 @@ function PostCard({ name, description, images, collection }) {
         <img src={arrow} alt="arrow" className="rotate-270 h-1.5" />
       </button>
 
-      <div className="flex justify-center absolute top-66.25 md:top-90 gap-1.25 ml-1.25">
+      <div className="flex justify-center absolute top-66.25 md:top-90 gap-1.25 ml-4">
         {images.map((_, index) => (
           <img
             key={index}
