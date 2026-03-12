@@ -324,13 +324,13 @@ export default function NewDiceDrawer({ open, onClose }) {
         ref={backdropRef}
         onClick={onClose}
         style={{ display: 'none', opacity: 0 }}
-        className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
+        className="fixed inset-0 z-2000 bg-black/20 backdrop-blur-sm"
       />
 
       <div
         ref={drawerRef}
         style={{ display: 'none' }}
-        className="fixed bottom-0 left-0 right-0 w-[90%] md:w-[40vw] mx-auto z-50 flex flex-col justify-center bg-white rounded-t-4xl border-t border-black/8 shadow-[0_-16px_60px_rgba(0,0,0,0.12)]"
+        className="fixed bottom-0 left-0 right-0 w-[90%] md:w-[40vw] mx-auto z-2000 flex flex-col justify-center bg-white rounded-t-4xl border-t border-black/8 shadow-[0_-16px_60px_rgba(0,0,0,0.12)]"
       >
         <div className="flex justify-center pt-3 pb-1 shrink-0">
           <div className="w-10 h-1 bg-black/15 rounded-full" />
