@@ -11,6 +11,11 @@ export default function Profile() {
   const { id } = useParams();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+<<<<<<< HEAD
+=======
+  const api_url = import.meta.env.VITE_API_URL;
+
+>>>>>>> 27e719a (modif)
   return (
     <div className="page-container">
       <Header userId={id} />
