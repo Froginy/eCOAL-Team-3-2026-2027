@@ -45,6 +45,26 @@ class UserController extends Controller
     }
 
     /**
+     * Liste des abonnés d'un utilisateur.
+     */
+    public function followers(int $id)
+    {
+        $user = User::findOrFail($id);
+        $followers = $user->followers()->withCount(['followers', 'following'])->get();
+        return UserResource::collection($followers);
+    }
+
+    /**
+     * Liste des personnes suivies par un utilisateur.
+     */
+    public function following(int $id)
+    {
+        $user = User::findOrFail($id);
+        $following = $user->following()->withCount(['followers', 'following'])->get();
+        return UserResource::collection($following);
+    }
+
+    /**
      * Met à jour le profil de l'utilisateur connecté.
      */
     public function update(Request $request)
@@ -53,6 +73,7 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'name'                => 'sometimes|string|max:255',
+            'email'               => 'sometimes|string|email|max:255|unique:users,email,' . $user->id,
             'description'         => 'nullable|string',
             'profile_picture_url' => 'nullable|string|max:255',
         ]);
