@@ -25,7 +25,6 @@ function DiceIcon({ sizeMm, className }) {
   let label = 'M';
   let svgSize = 26;
   
-  // Refined scaling logic: S (22px), M (26px), L (30px)
   if (sizeMm < 18) {
     label = 'S';
     svgSize = 22;
@@ -62,12 +61,10 @@ export default function NewDiceDrawer({ open, onClose }) {
   const [error, setError]               = useState(null);
   const [success, setSuccess]           = useState(false);
   
-  // Dynamic Data
   const [categories, setCategories]     = useState([]);
   const [criterias, setCriterias]       = useState([]);
   const [userCollectionId, setUserCollectionId] = useState(null);
   
-  // Category Selection
   const [cat1, setCat1]                 = useState(null);
   const [cat2, setCat2]                 = useState(null);
   const [catOpen1, setCatOpen1]         = useState(false);
@@ -89,10 +86,8 @@ export default function NewDiceDrawer({ open, onClose }) {
       const token   = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-      // Reset errors on fetch
       setError(null);
 
-      // Fetch Categories (Public)
       axios.get(`${api_url}/categories`)
         .then(res => {
           const data = res.data.data || res.data;
@@ -100,11 +95,9 @@ export default function NewDiceDrawer({ open, onClose }) {
         })
         .catch(err => {
           console.error("Categories fetch failed:", err);
-          // Don't overwrite error if already set by user fetch
           setError(prev => prev || "Categories could not be loaded.");
         });
 
-      // Fetch Criterias (Public)
       axios.get(`${api_url}/criterias`)
         .then(res => {
           const data = res.data.data || res.data;
@@ -112,7 +105,6 @@ export default function NewDiceDrawer({ open, onClose }) {
         })
         .catch(err => console.error("Criterias fetch failed:", err));
 
-      // Fetch User & Collection (Auth Protected)
       if (token && token !== 'undefined') {
         axios.get(`${api_url}/user`, { headers })
           .then(res => {
@@ -127,7 +119,7 @@ export default function NewDiceDrawer({ open, onClose }) {
             console.error("User fetch failed:", err);
             if (err.response?.status === 401) {
               setError("Session expired or unauthorized. Please log in again.");
-              localStorage.removeItem('token'); // Clear invalid token
+              localStorage.removeItem('token');
             } else {
               setError("Failed to verify account permissions.");
             }
@@ -338,7 +330,7 @@ export default function NewDiceDrawer({ open, onClose }) {
       <div
         ref={drawerRef}
         style={{ display: 'none' }}
-        className="fixed bottom-0 left-0 right-0 mx-2 md:mx-[10vw] lg:mx-[10vw] z-50 flex flex-col justify-center bg-white rounded-t-4xl border-t border-black/8 shadow-[0_-16px_60px_rgba(0,0,0,0.12)]"
+        className="fixed bottom-0 left-0 right-0 w-[90%] md:w-[40vw] mx-auto z-50 flex flex-col justify-center bg-white rounded-t-4xl border-t border-black/8 shadow-[0_-16px_60px_rgba(0,0,0,0.12)]"
       >
         <div className="flex justify-center pt-3 pb-1 shrink-0">
           <div className="w-10 h-1 bg-black/15 rounded-full" />
@@ -346,7 +338,7 @@ export default function NewDiceDrawer({ open, onClose }) {
 
         <form
           onSubmit={handleSubmit}
-          className="max-h-[70vh] w-[70%] overflow-y-auto mx-auto px-6 py-5 flex flex-col gap-4 mt-6"
+          className="max-h-[70vh] w-full overflow-y-auto mx-auto px-6 py-5 flex flex-col gap-4 mt-6"
         >
           <div className="flex flex-col gap-1.5">
             <label className="text-[11px] font-semibold tracking-widest uppercase text-black/40 flex items-center gap-1.5">
@@ -467,7 +459,6 @@ export default function NewDiceDrawer({ open, onClose }) {
                     onChange={e => setFaces(Number(e.target.value))}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
-                  {/* Custom Dot Handle */}
                   <div 
                     className="absolute top-1/2 -translate-y-1/2 w-2 h-2 bg-black rounded-full border border-white pointer-events-none shadow-sm"
                     style={{ left: `calc(${fillPctFaces}% - 4px)` }}
@@ -501,10 +492,9 @@ export default function NewDiceDrawer({ open, onClose }) {
                     onChange={e => setSizeMm(Number(e.target.value))}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   />
-                  {/* Dice Icon as Handle */}
                   <div 
                     className="absolute top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center"
-                    style={{ left: `calc(${fillPctSize}% - 15px)` }} // Center the icon roughly
+                    style={{ left: `calc(${fillPctSize}% - 15px)` }}
                   >
                     <DiceIcon sizeMm={sizeMm} className="text-black bg-white rounded-md p-0.5 shadow-sm border border-black/10" />
                   </div>
@@ -541,4 +531,4 @@ export default function NewDiceDrawer({ open, onClose }) {
     </>
   );
 }
-
+

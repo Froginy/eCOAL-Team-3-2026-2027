@@ -6,7 +6,7 @@ import dice2 from "../../assets/dice2.svg";
 import dice3 from "../../assets/dice3.svg";
 import { useState } from "react";
 
-function PostCard({ name, description, images, collection }) {
+function PostCard({ id, name, description, images, collection }) {
   const serverURL = import.meta.env.VITE_API_URL;
   const server_base = serverURL
     ? serverURL.replace("/api", "").replace(/\/$/, "")
@@ -27,7 +27,7 @@ function PostCard({ name, description, images, collection }) {
 
   return (
     <div className="relative w-75 md:w-115 mb-7.5 bg-white shadow-lg rounded-2xl md:rounded-3xl flex flex-col ">
-      <PostBar user_id={collection?.user_id} title={collection?.title} />
+      <PostBar user_id={collection?.user_id} dice_id={id} title={collection?.title} />
 
       <img
         src={`${server_base}/${currentImageUrl}`}

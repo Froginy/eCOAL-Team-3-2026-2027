@@ -21,27 +21,19 @@ function UserAvatar({
     .slice(0, 2)
     .join("")
     .toUpperCase();
-  let handleMouseEnter, handleMouseLeave;
 
+  let handleMouseEnter, handleMouseLeave;
   if (hover) {
     handleMouseEnter = () => {
       if (!containerRef.current) return;
-      gsap.to(containerRef.current, {
-        scale: 1.08,
-        duration: 0.25,
-        ease: "back.out(2)",
-      });
+      gsap.to(containerRef.current, { scale: 1.08, duration: 0.25, ease: "back.out(2)" });
     };
-
     handleMouseLeave = () => {
       if (!containerRef.current) return;
-      gsap.to(containerRef.current, {
-        scale: 1,
-        duration: 0.2,
-        ease: "power2.out",
-      });
+      gsap.to(containerRef.current, { scale: 1, duration: 0.2, ease: "power2.out" });
     };
   }
+
   const showImage = src && !imgError;
 
   const avatarStyle = {
@@ -50,7 +42,7 @@ function UserAvatar({
     borderRadius: "50%",
     flexShrink: 0,
     overflow: "hidden",
-    background: showImage ? "transparent" : `black`,
+    background: showImage ? "transparent" : "black",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -61,49 +53,38 @@ function UserAvatar({
     userSelect: "none",
   };
 
-  return (
-    <Link
-      to={to}
-      ref={containerRef}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      className={`flex items-center gap-2 no-underline ${className}`}
-      style={{ textDecoration: "none", color: "inherit" }}
-    >
+  const sharedProps = {
+    ref: containerRef,
+    onMouseEnter: handleMouseEnter,
+    onMouseLeave: handleMouseLeave,
+    className: `flex items-center gap-2 no-underline ${className}`,
+    style: { textDecoration: "none", color: "inherit" },
+  };
+
+  const content = (
+    <>
       <div style={avatarStyle}>
         {showImage ? (
           <img
             src={src}
             alt={name}
             onError={() => setImgError(true)}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              display: "block",
-            }}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
           />
         ) : (
           <span>{initials || "?"}</span>
         )}
       </div>
-
       {showName && name && (
-        <span
-          style={{
-            fontSize: 13,
-            fontWeight: 600,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            maxWidth: 90,
-          }}
-        >
+        <span style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 90 }}>
           {name.split(" ")[0]}
         </span>
       )}
-    </Link>
+    </>
   );
+
+  if (!to) return <div {...sharedProps}>{content}</div>;
+  return <Link to={to} {...sharedProps}>{content}</Link>;
 }
 
 export default UserAvatar;
