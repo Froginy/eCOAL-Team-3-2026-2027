@@ -25,6 +25,7 @@ function StackedNumber({ value }) {
 }
 
 export default function ProfileSection({ userId }) {
+  const api_url = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem('token');
   const isOwnProfile = !userId;
 
@@ -41,7 +42,7 @@ export default function ProfileSection({ userId }) {
 
     const fetchProfile = async () => {
       try {
-        const endpoint = isOwnProfile ? '/api/user' : `/api/users/${userId}`;
+        const endpoint = isOwnProfile ? api_url + '/user' : api_url + `/users/${userId}`;
         const res = await axios.get(endpoint, { headers });
         setProfile(res.data);
       } catch {
@@ -52,7 +53,7 @@ export default function ProfileSection({ userId }) {
     const fetchSubscription = async () => {
       if (isOwnProfile) return;
       try {
-        const res = await axios.get(`/api/users/${userId}/subscribe`, { headers });
+        const res = await axios.get(api_url + `/users/${userId}/subscribe`, { headers });
         setIsSubscribed(res.data.subscribed);
       } catch {
         setIsSubscribed(false);

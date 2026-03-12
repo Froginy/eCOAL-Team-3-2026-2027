@@ -4,6 +4,7 @@ import Header from '../DiceHeader/DiceHeader';
 import ProfileSection from '../ProfileSection/ProfileSection';
 import DiceGrid from '../DiceGrid/DiceGrid';
 import NewDiceDrawer from '../Drawer/Drawer';
+import Navbar from '../Navbar/Navbar';
 import './Profile.css';
 
 export default function Profile() {
@@ -31,6 +32,8 @@ export default function Profile() {
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
       />
+
+      <Navbar />
     </div>
   );
 }
