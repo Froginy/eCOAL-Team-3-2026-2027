@@ -10,7 +10,7 @@ import axios from "axios";
 import "./postCard.css";
 import UserAvatar from "../UserAvatar/UserAvatar.jsx";
 
-function PostCard({ id, name, description, images, collection, primary_category, secondary_category, criterias }) {
+function PostCard({ id, name, description, images, collection, primary_category, secondary_category, criterias, onEdit, onDelete }) {
   const serverURL = import.meta.env.VITE_API_URL;
   const server_base = serverURL
     ? serverURL.replace("/api", "").replace(/\/$/, "")
@@ -150,6 +150,8 @@ function PostCard({ id, name, description, images, collection, primary_category,
           user_id={collection?.user_id}
           dice_id={id}
           title={collection?.title}
+          onEdit={onEdit}
+          onDelete={onDelete}
         />
         <div className="relative w-[90%] self-center">
           <div

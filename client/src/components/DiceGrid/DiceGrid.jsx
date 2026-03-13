@@ -140,7 +140,7 @@ export default function DiceGrid({ userId, isOwnProfile, refreshKey }) {
               secondary_category={dice.secondary_category}
               criterias={dice.criterias ?? []}
               onEdit={() => setEditDice(dice)}
-              onDelete={handleDelete}
+              onDelete={() => setDeleteTarget(dice.id)}
             />
           </div>
         ))}
