@@ -9,6 +9,8 @@ import axios from "axios";
 function Feed() {
   const [dices, setDices] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingDice, setEditingDice] = useState(null);
   const [allUsers, setAllUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState({ users: [], dices: [] });
@@ -81,7 +83,6 @@ function Feed() {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((r) => {
-        console.log("users response", r.data);
         setAllUsers(r.data?.data ?? r.data);
       })
       .catch((e) =>
@@ -130,6 +131,32 @@ function Feed() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEdit = (dice) => {
+    setEditingDice(dice);
+    setIsEditOpen(true);
+  };
+
+  const handleUpdated = (updatedDice) => {
+    setDices((prev) =>
+      prev.map((d) => (d.id === updatedDice.id ? updatedDice : d)),
+    );
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce dé ?")) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${api_url}/dices/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDices((prev) => prev.filter((d) => d.id !== id));
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert("La suppression a échoué.");
+    }
   };
 
   useEffect(() => {
