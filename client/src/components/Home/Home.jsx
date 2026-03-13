@@ -8,7 +8,7 @@ import hero from "../../assets/hero.svg";
 import ThreeModel from "../ThreeModel/ThreeModel";
 import DiceCard from "../DiceCard/DiceCard";
 import heroVideo from "../../assets/hero_video.mp4";
-import { useEntranceAnimation } from "../../hooks/useEntranceAnimation"; 
+import { useEntranceAnimation } from "../../hooks/useEntranceAnimation";
 import "./Home.css";
 
 const api_url = import.meta.env.VITE_API_URL;
@@ -18,17 +18,133 @@ const CARD_W = 300;
 const CARD_GAP = 24;
 const CARD_STRIDE = CARD_W + CARD_GAP;
 const MAX_CARDS = 10;
+const Dice1 = ({ style }) => (
+  <svg
+    style={style}
+    width="111"
+    height="114"
+    viewBox="0 0 111 114"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <g clipPath="url(#d1)">
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M77.8189 7.53255C77.6017 6.75097 77.7039 5.91513 78.103 5.20891C78.5021 4.50268 79.1654 3.98392 79.947 3.76675L90.556 0.818858C91.3375 0.601684 92.1734 0.703885 92.8796 1.10298C93.5858 1.50207 94.1046 2.16537 94.3218 2.94694L97.2697 13.5559C97.4868 14.3375 97.3846 15.1734 96.9855 15.8796C96.5864 16.5858 95.9232 17.1046 95.1416 17.3217L84.5326 20.2696C83.751 20.4868 82.9152 20.3846 82.2089 19.9855C81.5027 19.5864 80.9839 18.9231 80.7668 18.1416L77.8189 7.53255ZM90.3082 7.75981C90.494 7.7082 90.6677 7.6205 90.8196 7.50172C90.9715 7.38295 91.0985 7.23543 91.1933 7.06758C91.2882 6.89973 91.349 6.71484 91.3724 6.52347C91.3958 6.33209 91.3813 6.13799 91.3297 5.95223C91.2781 5.76647 91.1904 5.5927 91.0716 5.44083C90.9528 5.28896 90.8053 5.16198 90.6375 5.06712C90.4696 4.97227 90.2847 4.91141 90.0933 4.88801C89.902 4.86461 89.7079 4.87913 89.5221 4.93075C89.1469 5.03499 88.8286 5.284 88.637 5.62298C88.4454 5.96197 88.3964 6.36317 88.5006 6.73833C88.6049 7.11349 88.8539 7.43187 89.1929 7.62344C89.5318 7.815 89.933 7.86406 90.3082 7.75981ZM93.1561 12.5251C93.2077 12.7109 93.2222 12.905 93.1988 13.0963C93.1754 13.2877 93.1145 13.4726 93.0197 13.6404C92.9248 13.8083 92.7979 13.9558 92.646 14.0746C92.4941 14.1934 92.3203 14.2811 92.1346 14.3327C91.9488 14.3843 91.7547 14.3988 91.5633 14.3754C91.372 14.352 91.1871 14.2912 91.0192 14.1963C90.8514 14.1014 90.7039 13.9745 90.5851 13.8226C90.4663 13.6707 90.3786 13.497 90.327 13.3112C90.2228 12.936 90.2718 12.5348 90.4634 12.1958C90.6549 11.8569 90.9733 11.6079 91.3485 11.5036C91.7236 11.3994 92.1248 11.4484 92.4638 11.64C92.8028 11.8316 93.0518 12.1499 93.1561 12.5251ZM87.938 11.9611C88.3131 11.8569 88.6315 11.6079 88.8231 11.2689C89.0146 10.9299 89.0637 10.5287 88.9595 10.1536C88.8552 9.7784 88.6062 9.46001 88.2672 9.26845C87.9282 9.07689 87.527 9.02783 87.1519 9.13207C86.7767 9.23632 86.4583 9.48532 86.2668 9.82431C86.0752 10.1633 86.0261 10.5645 86.1304 10.9397C86.2346 11.3148 86.4836 11.6332 86.8226 11.8248C87.1616 12.0163 87.5628 12.0654 87.938 11.9611ZM84.7615 7.7773C84.8658 8.15246 84.8167 8.55366 84.6252 8.89265C84.4336 9.23164 84.1152 9.48064 83.7401 9.58488C83.3649 9.68913 82.9637 9.64007 82.6247 9.44851C82.2857 9.25694 82.0367 8.93856 81.9325 8.5634C81.8282 8.18825 81.8773 7.78704 82.0688 7.44805C82.2604 7.10907 82.5788 6.86006 82.954 6.75582C83.3291 6.65157 83.7303 6.70063 84.0693 6.8922C84.4083 7.08376 84.6573 7.40214 84.7615 7.7773ZM85.5664 16.1577C85.9416 16.0535 86.26 15.8045 86.4515 15.4655C86.6431 15.1265 86.6922 14.7253 86.5879 14.3502C86.4837 13.975 86.2347 13.6566 85.8957 13.4651C85.5567 13.2735 85.1555 13.2244 84.7803 13.3287C84.4052 13.4329 84.0868 13.6819 83.8952 14.0209C83.7037 14.3599 83.6546 14.7611 83.7589 15.1363C83.8631 15.5114 84.1121 15.8298 84.4511 16.0214C84.7901 16.2129 85.1913 16.262 85.5664 16.1577Z"
+        fill="#1E1E1E"
+      />
+    </g>
+    <defs>
+      <clipPath id="d1">
+        <rect
+          width="17.1281"
+          height="17.1281"
+          fill="white"
+          transform="translate(77 4.58561) rotate(-15.5288)"
+        />
+      </clipPath>
+    </defs>
+  </svg>
+);
+
+const Dice2 = ({ style }) => (
+  <svg
+    style={style}
+    width="111"
+    height="114"
+    viewBox="0 0 111 114"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <g clipPath="url(#d2)">
+      <path
+        d="M46.7498 87.0068C48.9323 87.8385 50.0616 90.2289 49.3541 92.4269L49.2769 92.6461L43.902 106.75C43.0703 108.932 40.6798 110.062 38.4819 109.354L38.2627 109.277L24.159 103.902C23.1136 103.504 22.2608 102.72 21.7763 101.711C21.2918 100.703 21.2125 99.547 21.5547 98.4819L21.6319 98.2627L27.0068 84.159C27.8385 81.9765 30.2289 80.8471 32.4269 81.5547L32.6461 81.6319L46.7498 87.0068ZM38.0786 100.28C37.6356 100.111 37.1437 100.125 36.7111 100.319C36.2785 100.513 35.9406 100.871 35.7718 101.314C35.603 101.757 35.617 102.249 35.8109 102.681C36.0048 103.114 36.3625 103.452 36.8055 103.621C37.2485 103.789 37.7404 103.775 38.173 103.582C38.6056 103.388 38.9435 103.03 39.1123 102.587C39.2811 102.144 39.2671 101.652 39.0732 101.219C38.8793 100.787 38.5216 100.449 38.0786 100.28ZM30.284 97.3097C29.8411 97.1408 29.3492 97.1549 28.9166 97.3488C28.4839 97.5426 28.1461 97.9004 27.9773 98.3434C27.8084 98.7864 27.8225 99.2783 28.0164 99.7109C28.2102 100.143 28.568 100.481 29.011 100.65C29.454 100.819 29.9459 100.805 30.3785 100.611C30.8111 100.417 31.1489 100.059 31.3178 99.6165C31.4866 99.1735 31.4725 98.6816 31.2787 98.249C31.0848 97.8164 30.727 97.4785 30.284 97.3097ZM32.1936 92.2989C31.7507 92.1301 31.2588 92.1441 30.8262 92.338C30.3936 92.5319 30.0557 92.8896 29.8869 93.3326C29.718 93.7756 29.7321 94.2675 29.926 94.7001C30.1198 95.1327 30.4776 95.4706 30.9206 95.6394C31.3636 95.8082 31.8555 95.7942 32.2881 95.6003C32.7207 95.4064 33.0586 95.0487 33.2274 94.6057C33.3962 94.1627 33.3821 93.6708 33.1883 93.2382C32.9944 92.8056 32.6366 92.4677 32.1936 92.2989ZM39.9882 95.2694C39.5452 95.1006 39.0533 95.1146 38.6207 95.3085C38.1881 95.5023 37.8502 95.8601 37.6814 96.3031C37.5126 96.7461 37.5266 97.238 37.7205 97.6706C37.9144 98.1032 38.2721 98.4411 38.7151 98.6099C39.1581 98.7787 39.65 98.7646 40.0826 98.5708C40.5152 98.3769 40.8531 98.0191 41.0219 97.5762C41.1907 97.1332 41.1767 96.6413 40.9828 96.2087C40.7889 95.7761 40.4312 95.4382 39.9882 95.2694ZM34.1033 87.2881C33.6603 87.1193 33.1684 87.1334 32.7358 87.3272C32.3032 87.5211 31.9653 87.8788 31.7965 88.3218C31.6276 88.7648 31.6417 89.2567 31.8356 89.6893C32.0294 90.1219 32.3872 90.4598 32.8302 90.6286C33.2732 90.7974 33.7651 90.7834 34.1977 90.5895C34.6303 90.3956 34.9682 90.0379 35.137 89.5949C35.3058 89.1519 35.2917 88.66 35.0979 88.2274C34.904 87.7948 34.5462 87.4569 34.1033 87.2881ZM41.8978 90.2586C41.4548 90.0898 40.9629 90.1038 40.5303 90.2977C40.0977 90.4916 39.7598 90.8493 39.591 91.2923C39.4222 91.7353 39.4363 92.2272 39.6301 92.6598C39.824 93.0924 40.1817 93.4303 40.6247 93.5991C41.0677 93.7679 41.5596 93.7539 41.9922 93.56C42.4248 93.3661 42.7627 93.0084 42.9315 92.5654C43.1003 92.1224 43.0863 91.6305 42.8924 91.1979C42.6985 90.7653 42.3408 90.4274 41.8978 90.2586Z"
+        fill="#1E1E1E"
+      />
+    </g>
+    <defs>
+      <clipPath id="d2">
+        <rect
+          width="28.599"
+          height="28.599"
+          fill="white"
+          transform="translate(27.1846 77) rotate(20.8618)"
+        />
+      </clipPath>
+    </defs>
+  </svg>
+);
+
+const Dice3 = ({ style }) => (
+  <svg
+    style={style}
+    width="111"
+    height="114"
+    viewBox="0 0 111 114"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <g clipPath="url(#d3)">
+      <path
+        d="M102.408 78.426C103.804 78.0796 105.215 78.8912 105.63 80.251L105.668 80.389L107.907 89.4083C108.253 90.804 107.442 92.215 106.082 92.6297L105.944 92.6678L96.9246 94.9069C96.2561 95.0729 95.5494 94.9762 94.95 94.6367C94.3507 94.2971 93.9044 93.7407 93.7032 93.0819L93.6651 92.9439L91.426 83.9247C91.0795 82.529 91.8911 81.1179 93.251 80.7032L93.389 80.6652L102.408 78.426ZM102.512 87.4719C102.229 87.5422 101.985 87.7222 101.835 87.9723C101.684 88.2223 101.639 88.5219 101.709 88.8052C101.78 89.0885 101.96 89.3322 102.21 89.4828C102.46 89.6334 102.759 89.6785 103.043 89.6082C103.326 89.5378 103.57 89.3579 103.72 89.1078C103.871 88.8578 103.916 88.5582 103.846 88.2749C103.775 87.9916 103.595 87.7478 103.345 87.5973C103.095 87.4467 102.796 87.4016 102.512 87.4719ZM97.5277 88.7094C97.2444 88.7797 97.0007 88.9597 96.8501 89.2097C96.6995 89.4598 96.6544 89.7594 96.7247 90.0427C96.7951 90.326 96.975 90.5697 97.2251 90.7203C97.4751 90.8709 97.7747 90.916 98.058 90.8456C98.3413 90.7753 98.5851 90.5953 98.7356 90.3453C98.8862 90.0952 98.9313 89.7956 98.861 89.5123C98.7907 89.2291 98.6107 88.9853 98.3606 88.8347C98.1106 88.6841 97.811 88.6391 97.5277 88.7094ZM96.2902 83.7248C96.0069 83.7951 95.7632 83.9751 95.6126 84.2251C95.462 84.4752 95.4169 84.7748 95.4873 85.0581C95.5576 85.3414 95.7376 85.5851 95.9876 85.7357C96.2376 85.8863 96.5373 85.9314 96.8206 85.861C97.1038 85.7907 97.3476 85.6107 97.4982 85.3607C97.6488 85.1106 97.6938 84.811 97.6235 84.5277C97.5532 84.2445 97.3732 84.0007 97.1232 83.8501C96.8731 83.6995 96.5735 83.6545 96.2902 83.7248ZM101.275 82.4873C100.992 82.5576 100.748 82.7376 100.597 82.9877C100.447 83.2377 100.402 83.5373 100.472 83.8206C100.542 84.1039 100.722 84.3476 100.972 84.4982C101.222 84.6488 101.522 84.6939 101.805 84.6236C102.088 84.5532 102.332 84.3733 102.483 84.1232C102.633 83.8732 102.678 83.5735 102.608 83.2903C102.538 83.007 102.358 82.7632 102.108 82.6126C101.858 82.4621 101.558 82.417 101.275 82.4873Z"
+        fill="#1E1E1E"
+      />
+    </g>
+    <defs>
+      <clipPath id="d3">
+        <rect
+          width="17.6089"
+          height="17.6089"
+          fill="white"
+          transform="translate(89 80.2428) rotate(-13.9424)"
+        />
+      </clipPath>
+    </defs>
+  </svg>
+);
+
+const Dice4 = ({ style }) => (
+  <svg
+    style={style}
+    width="111"
+    height="114"
+    viewBox="0 0 111 114"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <g clipPath="url(#d4)">
+      <path
+        d="M11.0217 9.6536L18.9858 15.1051C19.2875 15.3117 19.4948 15.6296 19.5621 15.9891C19.6295 16.3485 19.5512 16.7199 19.3447 17.0216L13.8932 24.9857C13.6866 25.2875 13.3687 25.4948 13.0092 25.5621C12.6498 25.6294 12.2784 25.5512 11.9766 25.3447L4.01255 19.8931C3.71081 19.6866 3.50347 19.3686 3.43616 19.0092C3.36884 18.6498 3.44706 18.2784 3.65361 17.9766L9.10514 10.0125C9.31169 9.71079 9.62965 9.50346 9.98906 9.43615C10.3485 9.36883 10.7199 9.44705 11.0217 9.6536ZM12.2779 16.3614C11.9762 16.1549 11.6048 16.0766 11.2453 16.144C10.8859 16.2113 10.568 16.4186 10.3614 16.7204C10.1549 17.0221 10.0767 17.3935 10.144 17.7529C10.2113 18.1124 10.4186 18.4303 10.7204 18.6369C11.0221 18.8434 11.3935 18.9216 11.753 18.8543C12.1124 18.787 12.4303 18.5797 12.6369 18.2779C12.8434 17.9762 12.9216 17.6047 12.8543 17.2453C12.787 16.8859 12.5797 16.568 12.2779 16.3614Z"
+        fill="#1D1D1D"
+      />
+    </g>
+    <defs>
+      <clipPath id="d4">
+        <rect
+          width="16.5449"
+          height="16.5449"
+          fill="white"
+          transform="translate(9.34548 6.00004) rotate(34.3922)"
+        />
+      </clipPath>
+    </defs>
+  </svg>
+);
 
 function Home() {
   const [cards, setCards] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-const heroRef    = useEntranceAnimation({ delay: 0.1, ease: "elastic.out(1,0.6)" });
-const textRef    = useEntranceAnimation({ y: 20, scale: 1, delay: 0.3 });
-const buttonsRef = useEntranceAnimation({ y: 20, scale: 1, delay: 0.45 });
-const modelRef   = useEntranceAnimation({ y: 30, scale: 1, delay: 0.55 });
-const ctaGRef    = useEntranceAnimation({ y: 30, scale: 1, delay: 0.1 });
+  const heroRef = useEntranceAnimation({
+    delay: 0.1,
+    ease: "elastic.out(1,0.6)",
+  });
+  const textRef = useEntranceAnimation({ y: 20, scale: 1, delay: 0.3 });
+  const buttonsRef = useEntranceAnimation({ y: 20, scale: 1, delay: 0.45 });
+  const modelRef = useEntranceAnimation({ y: 30, scale: 1, delay: 0.55 });
+  const ctaGRef = useEntranceAnimation({ y: 30, scale: 1, delay: 0.1 });
   const trackRef = useRef(null);
 
   useEffect(() => {
@@ -92,20 +208,47 @@ const ctaGRef    = useEntranceAnimation({ y: 30, scale: 1, delay: 0.1 });
       const displayed = rubberband(offset, 0, maxOffset());
       gsap.set(track, { x: -displayed });
     }
+function updateArc() {
+  const cards = track.querySelectorAll(".carousel-card");
+  const offsets = [
+    { rotate: -3, y: -8  },
+    { rotate:  1, y:  6  },
+    { rotate: -1, y: -4  },
+    { rotate:  4, y:  10 },
+    { rotate: -2, y:  0  },
+    { rotate:  2, y: -12 },
+    { rotate: -4, y:  8  },
+    { rotate:  1, y: -6  },
+    { rotate:  3, y:  4  },
+    { rotate: -1, y: -10 },
+  ];
 
-    function updateArc() {
-      const vw = window.innerWidth;
-      track.querySelectorAll(".carousel-card").forEach((el) => {
-        const rect = el.getBoundingClientRect();
-        const t = (rect.left + rect.width / 2 - vw / 2) / (vw / 2);
-        gsap.set(el, {
-          rotation: t * 10,
-          y: t * t * 60,
-          scale: 1 - Math.abs(t) * 0.06,
-          transformOrigin: "bottom center",
-        });
+  if (window.innerWidth < 768) {
+    cards.forEach((el, i) => {
+      const o = offsets[i % offsets.length];
+      gsap.set(el, {
+        rotation: o.rotate,
+        y: o.y,
+        scale: 1,
+        transformOrigin: "bottom center",
       });
-    }
+    });
+    return;
+  }
+
+  // desktop : arc normal
+  const vw = window.innerWidth;
+  cards.forEach((el) => {
+    const rect = el.getBoundingClientRect();
+    const t = (rect.left + rect.width / 2 - vw / 2) / (vw / 2);
+    gsap.set(el, {
+      rotation: t * 10,
+      y: t * t * 60,
+      scale: 1 - Math.abs(t) * 0.06,
+      transformOrigin: "bottom center",
+    });
+  });
+}
 
     function snapBack() {
       const max = maxOffset();
@@ -254,7 +397,7 @@ const ctaGRef    = useEntranceAnimation({ y: 30, scale: 1, delay: 0.1 });
   const setW = cards.length * CARD_STRIDE;
 
   return (
-    <div className="relative max-h-[300vh]">
+    <div className="relative">
       <div className="relative h-screen w-screen z-0">
         <div className="absolute top-4 md:top-1/2 left-1/2 -translate-x-1/2 translate-0 md:-translate-y-1/2 max-h-[90vh] max-w-[90vw] grid-dots-black rounded-4xl overflow-hidden">
           <video
@@ -327,7 +470,7 @@ const ctaGRef    = useEntranceAnimation({ y: 30, scale: 1, delay: 0.1 });
             />
             <p
               ref={textRef}
-              className="text-xl md:text-2xl text-white mix-blend-difference"
+              className="text-lg md:text-2xl text-white mix-blend-difference"
               style={{ opacity: 0 }}
             >
               We made this platform for you. 😊
@@ -338,7 +481,7 @@ const ctaGRef    = useEntranceAnimation({ y: 30, scale: 1, delay: 0.1 });
               style={{ opacity: 0 }}
             >
               <Link
-                className="text-center py-2 px-12 rounded-full border border-black bg-white text-black transition-transform duration-200 hover:scale-105 hover:-rotate-2"
+                className="text-center py-2 px-10 rounded-full border border-black bg-white text-black transition-transform duration-200 hover:scale-105 hover:-rotate-2"
                 to="/feed"
               >
                 Discover
@@ -363,14 +506,14 @@ const ctaGRef    = useEntranceAnimation({ y: 30, scale: 1, delay: 0.1 });
 
           <article
             ref={modelRef}
-            className="h-[80vh] relative mx-auto mt-20 w-full"
+            className="relative mx-auto mt-0 md:mt-20 w-full flex flex-col items-center"
             style={{ opacity: 0, overflow: "visible" }}
           >
-            <div className="absolute left-1/2 -translate-x-1/2 z-1 pointer-events-none">
+            <div className="relative z-1 pointer-events-none">
               <ThreeModel />
             </div>
             <div
-              className="absolute mt-60 min-h-150 mb-10 z-10 w-full"
+              className="relative mt-10 min-h-[520px] z-10 w-full"
               style={{ cursor: "grab", userSelect: "none", overflow: "hidden" }}
             >
               ⁄
@@ -395,12 +538,233 @@ const ctaGRef    = useEntranceAnimation({ y: 30, scale: 1, delay: 0.1 });
               </div>
             </div>
           </article>
-
           <article
             ref={ctaGRef}
-            className="mx-auto flex flex-col gap-12 justify-center items-center h-[50vh] relative z-20"
-            style={{ opacity: 0 }}
+            className="w-full flex flex-col gap-12 justify-center items-center relative mb-30"
+            style={{ opacity: 0, minHeight: "60vh" }}
           >
+            <Dice2
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 55,
+                transform: "translate(-280px, -120px) rotate(-25deg)",
+                opacity: 0.7,
+              }}
+            />
+            <Dice4
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 35,
+                transform: "translate(-200px, -80px)  rotate(55deg)",
+                opacity: 0.5,
+              }}
+            />
+            <Dice1
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 70,
+                transform: "translate(-180px, 20px)   rotate(-10deg)",
+                opacity: 0.6,
+              }}
+            />
+            <Dice3
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 40,
+                transform: "translate(-230px, 100px)  rotate(70deg)",
+                opacity: 0.45,
+              }}
+            />
+            <Dice4
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 30,
+                transform: "translate(-100px, 140px)  rotate(-50deg)",
+                opacity: 0.5,
+              }}
+            />
+            <Dice2
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 60,
+                transform: "translate(30px,  150px)   rotate(30deg)",
+                opacity: 0.55,
+              }}
+            />
+            <Dice1
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 45,
+                transform: "translate(150px, 120px)   rotate(-70deg)",
+                opacity: 0.5,
+              }}
+            />
+            <Dice3
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 65,
+                transform: "translate(190px, 20px)    rotate(15deg)",
+                opacity: 0.6,
+              }}
+            />
+            <Dice4
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 38,
+                transform: "translate(170px, -90px)   rotate(-40deg)",
+                opacity: 0.45,
+              }}
+            />
+            <Dice2
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 50,
+                transform: "translate(80px,  -140px)  rotate(60deg)",
+                opacity: 0.55,
+              }}
+            />
+            <Dice1
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 32,
+                transform: "translate(-30px, -150px)  rotate(-80deg)",
+                opacity: 0.4,
+              }}
+            />
+            <Dice3
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 42,
+                transform: "translate(-140px, -140px) rotate(20deg)",
+                opacity: 0.5,
+              }}
+            />
+
+            <Dice1
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 90,
+                transform: "translate(-380px, -60px)  rotate(12deg)",
+                opacity: 0.25,
+              }}
+            />
+            <Dice2
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 28,
+                transform: "translate(-320px, 80px)   rotate(-65deg)",
+                opacity: 0.3,
+              }}
+            />
+            <Dice3
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 75,
+                transform: "translate(-260px, 180px)  rotate(40deg)",
+                opacity: 0.2,
+              }}
+            />
+            <Dice4
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 35,
+                transform: "translate(20px,  220px)   rotate(-20deg)",
+                opacity: 0.3,
+              }}
+            />
+            <Dice1
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 55,
+                transform: "translate(240px, 180px)   rotate(55deg)",
+                opacity: 0.25,
+              }}
+            />
+            <Dice2
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 85,
+                transform: "translate(310px, 30px)    rotate(-35deg)",
+                opacity: 0.2,
+              }}
+            />
+            <Dice3
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 30,
+                transform: "translate(260px, -140px)  rotate(75deg)",
+                opacity: 0.3,
+              }}
+            />
+            <Dice4
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 60,
+                transform: "translate(80px,  -220px)  rotate(-15deg)",
+                opacity: 0.25,
+              }}
+            />
+            <Dice1
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 40,
+                transform: "translate(-160px, -220px) rotate(45deg)",
+                opacity: 0.3,
+              }}
+            />
+            <Dice2
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                width: 70,
+                transform: "translate(-350px, -180px) rotate(-55deg)",
+                opacity: 0.2,
+              }}
+            />
+
             <svg
               width="321"
               height="54"
@@ -420,12 +784,12 @@ const ctaGRef    = useEntranceAnimation({ y: 30, scale: 1, delay: 0.1 });
               />
             </svg>
 
-            <a
+            <Link
               className="px-12 py-2 bg-black text-white rounded-full text-lg"
-              href=""
+              to="/profile"
             >
               Gotcha !
-            </a>
+            </Link>
           </article>
         </section>
       </div>

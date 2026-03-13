@@ -203,14 +203,16 @@ function NavbarInner({ user, currentIndex, location }) {
             })}
           </div>
 
-          <div ref={userBlockRef} className="relative z-10 mr-2">
+          <div ref={userBlockRef} className="relative z-10">
             {user ? (
               <UserAvatar
                 src={user.avatar || user.profile_picture_url}
                 name={user.name}
-                size={32}
+                size={40}
                 showName
+                invert
                 to="/profile"
+                className="flex justify-center items-center"
               />
             ) : (
               <Link
