@@ -11,6 +11,7 @@ function UserAvatar({
   to = "/settings",
   className = "",
   hover = true,
+  invert = false,
 }) {
   const [imgError, setImgError] = useState(false);
   const containerRef = useRef(null);
@@ -62,27 +63,49 @@ function UserAvatar({
     cursor: hover ? "pointer" : "default" },
   };
 
-  const content = (
-    <>
-      <div style={avatarStyle}>
-        {showImage ? (
-          <img
-            src={src}
-            alt={name}
-            onError={() => setImgError(true)}
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-          />
-        ) : (
-          <span>{initials || "?"}</span>
-        )}
-      </div>
-      {showName && name && (
-        <span style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 90 }}>
-          {name.split(" ")[0]}
-        </span>
-      )}
-    </>
-  );
+  const content = invert
+    ? (
+        <>
+          {showName && name && (
+            <span style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 90 }}>
+              {name.split(" ")[0]}
+            </span>
+          )}
+          <div style={avatarStyle}>
+            {showImage ? (
+              <img
+                src={src}
+                alt={name}
+                onError={() => setImgError(true)}
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+            ) : (
+              <span>{initials || "?"}</span>
+            )}
+          </div>
+        </>
+      )
+    : (
+        <>
+          <div style={avatarStyle}>
+            {showImage ? (
+              <img
+                src={src}
+                alt={name}
+                onError={() => setImgError(true)}
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+            ) : (
+              <span>{initials || "?"}</span>
+            )}
+          </div>
+          {showName && name && (
+            <span style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 90 }}>
+              {name.split(" ")[0]}
+            </span>
+          )}
+        </>
+      );
 
   if (!to) return <div {...sharedProps}>{content}</div>;
   return <Link to={to} {...sharedProps}>{content}</Link>;

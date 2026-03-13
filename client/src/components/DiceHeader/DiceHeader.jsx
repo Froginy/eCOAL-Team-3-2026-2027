@@ -24,9 +24,9 @@ export default function Header({ userId }) {
   }, [userId]);
 
   return (
-    <div className="flex items-center justify-between bg-white text-black h-12 px-4 m-4 rounded-full shadow-md border border-black/5 sticky top-4 z-50">
+    <div className="flex items-center justify-between text-black h-12 px-4 m-4 rounded-full z-50">
       <button
-        className="w-8 h-8 flex items-center justify-center bg-black/5 rounded-full hover:bg-black/10 transition-colors cursor-pointer border-none"
+        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 transition-colors cursor-pointer border-none"
         aria-label="Go back"
         onClick={() => window.history.back()}
       >
