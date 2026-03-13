@@ -112,7 +112,7 @@ function PostBar({ user_id, dice_id, title }) {
   };
 
   return (
-    <div className="flex flex-row justify-between items-center bg-white text-black w-56.25 md:w-75 h-10 mx-auto rounded-3xl absolute left-2.5 top-2.5 z-50 shadow-sm">
+    <div className="flex flex-row justify-between items-center bg-white text-black w-56.25 md:w-75 h-10 mx-auto rounded-3xl absolute left-10 top-4 z-50 shadow-sm">
       <div className="flex justify-between w-full items-center relative text-black m-1.5">
         <Link
           to={`/profile/${user_id}`}

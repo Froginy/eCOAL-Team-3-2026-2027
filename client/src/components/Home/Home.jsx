@@ -506,14 +506,14 @@ function updateArc() {
 
           <article
             ref={modelRef}
-            className="relative mx-auto mt-0 md:mt-20 w-full flex flex-col items-center"
+            className="relative mb-20 mx-auto mt-0 md:mt-20 w-full flex flex-col items-center"
             style={{ opacity: 0, overflow: "visible" }}
           >
             <div className="relative z-1 pointer-events-none">
               <ThreeModel />
             </div>
             <div
-              className="relative mt-10 min-h-[520px] z-10 w-full"
+              className="absolute top-1/2 mt-0 min-h-[520px] z-10 w-full"
               style={{ cursor: "grab", userSelect: "none", overflow: "hidden" }}
             >
               ⁄

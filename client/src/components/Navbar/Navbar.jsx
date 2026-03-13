@@ -153,6 +153,32 @@ function NavbarInner({ user, currentIndex, location }) {
     );
   }, [user]);
 
+  useEffect(() => {
+  const onOpen = () => {
+    gsap.to(navRef.current, {
+      y: 100,
+      opacity: 0,
+      duration: 0.35,
+      ease: "power3.in",
+    });
+  };
+  const onClose = () => {
+    gsap.to(navRef.current, {
+      y: 0,
+      opacity: 1,
+      duration: 0.45,
+      ease: "elastic.out(1, 0.6)",
+    });
+  };
+
+  window.addEventListener("drawer:open", onOpen);
+  window.addEventListener("drawer:close", onClose);
+  return () => {
+    window.removeEventListener("drawer:open", onOpen);
+    window.removeEventListener("drawer:close", onClose);
+  };
+}, []);
+
   return (
     <>
       <div
