@@ -21,11 +21,15 @@ export function AuthProvider({ children }) {
             Accept: "application/json",
           },
         });
+        if (response.status === 401) {
+          logout();
+          return;
+        }
         if (!response.ok) throw new Error("Profile fetch failed");
         const data = await response.json();
-        setUser(data.data || { token });
+        setUser(data.data || null);
       } catch (err) {
-        setUser({ token });
+        console.error("Profile fetch error:", err);
       }
     };
     fetchProfile();

@@ -31,7 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return new \App\Http\Resources\UserResource($request->user()->load('collections'));
     });
     Route::put('/user', [UserController::class, 'update']);
-    Route::get('/logout', [AuthController::class, 'logout']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 });
 
 // --- SUBSCRIPTIONS ---

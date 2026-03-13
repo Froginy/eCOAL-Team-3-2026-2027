@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use App\Http\Resources\UserResource;
 use App\Http\Resources\DiceResource;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -75,8 +77,36 @@ class UserController extends Controller
             'name'                => 'sometimes|string|max:255',
             'email'               => 'sometimes|string|email|max:255|unique:users,email,' . $user->id,
             'description'         => 'nullable|string',
+            'profile_picture'     => 'nullable|string', // Supporte le base64
             'profile_picture_url' => 'nullable|string|max:255',
         ]);
+
+        if ($request->filled('profile_picture')) {
+            $base64Image = $request->input('profile_picture');
+            
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
+                $image = substr($base64Image, strpos($base64Image, ',') + 1);
+                $type = strtolower($type[1]);
+
+                if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png'])) {
+                    return response()->json(['message' => 'Invalid image type'], 422);
+                }
+
+                $image = base64_decode($image);
+
+                if ($image === false) {
+                    return response()->json(['message' => 'Base64 decode failed'], 422);
+                }
+
+                $fileName = Str::random(40) . '.' . $type;
+                $path = 'profiles/' . $fileName;
+                
+                Storage::disk('public')->put($path, $image);
+                
+                $validated['profile_picture_url'] = 'storage/' . $path;
+                unset($validated['profile_picture']);
+            }
+        }
 
         $user->update($validated);
 

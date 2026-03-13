@@ -32,6 +32,12 @@ class AuthController extends Controller
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
+        
+        // Créer une collection par défaut pour l'utilisateur
+        $user->collections()->create([
+            'title' => 'Ma Collection',
+            'description' => 'Ma collection de dés par défaut.',
+        ]);
 
         return response()->json([
             'token' => $token,

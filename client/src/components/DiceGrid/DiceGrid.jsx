@@ -48,7 +48,7 @@ const EditIcon = () => (
   </svg>
 );
 
-export default function DiceGrid({ userId, isOwnProfile }) {
+export default function DiceGrid({ userId, isOwnProfile, refreshKey }) {
   const [dices, setDices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [menuOpenId, setMenuOpenId] = useState(null);
@@ -100,7 +100,7 @@ export default function DiceGrid({ userId, isOwnProfile }) {
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, refreshKey]);
   useEffect(() => {
     console.log("dices", dices);
   }, [dices]);

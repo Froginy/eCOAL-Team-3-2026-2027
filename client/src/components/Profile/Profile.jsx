@@ -13,7 +13,8 @@ export default function Profile() {
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user, token } = useAuth();
-  
+  const [refreshKey, setRefreshKey] = useState(0);
+
   useEffect(() => {
     if (!token) {
       navigate("/login", { replace: true });
@@ -23,6 +24,10 @@ export default function Profile() {
 
   const isOwnProfile = !id;
   const userId = isOwnProfile ? user?.id : id;
+
+  const handleDiceCreated = () => {
+    setRefreshKey(prev => prev + 1);
+  };
 
   return (
     <div className="page-container">
@@ -49,9 +54,13 @@ export default function Profile() {
           New dice
         </button>
       )}
-      <DiceGrid userId={userId} isOwnProfile={isOwnProfile} />
+      <DiceGrid userId={userId} isOwnProfile={isOwnProfile} refreshKey={refreshKey} />
 
-      <NewDiceDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      <NewDiceDrawer 
+        open={drawerOpen} 
+        onClose={() => setDrawerOpen(false)} 
+        onCreated={handleDiceCreated}
+      />
 
       <Navbar />
     </div>

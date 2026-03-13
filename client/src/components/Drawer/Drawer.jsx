@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 
 const COLORS = [
   { name: 'Obsidian',  hex: '#1a1a2e' },
@@ -49,7 +50,8 @@ function DiceIcon({ sizeMm, className }) {
   );
 }
 
-export default function NewDiceDrawer({ open, onClose }) {
+export default function NewDiceDrawer({ open, onClose, onCreated }) {
+  const { user: authUser } = useAuth();
   const [color, setColor]               = useState(COLORS[0]);
   const [colorOpen, setColorOpen]       = useState(false);
   const [faces, setFaces]               = useState(6);
@@ -106,31 +108,40 @@ export default function NewDiceDrawer({ open, onClose }) {
         .catch(err => console.error("Criterias fetch failed:", err));
 
       if (token && token !== 'undefined') {
-        axios.get(`${api_url}/user`, { headers })
-          .then(res => {
-            const userData = res.data.data || res.data;
-            if (userData?.collections?.length > 0) {
-              setUserCollectionId(userData.collections[0].id);
-            } else {
-              setError("You don't have a collection. Please create one first.");
-            }
-          })
-          .catch(err => {
-            console.error("User fetch failed:", err);
-            if (err.response?.status === 401) {
-              setError("Session expired or unauthorized. Please log in again.");
-              localStorage.removeItem('token');
-            } else {
-              setError("Failed to verify account permissions.");
-            }
-          });
+        const fetchUserData = () => {
+          // Si on a l'utilisateur dans le contexte avec ses collections, on l'utilise
+          if (authUser?.collections?.length > 0) {
+            setUserCollectionId(authUser.collections[0].id);
+            return;
+          }
+
+          // Sinon on fait le fetch
+          axios.get(`${api_url}/user`, { headers })
+            .then(res => {
+              const userData = res.data.data || res.data;
+              if (userData?.collections?.length > 0) {
+                setUserCollectionId(userData.collections[0].id);
+              } else {
+                setError("You don't have a collection. Please check your account settings.");
+              }
+            })
+            .catch(err => {
+              console.error("User fetch failed:", err);
+              if (err.response?.status === 401) {
+                setError("Session expired or unauthorized. Please log in again.");
+              } else {
+                setError("Failed to verify account permissions.");
+              }
+            });
+        };
+        fetchUserData();
       } else {
         setError("You must be logged in to create a dice.");
       }
     };
 
     if (open) fetchData();
-  }, [open]);
+  }, [open, authUser]);
 
   useEffect(() => {
     if (isAnimating.current) return;
@@ -248,6 +259,7 @@ export default function NewDiceDrawer({ open, onClose }) {
       });
 
       setSuccess(true);
+      if (onCreated) onCreated();
       setTimeout(() => {
         onClose();
         setName(''); setDesc(''); setColor(COLORS[0]); setFaces(6); setSizeMm(22); setImages([]);

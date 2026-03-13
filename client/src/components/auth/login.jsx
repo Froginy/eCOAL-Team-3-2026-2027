@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
 import './login.css';
 
 function Login() {
@@ -8,6 +9,7 @@ function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
   const api_url = import.meta.env.VITE_API_URL;
 
   const handleLogin = async (e) => {
@@ -24,12 +26,7 @@ function Login() {
 
       if (response.status === 200) {
         const { token, user } = response.data;
-
-        localStorage.setItem('token', token);
-
-
-        window.dispatchEvent(new Event('storage'));
-
+        login(token, user);
         navigate('/');
       } else {
         setError('Invalid email or password.');
