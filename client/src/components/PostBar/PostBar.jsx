@@ -169,7 +169,7 @@ function PostBar({ user_id, dice_id, title, onEdit, onDelete }) {
           
           {onEdit && (
             <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(); }}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(dice_id); }}
               className="flex items-center border-none bg-transparent cursor-pointer p-0 opacity-50 hover:opacity-100 transition-opacity"
               title="Edit Dice"
             >
@@ -182,7 +182,7 @@ function PostBar({ user_id, dice_id, title, onEdit, onDelete }) {
 
           {onDelete && (
              <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(dice_id); }}
               className="flex items-center border-none bg-transparent cursor-pointer p-0 opacity-50 hover:opacity-100 transition-opacity"
               title="Delete Dice"
             >
