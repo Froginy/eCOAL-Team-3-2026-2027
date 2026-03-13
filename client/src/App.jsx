@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./components/Home/Home";
-import Feed from "./components/Feed/Feed";
+import Feed from "./components/feed/Feed";
 import Settings from "./components/Settings/Settings";
 import Profile from "./components/Profile/Profile";
 import Login from "./components/auth/login";
@@ -64,7 +64,7 @@ function SplashScreen({ onDone }) {
   return (
     <div
       ref={splashRef}
-      className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center gap-10"
+      className="fixed inset-0 z-9999 bg-white flex flex-col items-center justify-center gap-10"
     >
       <img
         ref={logoRef}
