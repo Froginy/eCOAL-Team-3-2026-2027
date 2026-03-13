@@ -35,9 +35,13 @@ function Model(props) {
 }
 
 export default function ThreeModel() {
+  // Responsive: plus gros sur PC
+  const isDesktop = typeof window !== "undefined" && window.innerWidth > 900;
+  const canvasSize = isDesktop ? 600 : 400;
+  const modelScale = isDesktop ? 3 : 3;
   return (
-    <Canvas style={{ width: 400, height: 400 }}>
-      <Model scale={3} />
+    <Canvas style={{ width: canvasSize, height: canvasSize }}>
+      <Model scale={modelScale} />
       <ambientLight intensity={1} />
       <directionalLight position={[5, 10, 7]} intensity={10} />
     </Canvas>
