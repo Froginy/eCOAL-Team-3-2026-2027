@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./components/Home/Home";
 import Feed from "./components/feed/Feed";
-import Settings from "./components/Settings/Settings";
+import Settings from "./components/Settings/settings";
 import Profile from "./components/Profile/Profile";
 import Login from "./components/auth/login";
 import Register from "./components/auth/register";
