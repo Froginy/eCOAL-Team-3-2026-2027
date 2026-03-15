@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import UserAvatar from "../UserAvatar/UserAvatar";
 import { useAuth } from "../../context/AuthContext";
-import "./settings.css";
+import "./Settings.css";
 
 function Settings() {
   const { user, token } = useAuth();

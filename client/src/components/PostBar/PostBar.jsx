@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import add from "../../assets/add.svg";
@@ -27,6 +28,7 @@ const HeartIcon = ({ filled }) => (
 );
 
 function PostBar({ user_id, dice_id, title, onEdit, onDelete }) {
+  const { user: currentUser } = useAuth();
   const serverURL = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem("token");
   const headers = { 
@@ -167,7 +169,7 @@ function PostBar({ user_id, dice_id, title, onEdit, onDelete }) {
             )}
           </button>
           
-          {onEdit && (
+          {currentUser?.id === user_id && onEdit && (
             <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(dice_id); }}
               className="flex items-center border-none bg-transparent cursor-pointer p-0 opacity-50 hover:opacity-100 transition-opacity"
@@ -180,8 +182,8 @@ function PostBar({ user_id, dice_id, title, onEdit, onDelete }) {
             </button>
           )}
 
-          {onDelete && (
-             <button
+          {currentUser?.id === user_id && onDelete && (
+            <button
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(dice_id); }}
               className="flex items-center border-none bg-transparent cursor-pointer p-0 opacity-50 hover:opacity-100 transition-opacity"
               title="Delete Dice"
