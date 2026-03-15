@@ -6,8 +6,11 @@ import UserAvatar from "../UserAvatar/UserAvatar";
 import { useState, useEffect, useMemo, useRef } from "react";
 import axios from "axios";
 
+let _dicesCache = null;
+
 function Feed() {
-  const [dices, setDices] = useState([]);
+  const [dices, setDices] = useState(_dicesCache ?? []);
+  const [loading, setLoading] = useState(_dicesCache === null);
   const [isOpen, setIsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingDice, setEditingDice] = useState(null);
@@ -164,9 +167,14 @@ function Feed() {
       try {
         const response = await axios.get(`${api_url}/dices`);
         const dataToSet = response.data.data;
-        if (Array.isArray(dataToSet)) setDices(dataToSet);
+        if (Array.isArray(dataToSet)) {
+          _dicesCache = dataToSet;
+          setDices(dataToSet);
+        }
       } catch (error) {
         console.error("API Error fetching dices:", error.response?.status);
+      } finally {
+        setLoading(false);
       }
     };
     getProtectedDices();
@@ -328,6 +336,7 @@ function Feed() {
                               src={`${server_base}/${img}`}
                               alt={dice.name}
                               className="w-8 h-8 rounded-lg object-cover shrink-0 border border-black/5"
+                              loading="lazy"
                             />
                           ) : (
                             <div className="w-8 h-8 rounded-lg bg-black/5 shrink-0" />
@@ -481,12 +490,16 @@ function Feed() {
       </div>
 
       <div className="flex flex-col items-center w-full gap-4">
-        {filteredDices && filteredDices.length > 0 ? (
+        {loading ? (
+          [...Array(4)].map((_, i) => (
+            <div key={i} className="w-11/12 max-w-sm rounded-3xl bg-black/5 animate-pulse" style={{ height: 420 }} />
+          ))
+        ) : filteredDices && filteredDices.length > 0 ? (
           filteredDices.map((dice) => (
-            <PostCard 
-              key={dice.id} 
-              {...dice} 
-              onEdit={() => handleEdit(dice)} 
+            <PostCard
+              key={dice.id}
+              {...dice}
+              onEdit={() => handleEdit(dice)}
               onDelete={handleDelete}
             />
           ))

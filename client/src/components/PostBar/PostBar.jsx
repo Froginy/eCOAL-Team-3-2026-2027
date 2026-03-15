@@ -57,21 +57,17 @@ function PostBar({ user_id, dice_id, title, onEdit, onDelete }) {
   }, [user_id]);
 
   const handleFollow = async () => {
+    const prevFollowing = isFollowing;
+    setIsFollowing(!isFollowing);
     try {
-      if (isFollowing) {
-        await axios.delete(`${serverURL}/users/${user_id}/subscribe`, {
-          headers,
-        });
-        setIsFollowing(false);
+      if (prevFollowing) {
+        await axios.delete(`${serverURL}/users/${user_id}/subscribe`, { headers });
       } else {
-        await axios.post(
-          `${serverURL}/users/${user_id}/subscribe`,
-          {},
-          { headers },
-        );
-        setIsFollowing(true);
+        await axios.post(`${serverURL}/users/${user_id}/subscribe`, {}, { headers });
       }
-    } catch {}
+    } catch {
+      setIsFollowing(prevFollowing);
+    }
   };
   useEffect(() => {
     if (!user_id) return;
@@ -95,19 +91,20 @@ function PostBar({ user_id, dice_id, title, onEdit, onDelete }) {
 
   const handleLike = async () => {
     if (!token || loadingLike || !dice_id) return;
+    const prevLiked = isLiked;
+    const prevCount = likesCount;
+    setIsLiked(!isLiked);
+    setLikesCount((prev) => isLiked ? prev - 1 : prev + 1);
     setLoadingLike(true);
     try {
-      if (isLiked) {
+      if (prevLiked) {
         await axios.delete(`${serverURL}/dices/${dice_id}/like`, { headers });
-        setIsLiked(false);
-        setLikesCount((prev) => prev - 1);
       } else {
         await axios.post(`${serverURL}/dices/${dice_id}/like`, {}, { headers });
-        setIsLiked(true);
-        setLikesCount((prev) => prev + 1);
       }
-    } catch (error) {
-      console.error("Like Error:", error.response?.status);
+    } catch {
+      setIsLiked(prevLiked);
+      setLikesCount(prevCount);
     } finally {
       setLoadingLike(false);
     }

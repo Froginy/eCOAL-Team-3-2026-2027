@@ -3,7 +3,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link } from "react-router-dom";
-import Navbar from "../Navbar/Navbar";
 import hero from "../../assets/hero.svg";
 import ThreeModel from "../ThreeModel/ThreeModel";
 import DiceCard from "../DiceCard/DiceCard";
@@ -63,10 +62,12 @@ const Dice4 = ({ style }) => (
   </svg>
 );
 
-function Home() {
-  const [cards, setCards] = useState([]);
+function Home({ initialCards = null }) {
+  const filled = initialCards && initialCards.length > 0
+    ? Array.from({ length: MAX_CARDS }, (_, i) => initialCards[i % initialCards.length])
+    : [];
+  const [cards, setCards] = useState(filled);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   const heroRef = useEntranceAnimation({ delay: 0.1, ease: "elastic.out(1,0.6)" });
   const textRef = useEntranceAnimation({ y: 20, scale: 1, delay: 0.3 });
@@ -87,17 +88,17 @@ function Home() {
   });
 
   useEffect(() => {
+    if (initialCards !== null) return;
     axios.get(api_url + "/dices")
       .then((res) => {
         if (Array.isArray(res.data.data)) {
           const items = res.data.data;
           if (items.length === 0) return;
-          const filled = Array.from({ length: MAX_CARDS }, (_, i) => items[i % items.length]);
-          setCards(filled);
+          const f = Array.from({ length: MAX_CARDS }, (_, i) => items[i % items.length]);
+          setCards(f);
         }
       })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+      .catch((err) => console.error(err));
   }, []);
 
   useEffect(() => {
@@ -109,7 +110,7 @@ function Home() {
   }, []);
 
   useEffect(() => {
-    if (loading || cards.length === 0) return;
+    if (cards.length === 0) return;
 
     const track = trackRef.current;
     if (!track) return;
@@ -276,7 +277,7 @@ function updateArc() {
       track.removeEventListener("pointercancel", onPointerUp);
       track.removeEventListener("click", onClickCapture, true);
     };
-  }, [loading, cards]);
+  }, [cards]);
 
   useEffect(() => {
     const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
@@ -348,18 +349,20 @@ function updateArc() {
               )}
             </article>
           </article>
+        </section>
+      </div>
 
-          <article
-            ref={modelRef}
-            className="relative mb-20 mx-auto mt-0 md:mt-20 w-full flex flex-col items-center"
-            style={{ opacity: 0, overflow: "visible" }}
-          >
-            <div className="relative z-1 pointer-events-none">
-              <ThreeModel />
-            </div>
+      <article
+        ref={modelRef}
+        className="relative mb-20 mx-auto w-full flex flex-col items-center"
+        style={{ opacity: 0, overflow: "visible", marginTop: "-14rem" }}
+      >
+        <div className="relative z-1 pointer-events-none">
+          <ThreeModel />
+        </div>
 
-            <div
-              className="absolute top-1/2 mt-0 min-h-[520px] z-10 w-full"
+        <div
+          className="absolute top-1/2 mt-0 min-h-[520px] z-10 w-full"
               style={{
                 overflow: "hidden",
                 userSelect: "none",
@@ -377,29 +380,25 @@ function updateArc() {
                 }}
                 onDragStart={(e) => e.preventDefault()}
               >
-                {loading ? (
-                  <p>Loading Cards...</p>
-                ) : (
-                  cards.map((card, i) => (
-                    <div
-                      key={`${card.id}-${i}`}
-                      className="carousel-card"
-                      style={{ flexShrink: 0, width: CARD_W }}
-                      onDragStart={(e) => e.preventDefault()}
-                    >
-                      <DiceCard {...card} user_id={card.collection?.user_id} />
-                    </div>
-                  ))
-                )}
+                {cards.map((card, i) => (
+                  <div
+                    key={`${card.id}-${i}`}
+                    className="carousel-card"
+                    style={{ flexShrink: 0, width: CARD_W }}
+                    onDragStart={(e) => e.preventDefault()}
+                  >
+                    <DiceCard {...card} user_id={card.collection?.user_id} />
+                  </div>
+                ))}
               </div>
             </div>
-          </article>
+      </article>
 
-          <article
-            ref={ctaGRef}
-            className="w-full flex flex-col gap-12 justify-center items-center relative mb-30"
-            style={{ opacity: 0, minHeight: "60vh" }}
-          >
+      <article
+        ref={ctaGRef}
+        className="w-full flex flex-col gap-12 justify-center items-center relative mb-30"
+        style={{ opacity: 0, minHeight: "60vh" }}
+      >
             {[
               [Dice2, { top:"50%", left:"50%", width:55, transform:"translate(-280px,-120px) rotate(-25deg)", opacity:0.7 }],
               [Dice4, { top:"50%", left:"50%", width:35, transform:"translate(-200px,-80px) rotate(55deg)", opacity:0.5 }],
@@ -435,10 +434,7 @@ function updateArc() {
             <Link className="px-12 py-2 bg-black text-white rounded-full text-lg" to="/profile">
               Gotcha !
             </Link>
-          </article>
-        </section>
-      </div>
-      <Navbar />
+      </article>
     </div>
   );
 }

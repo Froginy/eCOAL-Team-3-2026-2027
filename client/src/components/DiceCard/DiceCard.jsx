@@ -12,7 +12,7 @@ function DiceCard({ name, images, color, collection, id, user_id }) {
     const fetchUser = async () => {
       try {
         const response = await axios.get(`${serverURL}/users/${user_id}`);
-        setUser(response.data.data);
+        setUser(response.data.data ?? response.data);
       } catch (error) {
         console.error("API Error:", error.response?.status);
       }
@@ -68,6 +68,7 @@ function DiceCard({ name, images, color, collection, id, user_id }) {
             src={`${import.meta.env.VITE_API_URL.replace("/api", "")}/${images?.[0]?.image_url}`}
             alt={name}
             className="w-full h-full object-cover"
+            loading="lazy"
           />
         </div>
         <div
@@ -93,8 +94,9 @@ function DiceCard({ name, images, color, collection, id, user_id }) {
 
       <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2 rounded-full bg-white shadow-md px-3.5 py-1.75">
         <UserAvatar
+          src={user?.avatar || user?.profile_picture_url}
           name={user?.name}
-          to={user ? `/profile/${user.id}` : "#"}
+          to={user ? `/profile/${user.id}` : false}
           size={32}
           showName
         />

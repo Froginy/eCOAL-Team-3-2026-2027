@@ -48,9 +48,13 @@ const EditIcon = () => (
   </svg>
 );
 
+const _dicesCache = {};
+
 export default function DiceGrid({ userId, isOwnProfile, refreshKey }) {
-  const [dices, setDices] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cacheKey = userId ?? "me";
+  const isRefresh = refreshKey > 0;
+  const [dices, setDices] = useState(!isRefresh && _dicesCache[cacheKey] ? _dicesCache[cacheKey] : []);
+  const [loading, setLoading] = useState(isRefresh || !_dicesCache[cacheKey]);
   const [menuOpenId, setMenuOpenId] = useState(null);
   const [editDice, setEditDice] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -86,7 +90,10 @@ export default function DiceGrid({ userId, isOwnProfile, refreshKey }) {
           headers,
         });
 
-        if (!cancelled) setDices(res.data.data);
+        if (!cancelled) {
+          _dicesCache[cacheKey] = res.data.data;
+          setDices(res.data.data);
+        }
       } catch {
         if (!cancelled) setDices([]);
       } finally {
@@ -96,14 +103,10 @@ export default function DiceGrid({ userId, isOwnProfile, refreshKey }) {
 
     fetchDices();
 
-    console.log(dices);
     return () => {
       cancelled = true;
     };
   }, [userId, refreshKey]);
-  useEffect(() => {
-    console.log("dices", dices);
-  }, [dices]);
   const handleDelete = async () => {
     if (!deleteTarget) return;
     const api_url = import.meta.env.VITE_API_URL;
@@ -122,7 +125,13 @@ export default function DiceGrid({ userId, isOwnProfile, refreshKey }) {
     setDeleteTarget(null);
   };
 
-  if (loading) return <div className="dice-grid">Loading…</div>;
+  if (loading) return (
+    <div className="flex flex-col items-center gap-4 pb-24 w-full">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="w-full max-w-sm rounded-3xl bg-black/5 animate-pulse" style={{ height: 420 }} />
+      ))}
+    </div>
+  );
   if (!dices.length) return <div className="dice-grid">No dices yet.</div>;
 
   return (

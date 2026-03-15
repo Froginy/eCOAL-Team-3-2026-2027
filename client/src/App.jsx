@@ -8,8 +8,10 @@ import Register from "./components/auth/register";
 import Navbar from "./components/Navbar/Navbar";
 import { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
+import axios from "axios";
 import logo from "./assets/logo.svg";
 import dice1 from "./assets/dice1.svg";
+import { useAuth } from "./context/AuthContext";
 import "./App.css";
 
 function SplashScreen({ onDone }) {
@@ -103,14 +105,30 @@ function SplashScreen({ onDone }) {
 }
 
 function App() {
-  const [ready, setReady] = useState(false);
+  const { isLoading: authLoading } = useAuth();
+  const [animDone, setAnimDone] = useState(false);
+  const [homeCards, setHomeCards] = useState(null);
+  const [cardsReady, setCardsReady] = useState(false);
+
+  const ready = animDone && cardsReady && !authLoading;
+
+  useEffect(() => {
+    const api_url = import.meta.env.VITE_API_URL;
+    axios.get(`${api_url}/dices`)
+      .then(res => {
+        const items = res.data?.data ?? [];
+        setHomeCards(items);
+      })
+      .catch(() => setHomeCards([]))
+      .finally(() => setCardsReady(true));
+  }, []);
 
   return (
     <BrowserRouter>
-      {!ready && <SplashScreen onDone={() => setReady(true)} />}
+      {!ready && <SplashScreen onDone={() => setAnimDone(true)} />}
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Home initialCards={homeCards} />} />
         <Route path="/feed" element={<Feed />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/profile" element={<Profile />} />

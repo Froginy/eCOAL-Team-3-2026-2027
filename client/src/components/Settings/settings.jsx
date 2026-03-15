@@ -232,13 +232,7 @@ function Settings() {
     setTimeout(() => navigate("/login", { replace: true }), 1000);
   };
 
-  if (loading) {
-    return (
-      <div className="settings-mobile-container">
-        <div className="loading-state">Loading...</div>
-      </div>
-    );
-  }
+  if (loading) return null;
 
   return (
     <div className="bg-white w-screen h-screen flex justify-center items-center">
